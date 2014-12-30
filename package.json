@@ -13,8 +13,7 @@
     "json3": "^3.3.2"
   },
   "devDependencies": {
-    "mocha": "*",
-    "should": "*"
+    "mocha": "*"
   },
   "main": "index"
 }
