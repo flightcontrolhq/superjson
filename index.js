@@ -1,3 +1,7 @@
+/**
+ * Module Dependencies
+ */
+
 var type = require('component-type');
 var isArray = Array.isArray;
 var json = require('json3');
