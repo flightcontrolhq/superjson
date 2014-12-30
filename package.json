@@ -1,0 +1,14 @@
+{
+  "name": "superjson",
+  "version": "0.0.1",
+  "description": "extends JSON.stringify and JSON.parse to support additional JS types (Dates, RegExps, Functions, etc.)",
+  "keywords": [],
+  "author": "Matthew Mueller <matt@lapwinglabs.com>",
+  "repository": { "type": "git", "url": "git://github.com/lapwinglabs/superjson.git" },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "main": "index"
+}
