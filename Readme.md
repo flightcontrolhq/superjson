@@ -3,6 +3,12 @@
 
   Extends JSON.stringify and JSON.parse to support additional JS types (Dates, RegExps, Functions, etc)
 
+## Installation
+
+```
+npm install superjson
+```
+
 ## Goal
 
   The goal of this project is to properly serialize and deserialize JSON structures. It'd be nice if this
