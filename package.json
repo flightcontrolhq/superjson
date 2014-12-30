@@ -9,6 +9,7 @@
     "url": "git://github.com/lapwinglabs/superjson.git"
   },
   "dependencies": {
+    "acorn": "^0.11.0",
     "component-type": "^1.1.0",
     "json3": "^3.3.2"
   },

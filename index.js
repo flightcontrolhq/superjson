@@ -3,6 +3,7 @@
  */
 
 var type = require('component-type');
+var acorn = require('acorn');
 var isArray = Array.isArray;
 var json = require('json3');
 
@@ -78,7 +79,7 @@ function revive(k, v) {
   if ('string' != type(v)) return v;
   if (rdate.test(v)) return stod(v);
   if ('/' == v[0] && rregexp.test(v)) return stor(v);
-  if ('function' == v.slice(0, 8) && '}' == v[v.length - 1]) return stof(v);
+  if ('function' == v.slice(0, 8) && '}' == v[v.length - 1] && isfn(v)) return stof(v);
   return v;
 }
 
@@ -117,4 +118,23 @@ function stor(str) {
 
 function stof(str) {
   return new Function('return ' + str)();
+}
+
+/**
+ * Parse the AST to ensure function & prevent XSS,
+ * otherwise throw.
+ *
+ * https://github.com/lapwinglabs/superjson/issues/3
+ *
+ * @param {String} str
+ * @return {Boolean}
+ */
+
+function isfn(str) {
+  try {
+    var obj = acorn.parse('(' + str + ')');
+    return obj.body[0].expression.type == 'FunctionExpression';
+  } catch (e) {
+    throw new SyntaxError('"' + str + '" is not a function')
+  }
 }
