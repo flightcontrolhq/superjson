@@ -26,11 +26,11 @@ var str = json.stringify({
   fn: function foo() {}
 })
 
-json.parse(str)
+var obj = json.parse(str)
 {
   date: date, // date instance
   regexp: /[abc]d/, // regexp instance
-  fn: [Function foo] // foo function
+  fn: function foo() {} // foo function
 }
 ```
 
