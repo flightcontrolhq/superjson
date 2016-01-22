@@ -40,4 +40,10 @@ describe('superjson', function() {
     assert.equal(json.stringify('hi'), 'hi')
     assert.equal(json.stringify(3), 3)
   })
+
+  it('should parse literals', function() {
+    assert.equal(json.parse('undefined'), undefined)
+    assert.equal(json.parse('hi'), 'hi')
+    assert.equal(json.parse(3), 3)
+  })
 })

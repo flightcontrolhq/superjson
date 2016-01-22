@@ -29,7 +29,7 @@ var rregexp = /^\/|\/([gimy]*)$/g;
 
 var stringify = exports.stringify = function (obj, replacer, space) {
   var str = json.stringify(obj, function(k, v) {
-    return replacer ? replacer(k, coerce(k, v)) : coerce(k, v);
+    return replacer ? replacer(k, coerce(v)) : coerce(v);
   }, space);
 
   return str[0] === '"' && str[str.length - 1] === '"'
@@ -49,20 +49,20 @@ var stringify = exports.stringify = function (obj, replacer, space) {
  */
 
 var parse = exports.parse = function(str, reviver) {
+  if (str[0] !== '[' && str[0] !== '{') return revive(str)
   return json.parse(str, function(k, v) {
-    return reviver ? reviver(k, revive(k, v)) : revive(k, v);
+    return reviver ? reviver(k, revive(v)) : revive(v);
   });
 }
 
 /**
  * Coerce object to a string
  *
- * @param {String} k
  * @param {Mixed} v
  * @return {String}
  */
 
-function coerce(k, v) {
+function coerce(v) {
   switch(type(v)) {
     case 'date': return v.toISOString();
     case 'regexp': return v.toString();
@@ -75,12 +75,11 @@ function coerce(k, v) {
 /**
  * Revive string to an object
  *
- * @param {String} k
  * @param {Mixed} v
  * @return {Mixed}
  */
 
-function revive(k, v) {
+function revive(v) {
   if ('string' != type(v)) return v;
   if (rdate.test(v)) return stod(v);
   if ('undefined' === v) return undefined;
