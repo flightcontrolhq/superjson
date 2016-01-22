@@ -28,9 +28,13 @@ var rregexp = /^\/|\/([gimy]*)$/g;
  */
 
 var stringify = exports.stringify = function (obj, replacer, space) {
-  return json.stringify(obj, function(k, v) {
+  var str = json.stringify(obj, function(k, v) {
     return replacer ? replacer(k, coerce(k, v)) : coerce(k, v);
   }, space);
+
+  return str[0] === '"' && str[str.length - 1] === '"'
+    ? str.slice(1, -1)
+    : str
 }
 
 /**
@@ -63,6 +67,7 @@ function coerce(k, v) {
     case 'date': return v.toISOString();
     case 'regexp': return v.toString();
     case 'function': return v.toString();
+    case 'undefined': return 'undefined';
     default: return v;
   }
 }
@@ -78,6 +83,7 @@ function coerce(k, v) {
 function revive(k, v) {
   if ('string' != type(v)) return v;
   if (rdate.test(v)) return stod(v);
+  if ('undefined' === v) return undefined;
   if ('/' == v[0] && rregexp.test(v)) return stor(v);
   if ('function' == v.slice(0, 8) && '}' == v[v.length - 1] && isfn(v)) return stof(v);
   return v;
