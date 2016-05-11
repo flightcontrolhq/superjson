@@ -13,7 +13,7 @@ var json = require('json3');
 
 // https://github.com/moment/moment/blob/583f380740468db843154df31fa72647c6173d17/moment.js#L72
 var rdate = /^\s*(?:[+-]\d{6}|\d{4})-(?:(\d\d-\d\d)|(W\d\d$)|(W\d\d-\d)|(\d\d\d))((T| )(\d\d(:\d\d(:\d\d(\.\d+)?)?)?)?([\+\-]\d\d(?::?\d\d)?|\s*Z)?)?$/;
-var rregexp = /^\/|\/([gimy]*)$/g;
+var rregexp = /^\/([^\/]+)\/([gimy]*)$/;
 
 /**
  * Stringify
@@ -109,9 +109,12 @@ function stod(str) {
  */
 
 function stor(str) {
-  var i = str.lastIndexOf('/');
-  var flags = str.slice(i + 1);
-  return new RegExp(str.slice(1, i), flags);
+  var m = str.match(rregexp)
+  try {
+    return new RegExp(m[1], m[2])
+  } catch (e) {
+    return str
+  }
 }
 
 /**
