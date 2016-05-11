@@ -1,6 +1,6 @@
 {
   "name": "superjson",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "extends JSON.stringify and JSON.parse to support additional JS types (Dates, RegExps, Functions, etc.)",
   "keywords": [],
   "author": "Matthew Mueller <matt@lapwinglabs.com>",
