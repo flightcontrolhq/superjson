@@ -2,7 +2,7 @@ import is from '@sindresorhus/is';
 import { JSONType, JSONValue } from '../types';
 
 export const transformValue = (
-  value: undefined | bigint | Date
+  value: undefined | bigint | Date | number
 ): { value: JSONValue; type: JSONType } => {
   if (is.undefined(value)) {
     return {
@@ -19,6 +19,11 @@ export const transformValue = (
       value: value.toISOString(),
       type: 'Date',
     };
+  } else if (is.nan(value) || is.infinite(value)) {
+    return {
+      value: value.toString(),
+      type: 'number',
+    };
   }
 
   throw new Error('invalid input');
@@ -32,6 +37,8 @@ export const untransformValue = (json: JSONValue, type: JSONType) => {
       return undefined;
     case 'Date':
       return new Date(json as string);
+    case 'number':
+      return Number(json);
     default:
       throw new Error('invalid input');
   }

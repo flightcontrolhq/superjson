@@ -31,4 +31,4 @@ export interface SuperJSONResult {
   meta: null | JSONType | Record<string, JSONType>;
 }
 
-export type JSONType = 'undefined' | 'bigint' | 'Date';
+export type JSONType = 'undefined' | 'bigint' | 'Date' | 'number';

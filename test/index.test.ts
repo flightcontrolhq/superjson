@@ -58,6 +58,24 @@ describe('serialize works for', () => {
     });
   });
 
+  it('NaN', () => {
+    expect(serialize(NaN)).toStrictEqual({ json: 'NaN', meta: 'number' });
+  });
+
+  it('Infinity', () => {
+    expect(serialize(Infinity)).toStrictEqual({
+      json: 'Infinity',
+      meta: 'number',
+    });
+  });
+
+  it('-Infinity', () => {
+    expect(serialize(-Infinity)).toStrictEqual({
+      json: '-Infinity',
+      meta: 'number',
+    });
+  });
+
   /*
     Basic objects
   */
@@ -146,6 +164,33 @@ describe('deserialize works for', () => {
         meta: 'bigint',
       })
     ).toStrictEqual(BigInt(10));
+  });
+
+  it('NaN', () => {
+    expect(
+      deserialize({
+        json: 'NaN',
+        meta: 'number',
+      })
+    ).toStrictEqual(NaN);
+  });
+
+  it('Infinity', () => {
+    expect(
+      deserialize({
+        json: 'Infinity',
+        meta: 'number',
+      })
+    ).toStrictEqual(Infinity);
+  });
+
+  it('-Infinity', () => {
+    expect(
+      deserialize({
+        json: '-Infinity',
+        meta: 'number',
+      })
+    ).toStrictEqual(-Infinity);
   });
 
   /*
