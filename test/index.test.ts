@@ -170,12 +170,18 @@ describe('deserialize works for', () => {
           a: 'a',
           b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
           'x.y': 'undefined',
+          '1\\.2': 'undefined',
         },
-        meta: { 'b.d.0': 'undefined', 'x\\.y': 'undefined' },
+        meta: {
+          'b.d.0': 'undefined',
+          'x\\.y': 'undefined',
+          '1\\\\.2': 'undefined',
+        },
       })
     ).toStrictEqual({
       a: 'a',
       b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
+      '1\\.2': undefined,
       'x.y': undefined,
     });
   });

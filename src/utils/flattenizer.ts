@@ -1,7 +1,6 @@
 // based on https://github.com/sahellebusch/flattenizer/blob/master/src/flattenizer.ts
 
 type Nullable<A> = A | null | undefined;
-type Delimiter = string;
 
 interface IFlattened<P> {
   [path: string]: P;
@@ -11,9 +10,12 @@ interface IUnflattened<P> {
   [key: string]: P | P[] | IUnflattened<P>;
 }
 
+const escapeKey = (key: string): string => {
+  return key.replace(/\./g, '\\.');
+};
+
 export const flatten = <A extends IFlattened<any>, B extends IUnflattened<any>>(
-  unflattened: Nullable<B>,
-  delimiter: Delimiter = '.'
+  unflattened: Nullable<B>
 ): Nullable<A> => {
   if (unflattened === undefined) {
     return undefined;
@@ -27,22 +29,18 @@ export const flatten = <A extends IFlattened<any>, B extends IUnflattened<any>>(
     throw new TypeError('unflattened is not an object');
   }
 
-  if (typeof delimiter !== 'string') {
-    throw new TypeError('delimiter must be a string');
-  }
-
   const flattened: A = Object.keys(unflattened).reduce((acc, key) => {
     const value = unflattened[key];
     if (typeof value === 'object' && value !== null) {
-      const flatObject = flatten(value, delimiter);
+      const flatObject = flatten(value);
 
       for (const subKey in flatObject) {
         //@ts-expect-error
-        acc[`${key}${delimiter}${subKey}`] = flatObject[subKey];
+        acc[`${escapeKey(key)}.${subKey}`] = flatObject[subKey];
       }
     } else {
       //@ts-expect-error
-      acc[key] = value;
+      acc[escapeKey(key)] = value;
     }
 
     return acc;
@@ -51,13 +49,14 @@ export const flatten = <A extends IFlattened<any>, B extends IUnflattened<any>>(
   return flattened;
 };
 
+export const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
+
 const explodeProperty = (
   currUnflattened: object,
   key: string,
-  flattenedObj: object,
-  delimiter: string
+  flattenedObj: object
 ): void => {
-  const keys = key.split(delimiter);
+  const keys = key.split(/(?<!\\)\./g).map(unescapeKey);
   // @ts-expect-error
   const value = flattenedObj[key];
   const lastKeyIndex = keys.length - 1;
@@ -84,8 +83,7 @@ export const unflatten = <
   A extends IFlattened<any>,
   B extends IUnflattened<any>
 >(
-  flattened: Nullable<A>,
-  delimiter: Delimiter = '.'
+  flattened: Nullable<A>
 ): Nullable<B> => {
   if (flattened === undefined) {
     return undefined;
@@ -98,12 +96,8 @@ export const unflatten = <
     throw new TypeError('flattened is not an object');
   }
 
-  if (typeof delimiter !== 'string') {
-    throw new TypeError('delimiter must be a string');
-  }
-
   const unflattened: B = Object.keys(flattened).reduce((acc, key) => {
-    explodeProperty(acc, key, flattened, delimiter);
+    explodeProperty(acc, key, flattened);
     return acc;
   }, {} as B);
 
