@@ -11,7 +11,7 @@ export const transformValue = (
     };
   } else if (is.bigint(value)) {
     return {
-      value: Number(value),
+      value: value.toString(),
       type: 'bigint',
     };
   } else if (is.date(value)) {
