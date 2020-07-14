@@ -69,22 +69,37 @@ describe('serialize works for', () => {
   });
 
   /*
-    Complex
+    Advanced/edge cases
   */
-  it('complex tree', () => {
+  it('deep tree', () => {
     expect(
       serialize({
         a: 'a',
         b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
-        'x.y': undefined,
       })
     ).toStrictEqual({
       json: {
         a: 'a',
         b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
-        'x.y': 'undefined',
       },
-      meta: { 'b.d.0': 'undefined', 'x\\.y': 'undefined' },
+      meta: { 'b.d.0': 'undefined' },
+    });
+  });
+
+  it('paths with dots and escapes', () => {
+    expect(
+      serialize({
+        a: 'a',
+        'x.y': undefined,
+        '1\\.2': undefined,
+      })
+    ).toStrictEqual({
+      json: {
+        a: 'a',
+        'x.y': 'undefined',
+        '1\\.2': 'undefined',
+      },
+      meta: { 'x\\.y': 'undefined', '1\\\\.2': 'undefined' },
     });
   });
 });
@@ -170,28 +185,37 @@ describe('deserialize works for', () => {
   });
 
   /*
-    Complex
+    Advanced/edge cases
   */
-  it('complex tree', () => {
+  it('deep tree', () => {
     expect(
       deserialize({
         json: {
           a: 'a',
           b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
-          'x.y': 'undefined',
-          '1\\.2': 'undefined',
         },
-        meta: {
-          'b.d.0': 'undefined',
-          'x\\.y': 'undefined',
-          '1\\\\.2': 'undefined',
-        },
+        meta: { 'b.d.0': 'undefined' },
       })
     ).toStrictEqual({
       a: 'a',
       b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
-      '1\\.2': undefined,
+    });
+  });
+
+  it('paths with dots and escapes', () => {
+    expect(
+      deserialize({
+        json: {
+          a: 'a',
+          'x.y': 'undefined',
+          '1\\.2': 'undefined',
+        },
+        meta: { 'x\\.y': 'undefined', '1\\\\.2': 'undefined' },
+      })
+    ).toStrictEqual({
+      a: 'a',
       'x.y': undefined,
+      '1\\.2': undefined,
     });
   });
 });
