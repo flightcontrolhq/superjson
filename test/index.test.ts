@@ -148,6 +148,15 @@ describe('deserialize works for', () => {
     ).toStrictEqual(BigInt(10));
   });
 
+  it('big bigint', () => {
+    expect(
+      deserialize({
+        json: (BigInt(Number.MAX_VALUE) + BigInt(10)).toString(),
+        meta: 'bigint',
+      })
+    ).toStrictEqual(BigInt(Number.MAX_VALUE) + BigInt(10));
+  });
+
   /*
     Basic objects
   */
