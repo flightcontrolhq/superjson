@@ -57,21 +57,14 @@ export const deserialize = ({
     return untransformValue(json, meta);
   }
 
-  // const result: JSONValue = {};
-
   if (is.array(json) || is.plainObject(json)) {
     const flattened = flatten(json) as { [key: string]: any };
 
-    // const output = Object.keys(json).map(key => {
-    //   const;
-    // });
-
-    json = unflatten(json) as { [key: string]: any };
-    if (is.array(json)) {
-      json = Array.from(Object.values(json));
+    for (const [key, metaForKey] of Object.entries(meta)) {
+      flattened[key] = untransformValue(flattened[key], metaForKey);
     }
 
-    console.log(flattened);
+    return unflatten(flattened);
   }
 
   throw new Error('invalid input');
