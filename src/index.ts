@@ -7,43 +7,36 @@ import { isSerializable } from './utils/isSerializable';
 import { transformValue } from './utils/transformValue';
 
 export const serialize = (input: SuperJSONValue) => {
-  let json: JSONValue;
-  let meta: JSONValue;
-
   if (isJSONPrimitive(input)) {
-    json = input;
-    meta = null;
-
-    return { json, meta };
+    return { json: input, meta: null };
   }
 
   if (isSerializable(input)) {
-    json = transformValue(input).value;
-    meta = transformValue(input).type;
+    const { value, type } = transformValue(input);
 
-    return { json, meta };
+    return { json: value, meta: type };
   }
 
   if (is.array(input) || is.plainObject(input)) {
     const flattened = flatten(input) as { [key: string]: any };
-    json = {};
-    meta = {};
+    let json: JSONValue = {};
+    let meta: JSONValue = {};
 
-    for (let i = 0, len = Object.keys(flattened).length; i < len; i++) {
-      const key = Object.keys(flattened)[i];
-      const value = Object.values(flattened)[i];
-
+    for (const [key, value] of Object.entries(flattened)) {
       if (isJSONPrimitive(value)) {
         json[key] = value;
       } else {
-        json[key] = transformValue(value).value;
-        meta[key] = transformValue(value).type;
+        const { value: transformedValue, type } = transformValue(value);
+        json[key] = transformedValue;
+        meta[key] = type;
       }
     }
 
-    json = is.array(input)
-      ? Array.from(Object.values(unflatten(json) as { [key: string]: any }))
-      : (unflatten(json) as { [key: string]: any });
+    json = unflatten(json) as { [key: string]: any };
+    if (is.array(input)) {
+      json = Array.from(Object.values(json));
+    }
+
     meta = is.nonEmptyObject(meta) ? meta : null;
 
     return { json, meta };
