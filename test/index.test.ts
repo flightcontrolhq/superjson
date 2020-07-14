@@ -76,10 +76,15 @@ describe('serialize works for', () => {
       serialize({
         a: 'a',
         b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
+        'x.y': undefined,
       })
     ).toStrictEqual({
-      json: { a: 'a', b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] } },
-      meta: { 'b.d.0': 'undefined' },
+      json: {
+        a: 'a',
+        b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
+        'x.y': 'undefined',
+      },
+      meta: { 'b.d.0': 'undefined', 'x\\.y': 'undefined' },
     });
   });
 });
@@ -164,12 +169,14 @@ describe('deserialize works for', () => {
         json: {
           a: 'a',
           b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
+          'x.y': 'undefined',
         },
-        meta: { 'b.d.0': 'undefined' },
+        meta: { 'b.d.0': 'undefined', 'x\\.y': 'undefined' },
       })
     ).toStrictEqual({
       a: 'a',
       b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
+      'x.y': undefined,
     });
   });
 });
