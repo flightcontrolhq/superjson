@@ -6,7 +6,7 @@ export const transformValue = (
 ): { value: JSONValue; type: JSONType } => {
   if (is.undefined(value)) {
     return {
-      value: 'undefined',
+      value: undefined,
       type: 'undefined',
     };
   } else if (is.bigint(value)) {

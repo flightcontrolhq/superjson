@@ -39,7 +39,7 @@ describe('serialize works for', () => {
   */
   it('undefined', () => {
     expect(serialize(undefined)).toStrictEqual({
-      json: 'undefined',
+      json: undefined,
       meta: 'undefined',
     });
   });
@@ -94,7 +94,7 @@ describe('serialize works for', () => {
     ).toStrictEqual({
       json: {
         a: 'a',
-        b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
+        b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
       },
       meta: { 'b.d.0': 'undefined' },
     });
@@ -104,16 +104,16 @@ describe('serialize works for', () => {
     expect(
       serialize({
         a: 'a',
-        'x.y': undefined,
-        '1\\.2': undefined,
+        'x.y': new Set([1, 2]),
+        '1\\.2': new Set([3, 4]),
       })
     ).toStrictEqual({
       json: {
         a: 'a',
-        'x.y': 'undefined',
-        '1\\.2': 'undefined',
+        'x.y': [],
+        '1\\.2': [],
       },
-      meta: { 'x\\.y': 'undefined', '1\\\\.2': 'undefined' },
+      meta: { 'x\\.y': 'set', '1\\\\.2': 'set' },
     });
   });
 });
@@ -239,15 +239,15 @@ describe('deserialize works for', () => {
       deserialize({
         json: {
           a: 'a',
-          'x.y': 'undefined',
-          '1\\.2': 'undefined',
+          'x.y': [1, 2],
+          '1\\.2': [2, 3],
         },
-        meta: { 'x\\.y': 'undefined', '1\\\\.2': 'undefined' },
+        meta: { 'x\\.y': 'set', '1\\\\.2': 'set' },
       })
     ).toStrictEqual({
       a: 'a',
-      'x.y': undefined,
-      '1\\.2': undefined,
+      'x.y': new Set([1, 2]),
+      '1\\.2': new Set([2, 3]),
     });
   });
 });

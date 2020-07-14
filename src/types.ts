@@ -4,6 +4,7 @@ export type JSONValue =
   | boolean
   | JSONArray
   | JSONObject
+  | undefined // undefined is equal to "don't include in JSON"
   | null;
 
 export interface JSONArray extends Array<JSONValue> {}
