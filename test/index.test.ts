@@ -39,7 +39,7 @@ describe('serialize works for', () => {
   */
   it('undefined', () => {
     expect(serialize(undefined)).toStrictEqual({
-      json: 'undefined',
+      json: undefined,
       meta: 'undefined',
     });
   });
@@ -59,20 +59,20 @@ describe('serialize works for', () => {
   });
 
   it('NaN', () => {
-    expect(serialize(NaN)).toStrictEqual({ json: 'NaN', meta: 'number' });
+    expect(serialize(NaN)).toStrictEqual({ json: undefined, meta: 'NaN' });
   });
 
   it('Infinity', () => {
     expect(serialize(Infinity)).toStrictEqual({
-      json: 'Infinity',
-      meta: 'number',
+      json: undefined,
+      meta: 'Infinity',
     });
   });
 
   it('-Infinity', () => {
     expect(serialize(-Infinity)).toStrictEqual({
-      json: '-Infinity',
-      meta: 'number',
+      json: undefined,
+      meta: '-Infinity',
     });
   });
 
@@ -86,23 +86,52 @@ describe('serialize works for', () => {
     });
   });
 
+  it('sets', () => {
+    expect(serialize(new Set([1, 1, 2]))).toStrictEqual({
+      json: [1, 2],
+      meta: 'set',
+    });
+  });
+
+  it('regexp', () => {
+    expect(serialize(/\./g)).toStrictEqual({
+      json: '/\\./g',
+      meta: 'regexp',
+    });
+  });
+
   /*
-    Complex
+    Advanced/edge cases
   */
-  it('complex tree', () => {
+  it('deep tree', () => {
     expect(
       serialize({
         a: 'a',
         b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
-        'x.y': undefined,
       })
     ).toStrictEqual({
       json: {
         a: 'a',
-        b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
-        'x.y': 'undefined',
+        b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
       },
-      meta: { 'b.d.0': 'undefined', 'x\\.y': 'undefined' },
+      meta: { 'b.d.0': 'undefined' },
+    });
+  });
+
+  it('paths with dots and escapes', () => {
+    expect(
+      serialize({
+        a: 'a',
+        'x.y': new Set([1, 2]),
+        '1\\.2': new Set([3, 4]),
+      })
+    ).toStrictEqual({
+      json: {
+        a: 'a',
+        'x.y': [],
+        '1\\.2': [],
+      },
+      meta: { 'x\\.y': 'set', '1\\\\.2': 'set' },
     });
   });
 });
@@ -157,6 +186,24 @@ describe('deserialize works for', () => {
     ).toStrictEqual(undefined);
   });
 
+  it('sets', () => {
+    expect(
+      deserialize({
+        json: [1, 2],
+        meta: 'set',
+      })
+    ).toStrictEqual(new Set([1, 2]));
+  });
+
+  it('regexp', () => {
+    expect(
+      deserialize({
+        json: '/\\./g',
+        meta: 'regexp',
+      })
+    ).toStrictEqual(/\./g);
+  });
+
   it('bigint', () => {
     expect(
       deserialize({
@@ -178,8 +225,8 @@ describe('deserialize works for', () => {
   it('NaN', () => {
     expect(
       deserialize({
-        json: 'NaN',
-        meta: 'number',
+        json: undefined,
+        meta: 'NaN',
       })
     ).toStrictEqual(NaN);
   });
@@ -187,8 +234,8 @@ describe('deserialize works for', () => {
   it('Infinity', () => {
     expect(
       deserialize({
-        json: 'Infinity',
-        meta: 'number',
+        json: undefined,
+        meta: 'Infinity',
       })
     ).toStrictEqual(Infinity);
   });
@@ -196,8 +243,8 @@ describe('deserialize works for', () => {
   it('-Infinity', () => {
     expect(
       deserialize({
-        json: '-Infinity',
-        meta: 'number',
+        json: undefined,
+        meta: '-Infinity',
       })
     ).toStrictEqual(-Infinity);
   });
@@ -215,28 +262,37 @@ describe('deserialize works for', () => {
   });
 
   /*
-    Complex
+    Advanced/edge cases
   */
-  it('complex tree', () => {
+  it('deep tree', () => {
     expect(
       deserialize({
         json: {
           a: 'a',
           b: { c: 'c', d: ['undefined', 2, 3, ['a', 'b', 'c']] },
-          'x.y': 'undefined',
-          '1\\.2': 'undefined',
         },
-        meta: {
-          'b.d.0': 'undefined',
-          'x\\.y': 'undefined',
-          '1\\\\.2': 'undefined',
-        },
+        meta: { 'b.d.0': 'undefined' },
       })
     ).toStrictEqual({
       a: 'a',
       b: { c: 'c', d: [undefined, 2, 3, ['a', 'b', 'c']] },
-      '1\\.2': undefined,
-      'x.y': undefined,
+    });
+  });
+
+  it('paths with dots and escapes', () => {
+    expect(
+      deserialize({
+        json: {
+          a: 'a',
+          'x.y': [1, 2],
+          '1\\.2': [2, 3],
+        },
+        meta: { 'x\\.y': 'set', '1\\\\.2': 'set' },
+      })
+    ).toStrictEqual({
+      a: 'a',
+      'x.y': new Set([1, 2]),
+      '1\\.2': new Set([2, 3]),
     });
   });
 });
