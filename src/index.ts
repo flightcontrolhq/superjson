@@ -4,7 +4,7 @@ import { JSONValue, SuperJSONValue, JSONType, SuperJSONResult } from './types';
 import { flatten, unflatten } from './utils/flattenizer';
 import { isJSONPrimitive } from './utils/isJSONPrimitive';
 import { isSerializable } from './utils/isSerializable';
-import { transformValue, untransformValue } from './utils/transformValue';
+import { transformValue, untransformValue } from './utils/transformer';
 
 export const serialize = (input: SuperJSONValue): SuperJSONResult => {
   if (isJSONPrimitive(input)) {
