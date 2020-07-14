@@ -51,7 +51,7 @@ describe('serialize works for', () => {
     });
   });
 
-  it('bigint', () => {
+  it('big bigint', () => {
     expect(serialize(BigInt(Number.MAX_VALUE) + BigInt(10))).toStrictEqual({
       json: (BigInt(Number.MAX_VALUE) + BigInt(10)).toString(),
       meta: 'bigint',
