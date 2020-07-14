@@ -68,6 +68,13 @@ describe('serialize works for', () => {
     });
   });
 
+  it('sets', () => {
+    expect(serialize(new Set([1, 1, 2]))).toStrictEqual({
+      json: [1, 2],
+      meta: 'set',
+    });
+  });
+
   /*
     Complex
   */
@@ -137,6 +144,15 @@ describe('deserialize works for', () => {
         meta: 'undefined',
       })
     ).toStrictEqual(undefined);
+  });
+
+  it('sets', () => {
+    expect(
+      deserialize({
+        json: [1, 2],
+        meta: 'set',
+      })
+    ).toStrictEqual(new Set([1, 2]));
   });
 
   it('bigint', () => {

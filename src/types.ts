@@ -14,6 +14,7 @@ export interface JSONObject {
 
 export type SuperJSONValue =
   | JSONValue
+  | Set<any>
   | undefined
   | bigint
   | Date
@@ -31,4 +32,4 @@ export interface SuperJSONResult {
   meta: null | JSONType | Record<string, JSONType>;
 }
 
-export type JSONType = 'undefined' | 'bigint' | 'Date';
+export type JSONType = 'undefined' | 'bigint' | 'Date' | 'set';
