@@ -25,3 +25,10 @@ export interface SuperJSONArray extends Array<SuperJSONValue> {}
 export interface SuperJSONObject {
   [key: string]: SuperJSONValue;
 }
+
+export interface SuperJSONResult {
+  json: JSONValue;
+  meta: null | JSONType | Record<string, JSONType>;
+}
+
+export type JSONType = 'undefined' | 'bigint' | 'Date';

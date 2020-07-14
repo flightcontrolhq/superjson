@@ -1,12 +1,12 @@
 import is from '@sindresorhus/is';
 
-import { JSONValue, SuperJSONValue } from './types';
+import { JSONValue, SuperJSONValue, JSONType, SuperJSONResult } from './types';
 import { flatten, unflatten } from './utils/flattenizer';
 import { isJSONPrimitive } from './utils/isJSONPrimitive';
 import { isSerializable } from './utils/isSerializable';
-import { transformValue } from './utils/transformValue';
+import { transformValue, untransformValue } from './utils/transformValue';
 
-export const serialize = (input: SuperJSONValue) => {
+export const serialize = (input: SuperJSONValue): SuperJSONResult => {
   if (isJSONPrimitive(input)) {
     return { json: input, meta: null };
   }
@@ -20,7 +20,7 @@ export const serialize = (input: SuperJSONValue) => {
   if (is.array(input) || is.plainObject(input)) {
     const flattened = flatten(input) as { [key: string]: any };
     let json: JSONValue = {};
-    let meta: JSONValue = {};
+    let meta: Record<string, JSONType> = {};
 
     for (const [key, value] of Object.entries(flattened)) {
       if (isJSONPrimitive(value)) {
@@ -37,9 +37,9 @@ export const serialize = (input: SuperJSONValue) => {
       json = Array.from(Object.values(json));
     }
 
-    meta = is.nonEmptyObject(meta) ? meta : null;
+    const metaOrNullIfEmpty = is.nonEmptyObject(meta) ? meta : null;
 
-    return { json, meta };
+    return { json, meta: metaOrNullIfEmpty };
   }
 
   throw new Error('invalid input');
@@ -48,13 +48,16 @@ export const serialize = (input: SuperJSONValue) => {
 export const deserialize = ({
   json,
   meta,
-}: {
-  json: JSONValue;
-  meta: JSONValue;
-}) => {
+}: SuperJSONResult): SuperJSONValue => {
   if (is.null_(meta)) {
     return json;
   }
+
+  if (is.string(meta)) {
+    return untransformValue(json, meta);
+  }
+
+  // const result: JSONValue = {};
 
   if (is.array(json) || is.plainObject(json)) {
     const flattened = flatten(json) as { [key: string]: any };
@@ -62,6 +65,11 @@ export const deserialize = ({
     // const output = Object.keys(json).map(key => {
     //   const;
     // });
+
+    json = unflatten(json) as { [key: string]: any };
+    if (is.array(json)) {
+      json = Array.from(Object.values(json));
+    }
 
     console.log(flattened);
   }

@@ -1,6 +1,9 @@
 import is from '@sindresorhus/is';
+import { JSONType, JSONValue } from '../types';
 
-export const transformValue = (value: undefined | bigint | Date) => {
+export const transformValue = (
+  value: undefined | bigint | Date
+): { value: JSONValue; type: JSONType } => {
   if (is.undefined(value)) {
     return {
       value: 'undefined',
@@ -19,4 +22,17 @@ export const transformValue = (value: undefined | bigint | Date) => {
   }
 
   throw new Error('invalid input');
+};
+
+export const untransformValue = (json: JSONValue, type: JSONType) => {
+  switch (type) {
+    case 'bigint':
+      return BigInt(json);
+    case 'undefined':
+      return undefined;
+    case 'Date':
+      return new Date(json as string);
+    default:
+      throw new Error('invalid input');
+  }
 };
