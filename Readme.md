@@ -1,60 +1,58 @@
+<p align="center">
+  <img alt="superjson" src="./docs/superjson.png" width="300" />
+</p>
 
-# superjson
+<p align="center">
+  Safely work with dates, bigints, and more with this superset of JSON.
+</p>
 
-  Extends JSON.stringify and JSON.parse to support additional JS types (Dates, RegExps, Functions, etc)
+<p align="center">
+  <a href="https://www.npmjs.com/package/otion">
+    <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
+  </a>
+  <a href="https://lgtm.com/projects/g/blitz-js/superjson/context:javascript">
+    <img
+      alt="Language grade: JavaScript"
+      src="https://img.shields.io/lgtm/grade/javascript/g/blitz-js/superjson.svg?logo=lgtm&logoWidth=18"
+    />
+  </a>
+  <a href="https://github.com/blitz-js/superjson/actions">
+    <img
+      alt="CI"
+      src="https://github.com/blitz-js/superjson/workflows/CI/badge.svg"
+    />
+  </a>
+</p>
 
-## Installation
+## Backstory
 
-```
-npm install superjson
-```
+...
 
-## Goal
+## Key features
 
-  The goal of this project is to properly serialize and deserialize JSON structures. It'd be nice if this
-  was as fast as possible, but consistent data types in and out is more important. If it's impossible
-  to consistently serialize or deserialize an object, the library should throw.
+- 🍱 Reliable serialization and deserialization
+- 🔐 Type safety with autocompletion
+- 🐾 Negligible runtime footprint
+- 💫 Framework agnostic
 
 ## Example
 
 ```js
-var json = require('superjson');
+const input = {
+  normal: 'string',
+  timestamp: new Date(),
+};
 
-var str = json.stringify({
-  date: new Date(),
-  regexp: /[abc]d/,
-  fn: function foo() {}
-})
+const { json, meta } = serialize(input);
 
-var obj = json.parse(str)
-{
-  date: date, // date instance
-  regexp: /[abc]d/, // regexp instance
-  fn: function foo() {} // foo function
+/*
+json = {
+  normal: 'string',
+  timestamp: "2020-06-20T04:56:50.293Z",
 }
+
+meta = {
+  timestamp: 'Date',
+}
+*/
 ```
-
-## License
-
-(The MIT License)
-
-Copyright (c) 2014 Matthew Mueller &lt;matt@lapwinglabs.com&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
