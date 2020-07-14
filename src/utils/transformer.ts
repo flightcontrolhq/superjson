@@ -1,8 +1,8 @@
 import is from '@sindresorhus/is';
-import { JSONType, JSONValue } from '../types';
+import { JSONType, JSONValue, SerializableJSONValue } from '../types';
 
 export const transformValue = (
-  value: undefined | bigint | Date | Set<any>
+  value: SerializableJSONValue
 ): { value: JSONValue; type: JSONType } => {
   if (is.undefined(value)) {
     return {
@@ -24,6 +24,11 @@ export const transformValue = (
       value: Array.from(value) as any[],
       type: 'set',
     };
+  } else if (is.regExp(value)) {
+    return {
+      value: '' + value,
+      type: 'regexp',
+    };
   }
 
   throw new Error('invalid input');
@@ -39,6 +44,12 @@ export const untransformValue = (json: JSONValue, type: JSONType) => {
       return new Date(json as string);
     case 'set':
       return new Set(json as unknown[]);
+    case 'regexp': {
+      const regex = json as string;
+      const body = regex.slice(1, regex.lastIndexOf('/'));
+      const flags = regex.slice(regex.lastIndexOf('/') + 1);
+      return new RegExp(body, flags);
+    }
     default:
       throw new Error('invalid input');
   }

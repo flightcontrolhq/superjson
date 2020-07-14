@@ -75,6 +75,13 @@ describe('serialize works for', () => {
     });
   });
 
+  it('regexp', () => {
+    expect(serialize(/\./g)).toStrictEqual({
+      json: '/\\./g',
+      meta: 'regexp',
+    });
+  });
+
   /*
     Advanced/edge cases
   */
@@ -168,6 +175,15 @@ describe('deserialize works for', () => {
         meta: 'set',
       })
     ).toStrictEqual(new Set([1, 2]));
+  });
+
+  it('regexp', () => {
+    expect(
+      deserialize({
+        json: '/\\./g',
+        meta: 'regexp',
+      })
+    ).toStrictEqual(/\./g);
   });
 
   it('bigint', () => {

@@ -12,12 +12,16 @@ export interface JSONObject {
   [key: string]: JSONValue;
 }
 
-export type SuperJSONValue =
-  | JSONValue
+export type SerializableJSONValue =
   | Set<any>
   | undefined
   | bigint
   | Date
+  | RegExp;
+
+export type SuperJSONValue =
+  | JSONValue
+  | SerializableJSONValue
   | SuperJSONArray
   | SuperJSONObject;
 
@@ -32,4 +36,4 @@ export interface SuperJSONResult {
   meta: null | JSONType | Record<string, JSONType>;
 }
 
-export type JSONType = 'undefined' | 'bigint' | 'Date' | 'set';
+export type JSONType = 'undefined' | 'bigint' | 'Date' | 'set' | 'regexp';
