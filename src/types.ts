@@ -37,4 +37,12 @@ export interface SuperJSONResult {
   meta: null | JSONType | Record<string, JSONType>;
 }
 
-export type JSONType = 'undefined' | 'bigint' | 'Date' | 'set' | 'regexp';
+export type JSONType =
+  | 'undefined'
+  | 'bigint'
+  | 'Date'
+  | 'NaN'
+  | 'Infinity'
+  | '-Infinity'
+  | 'set'
+  | 'regexp';

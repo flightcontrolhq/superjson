@@ -5,5 +5,7 @@ export const isSerializable = (value: any): value is SerializableJSONValue =>
   is.undefined(value) ||
   is.bigint(value) ||
   is.date(value) ||
+  is.nan(value) ||
+  is.infinite(value) ||
   is.set(value) ||
   is.regExp(value);

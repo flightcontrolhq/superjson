@@ -19,6 +19,16 @@ export const transformValue = (
       value: value.toISOString(),
       type: 'Date',
     };
+  } else if (is.nan(value)) {
+    return {
+      value: undefined,
+      type: 'NaN',
+    };
+  } else if (is.infinite(value)) {
+    return {
+      value: undefined,
+      type: value > 0 ? 'Infinity' : '-Infinity',
+    };
   } else if (is.set(value)) {
     return {
       value: Array.from(value) as any[],
@@ -42,6 +52,12 @@ export const untransformValue = (json: JSONValue, type: JSONType) => {
       return undefined;
     case 'Date':
       return new Date(json as string);
+    case 'NaN':
+      return 0 / 0;
+    case 'Infinity':
+      return 1 / 0;
+    case '-Infinity':
+      return -1 / 0;
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {
