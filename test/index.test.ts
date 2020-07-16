@@ -30,6 +30,15 @@ describe('serialize works for', () => {
     });
   });
 
+  it('json objects with numbers as index', () => {
+    expect(
+      serialize({ a: { 0: 'a', 1: 'b', 2: 'c' }, b: undefined })
+    ).toStrictEqual({
+      json: { a: { 0: 'a', 1: 'b', 2: 'c' } },
+      meta: { b: 'undefined' },
+    });
+  });
+
   it('null', () => {
     expect(serialize(null)).toStrictEqual({ json: null, meta: null });
   });
@@ -93,10 +102,26 @@ describe('serialize works for', () => {
     });
   });
 
+  it('complex sets', () => {
+    expect(serialize({ a: new Set([undefined, 1, 2]) })).toStrictEqual({
+      json: { a: [null, 1, 2] },
+      meta: { a: 'set', 'a.0': 'undefined' },
+    });
+  });
+
   it('regexp', () => {
     expect(serialize(/\./g)).toStrictEqual({
       json: '/\\./g',
       meta: 'regexp',
+    });
+  });
+
+  describe('when given a self-referencing object', () => {
+    it('should do what?', () => {
+      const a = { role: 'parent', children: [] as any[] };
+      const b = { role: 'child', parent: [a] };
+      a.children.push(b);
+      expect(serialize(a)).toEqual('What should it equal?');
     });
   });
 
@@ -193,6 +218,17 @@ describe('deserialize works for', () => {
         meta: 'set',
       })
     ).toStrictEqual(new Set([1, 2]));
+  });
+
+  it('complex sets', () => {
+    expect(
+      deserialize({
+        json: { a: [null, 1, 2] },
+        meta: { a: 'set', 'a.0': 'undefined' },
+      })
+    ).toStrictEqual({
+      a: new Set([undefined, 1, 2]),
+    });
   });
 
   it('regexp', () => {
