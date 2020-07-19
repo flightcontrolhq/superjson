@@ -1,5 +1,5 @@
 import is from '@sindresorhus/is';
-import { TypeAnnotation } from './flattenizer';
+import { TypeAnnotation } from './serialiser';
 
 export function objectHasArrayLikeKeys(object: object): boolean {
   return areKeysArrayLike(Object.keys(object));

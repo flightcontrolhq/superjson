@@ -62,9 +62,9 @@ function isLeafTypeAnnotation(
   return LEAF_TYPE_ANNOTATIONS.includes(type as any);
 }
 
-const escapeKey = (key: string): string => {
+export function escapeKey(key: string) {
   return key.replace(/\./g, '\\.');
-};
+}
 
 type Flattened = Record<string, any> | null | undefined;
 
@@ -202,6 +202,10 @@ export function deepConvertArrayLikeObjects(object: object): object {
 
 const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
 
+export function keyToPath(key: string) {
+  return key.split(/(?<!\\)\./g).map(unescapeKey);
+}
+
 function partition<T>(arr: T[], goesLeft: (v: T) => boolean): [T[], T[]] {
   const left: T[] = [];
   const right: T[] = [];
@@ -229,8 +233,6 @@ export function deserialiseFlattened(
   }
 
   let unflattened = {};
-
-  const keyToPath = (key: string) => key.split(/(?<!\\)\./g).map(unescapeKey);
 
   for (const [key, value] of Object.entries(flattened)) {
     unflattened = setDeep(unflattened, keyToPath(key), value);
