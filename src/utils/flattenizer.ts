@@ -69,6 +69,12 @@ export function flatten(
   if (!isDeep(unflattened)) {
     const type = getType(unflattened);
     const annotations: FlattenAnnotations = !!type ? { '': type } : {};
+
+    const mustBeReplacedForJSONStringify = is.undefined(unflattened);
+    if (mustBeReplacedForJSONStringify) {
+      unflattened = null;
+    }
+
     return { output: unflattened, annotations };
   }
 

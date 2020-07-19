@@ -143,33 +143,33 @@ describe('flatten & unflatten', () => {
 
     'works for arrays': {
       input: {
-        a: [1, 2, undefined],
+        a: [1, undefined, 2],
       },
       output: {
         'a.0': 1,
-        'a.1': 2,
-        'a.2': undefined,
+        'a.1': undefined,
+        'a.2': 2,
       },
       outputAnnotations: {
-        'a.2': 'undefined',
+        'a.1': 'undefined',
       },
     },
 
     'works for Sets': {
       input: {
-        a: new Set([1, 2, undefined]),
+        a: new Set([1, undefined, 2]),
       },
       output: {
         'a.0': 1,
-        'a.1': 2,
-        'a.2': undefined,
+        'a.1': undefined,
+        'a.2': 2,
       },
       outputAnnotations: {
         a: 'set',
-        'a.2': 'undefined',
+        'a.1': 'undefined',
       },
       unflattenedOutput: {
-        a: [1, 2, undefined],
+        a: [1, undefined, 2],
       },
     },
 
@@ -223,7 +223,9 @@ describe('flatten & unflatten', () => {
     { input, output, unflattenedOutput, outputAnnotations },
   ] of Object.entries(cases)) {
     test(testName, () => {
-      const { output: transformed, annotations } = flatten(input);
+      const { output: transformed, annotations } = JSON.parse(
+        JSON.stringify(flatten(input))
+      );
       expect(transformed).toEqual(output);
       expect(annotations).toEqual(outputAnnotations ?? {});
       const untransformed = unflatten(transformed);
