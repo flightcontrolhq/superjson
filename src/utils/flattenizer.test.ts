@@ -6,6 +6,7 @@ import {
   setDeep,
   deepConvertArrayLikeObjects,
   areKeysArrayLike,
+  FlattenAnnotations,
 } from './flattenizer';
 
 describe('entries', () => {
@@ -101,7 +102,12 @@ test('deepConvertArrayLikeObjects', () => {
 describe('flatten & unflatten', () => {
   const cases: Record<
     string,
-    { input: any; output: any; unflattenedOutput?: any }
+    {
+      input: any;
+      output: any;
+      unflattenedOutput?: any;
+      outputAnnotations?: FlattenAnnotations;
+    }
   > = {
     'works for objects': {
       input: {
@@ -129,6 +135,9 @@ describe('flatten & unflatten', () => {
         'a.2': { 3: 'c' },
         'a.2.3': 'c',
         b: null,
+      },
+      outputAnnotations: {
+        a: 'is_object',
       },
       unflattenedOutput: {
         a: [3, 5, { 3: 'c' }],
@@ -210,12 +219,14 @@ describe('flatten & unflatten', () => {
     },
   };
 
-  for (const [testName, { input, output, unflattenedOutput }] of Object.entries(
-    cases
-  )) {
+  for (const [
+    testName,
+    { input, output, unflattenedOutput, outputAnnotations },
+  ] of Object.entries(cases)) {
     test(testName, () => {
-      const transformed = flatten(input);
+      const { output: transformed, annotations } = flatten(input);
       expect(transformed).toEqual(output);
+      expect(annotations).toEqual(outputAnnotations ?? {});
       const minimized = minimizeFlattened(transformed);
       const untransformed = unflatten(minimized);
       expect(untransformed).toEqual(unflattenedOutput ?? input);

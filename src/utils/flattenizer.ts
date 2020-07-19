@@ -39,15 +39,23 @@ const escapeKey = (key: string): string => {
 
 type Flattened = Record<string, any> | null | undefined;
 
+export type FlattenAnnotations = Record<string, 'is_object'>;
+
 export function flatten(
   unflattened: any,
   objectsAlreadySeen = new Set<object>()
-): Flattened {
+): { output: Flattened; annotations: FlattenAnnotations } {
   if (!isDeep(unflattened)) {
     return unflattened;
   }
 
   const flattened: Flattened = {};
+  const annotations: FlattenAnnotations = {};
+
+  if (is.plainObject(unflattened) && objectHasArrayLikeKeys(unflattened)) {
+    annotations[''] = 'is_object';
+  }
+
   for (const [key, value] of entries(unflattened)) {
     if (objectsAlreadySeen.has(value)) {
       throw new TypeError('Circular Reference');
@@ -60,16 +68,29 @@ export function flatten(
     flattened[escapedKey] = value;
 
     if (isDeep(value)) {
-      const flattenedSubObject = flatten(value, objectsAlreadySeen);
+      const {
+        output: flattenedSubObject,
+        annotations: subObjectAnnotations,
+      } = flatten(value, objectsAlreadySeen);
+
+      const fullKey = (subKey: string) =>
+        subKey === '' ? escapedKey : escapedKey + '.' + subKey;
+
       for (const [subKey, subValue] of Object.entries(
         flattenedSubObject as any
       )) {
-        flattened[escapedKey + '.' + subKey] = subValue;
+        flattened[fullKey(subKey)] = subValue;
+      }
+
+      for (const [subKey, subAnnotation] of Object.entries(
+        subObjectAnnotations
+      )) {
+        annotations[fullKey(subKey)] = subAnnotation;
       }
     }
   }
 
-  return flattened;
+  return { output: flattened, annotations };
 }
 
 export function minimizeFlattened(flattened: Flattened): Flattened {
@@ -103,6 +124,10 @@ export function setDeep(objectToMutate: any, path: string[], value: any): void {
   setDeep(objectToMutate[head], tail, value);
 }
 
+export function objectHasArrayLikeKeys(object: object): boolean {
+  return areKeysArrayLike(Object.keys(object));
+}
+
 /**
  * keys are expected to be sorted alphanumerically.
  */
@@ -126,9 +151,7 @@ export function areKeysArrayLike(keys: string[]): boolean {
  * beware: may mutate the original object
  */
 export function deepConvertArrayLikeObjects(object: object): object {
-  const keys = Object.keys(object);
-
-  if (areKeysArrayLike(keys)) {
+  if (objectHasArrayLikeKeys(object)) {
     object = Object.values(object);
   }
 
