@@ -1,5 +1,9 @@
 import is from '@sindresorhus/is';
-import { transformValue, untransformValue } from './transformer';
+import {
+  transformValue,
+  untransformValue,
+  objectHasArrayLikeKeys,
+} from './transformer';
 
 function isDeep(object: any): boolean {
   return (
@@ -177,29 +181,6 @@ function mapDeep(
  */
 export function setDeep(object: any, path: string[], value: any) {
   return mapDeep(object, path, () => value);
-}
-
-export function objectHasArrayLikeKeys(object: object): boolean {
-  return areKeysArrayLike(Object.keys(object));
-}
-
-/**
- * keys are expected to be sorted alphanumerically.
- */
-export function areKeysArrayLike(keys: string[]): boolean {
-  const numberKeys: number[] = [];
-
-  for (const key of keys) {
-    const keyAsInt = parseInt(key);
-
-    if (is.nan(keyAsInt)) {
-      return false;
-    }
-
-    numberKeys.push(keyAsInt);
-  }
-
-  return numberKeys.every((value, index) => value === index);
 }
 
 /**
