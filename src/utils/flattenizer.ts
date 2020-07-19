@@ -76,8 +76,6 @@ export function flatten(
 
     const escapedKey = escapeKey('' + key);
 
-    flattened[escapedKey] = value;
-
     if (isDeep(value)) {
       const {
         output: flattenedSubObject,
@@ -98,6 +96,8 @@ export function flatten(
       )) {
         annotations[fullKey(subKey)] = subAnnotation;
       }
+    } else {
+      flattened[escapedKey] = value;
     }
   }
 

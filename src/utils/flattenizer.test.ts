@@ -115,9 +115,7 @@ describe('flatten & unflatten', () => {
         b: null,
       },
       output: {
-        a: { 1: 5, 2: { 3: 'c' } },
         'a.1': 5,
-        'a.2': { 3: 'c' },
         'a.2.3': 'c',
         b: null,
       },
@@ -129,10 +127,8 @@ describe('flatten & unflatten', () => {
         b: null,
       },
       output: {
-        a: { 0: 3, 1: 5, 2: { 3: 'c' } },
         'a.0': 3,
         'a.1': 5,
-        'a.2': { 3: 'c' },
         'a.2.3': 'c',
         b: null,
       },
@@ -150,7 +146,6 @@ describe('flatten & unflatten', () => {
         a: [1, 2, undefined],
       },
       output: {
-        a: [1, 2, undefined],
         'a.0': 1,
         'a.1': 2,
         'a.2': undefined,
@@ -162,7 +157,6 @@ describe('flatten & unflatten', () => {
         a: new Set([1, 2, undefined]),
       },
       output: {
-        a: new Set([1, 2, undefined]),
         'a.0': 1,
         'a.1': 2,
         'a.2': undefined,
@@ -184,10 +178,6 @@ describe('flatten & unflatten', () => {
       },
 
       output: {
-        a: new Map([
-          [1, 'a'],
-          [2, 'b'],
-        ]),
         'a.1': 'a',
         'a.2': 'b',
       },
@@ -208,7 +198,6 @@ describe('flatten & unflatten', () => {
         },
       },
       output: {
-        'a\\.1': { b: 3 },
         'a\\.1.b': 3,
       },
     },
@@ -220,7 +209,6 @@ describe('flatten & unflatten', () => {
         },
       },
       output: {
-        'a\\\\.1': { b: 3 },
         'a\\\\.1.b': 3,
       },
     },
@@ -234,8 +222,7 @@ describe('flatten & unflatten', () => {
       const { output: transformed, annotations } = flatten(input);
       expect(transformed).toEqual(output);
       expect(annotations).toEqual(outputAnnotations ?? {});
-      const minimized = minimizeFlattened(transformed);
-      const untransformed = unflatten(minimized);
+      const untransformed = unflatten(transformed);
       expect(untransformed).toEqual(unflattenedOutput ?? input);
     });
   }
