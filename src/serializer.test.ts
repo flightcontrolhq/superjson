@@ -1,12 +1,12 @@
 import {
-  flattenAndSerialise,
+  deepConvertArrayLikeObjects,
+  deserializeFlattened,
   entries,
-  deserialiseFlattened,
+  flattenAndSerialize,
+  FlattenAnnotations,
   minimizeFlattened,
   setDeep,
-  deepConvertArrayLikeObjects,
-  FlattenAnnotations,
-} from './serialiser';
+} from './serializer';
 
 describe('entries', () => {
   it('works for arrays', () => {
@@ -68,6 +68,7 @@ test('minimizeFlattened', () => {
 
 test('setDeep', () => {
   const object = { a: {} };
+
   expect(setDeep(object, ['a', '1', 'b', '2'], 5)).toEqual({
     a: {
       1: {
@@ -86,6 +87,7 @@ test('deepConvertArrayLikeObjects', () => {
     2: 3,
     3: { 0: { 1: 3, 2: 3 }, 1: { 0: 1 } },
   };
+
   expect(deepConvertArrayLikeObjects(arrayLike)).toEqual([
     1,
     null,
@@ -94,7 +96,7 @@ test('deepConvertArrayLikeObjects', () => {
   ]);
 });
 
-describe('flattenAndSerialise & deserialise', () => {
+describe('flattenAndSerialize & deserialize', () => {
   const cases: Record<
     string,
     {
@@ -222,11 +224,12 @@ describe('flattenAndSerialise & deserialise', () => {
   ] of Object.entries(cases)) {
     test(testName, () => {
       const { output: flattened, annotations } = JSON.parse(
-        JSON.stringify(flattenAndSerialise(input))
+        JSON.stringify(flattenAndSerialize(input))
       );
       expect(flattened).toEqual(output);
       expect(annotations).toEqual(outputAnnotations ?? {});
-      const untransformed = deserialiseFlattened(flattened, annotations);
+
+      const untransformed = deserializeFlattened(flattened, annotations);
       expect(untransformed).toEqual(unflattenedOutput ?? input);
     });
   }
@@ -236,8 +239,9 @@ describe('flattenAndSerialise & deserialise', () => {
       const a = { role: 'parent', children: [] as any[] };
       const b = { role: 'child', parent: [a] };
       a.children.push(b);
+
       expect(() => {
-        flattenAndSerialise(a);
+        flattenAndSerialize(a);
       }).toThrow(TypeError);
     });
   });

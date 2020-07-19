@@ -44,6 +44,7 @@ describe('flatten & unflatten', () => {
       const { input, output } = testCase;
       const flattened = flatten(input);
       expect(flattened).toEqual(output);
+
       const unflattened = unflatten(flattened);
       expect(unflattened).toEqual(input);
     });

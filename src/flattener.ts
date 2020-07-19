@@ -1,13 +1,14 @@
 import is from '@sindresorhus/is';
+
 import {
   escapeKey,
-  keyToPath,
-  setDeep,
   deepConvertArrayLikeObjects,
   Flattened,
-} from './serialiser';
+  keyToPath,
+  setDeep,
+} from './serializer';
 
-export function flatten(object: object): Record<string, any> {
+export const flatten = (object: object): Record<string, any> => {
   if (!(is.plainObject(object) || is.array(object))) {
     return { '': object };
   }
@@ -16,8 +17,8 @@ export function flatten(object: object): Record<string, any> {
 
   for (const [key, value] of Object.entries(object)) {
     const escapedKey = escapeKey(key);
-
     const flattenedSub = flatten(value as any);
+
     for (const [subkey, subValue] of Object.entries(flattenedSub)) {
       const fullKey = subkey === '' ? escapedKey : escapedKey + '.' + subkey;
       flattened[fullKey] = subValue;
@@ -25,9 +26,9 @@ export function flatten(object: object): Record<string, any> {
   }
 
   return flattened;
-}
+};
 
-export function unflatten(object: Flattened): object {
+export const unflatten = (object: Flattened): object => {
   let unflattened = {};
 
   for (const [key, value] of Object.entries(object as any)) {
@@ -38,4 +39,4 @@ export function unflatten(object: Flattened): object {
   deepConvertArrayLikeObjects(unflattened);
 
   return unflattened;
-}
+};

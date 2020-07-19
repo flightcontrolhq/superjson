@@ -1,24 +1,20 @@
 import is from '@sindresorhus/is';
+
 import {
+  objectHasArrayLikeKeys,
   transformValue,
   untransformValue,
-  objectHasArrayLikeKeys,
 } from './transformer';
 
-function isDeep(object: any): boolean {
-  return (
-    is.plainObject(object) ||
-    is.array(object) ||
-    is.map(object) ||
-    is.set(object)
-  );
-}
+const isDeep = (object: any): boolean =>
+  is.plainObject(object) ||
+  is.array(object) ||
+  is.map(object) ||
+  is.set(object);
 
-function isNonEmptyFlat(object: any): boolean {
-  return is.plainObject(object);
-}
+const isNonEmptyFlat = (object: any): boolean => is.plainObject(object);
 
-export function entries(object: any): [any, any][] {
+export const entries = (object: any): [any, any][] => {
   if (is.array(object)) {
     return object.map((v, i) => [i, v]);
   }
@@ -36,7 +32,7 @@ export function entries(object: any): [any, any][] {
   }
 
   throw new Error('Illegal Argument: ' + typeof object);
-}
+};
 
 type LeafTypeAnnotation =
   | 'regexp'
@@ -46,6 +42,7 @@ type LeafTypeAnnotation =
   | 'undefined'
   | 'bigint'
   | 'Date';
+
 const LEAF_TYPE_ANNOTATIONS: LeafTypeAnnotation[] = [
   'regexp',
   'NaN',
@@ -53,27 +50,25 @@ const LEAF_TYPE_ANNOTATIONS: LeafTypeAnnotation[] = [
   'Infinity',
   'undefined',
 ];
+
 type ContainerTypeAnnotation = 'object' | 'map' | 'set';
+
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
-function isLeafTypeAnnotation(
+const isLeafTypeAnnotation = (
   type: TypeAnnotation
-): type is LeafTypeAnnotation {
-  return LEAF_TYPE_ANNOTATIONS.includes(type as any);
-}
+): type is LeafTypeAnnotation => LEAF_TYPE_ANNOTATIONS.includes(type as any);
 
-export function escapeKey(key: string) {
-  return key.replace(/\./g, '\\.');
-}
+export const escapeKey = (key: string) => key.replace(/\./g, '\\.');
 
 export type Flattened = Record<string, any> | null | undefined;
 
 export type FlattenAnnotations = Record<string, TypeAnnotation>;
 
-export function flattenAndSerialise(
+export const flattenAndSerialize = (
   unflattened: any,
   objectsAlreadySeen = new Set<object>()
-): { output: Flattened; annotations: FlattenAnnotations } {
+): { output: Flattened; annotations: FlattenAnnotations } => {
   if (!isDeep(unflattened)) {
     const transformed = transformValue(unflattened);
     let output = !!transformed ? transformed.value : unflattened;
@@ -88,6 +83,7 @@ export function flattenAndSerialise(
   const annotations: FlattenAnnotations = {};
 
   const transformed = transformValue(unflattened);
+
   if (!!transformed) {
     annotations[''] = transformed.type;
   }
@@ -107,7 +103,7 @@ export function flattenAndSerialise(
       const {
         output: flattenedSubObject,
         annotations: subObjectAnnotations,
-      } = flattenAndSerialise(value, objectsAlreadySeen);
+      } = flattenAndSerialize(value, objectsAlreadySeen);
 
       const fullKey = (subKey: string) =>
         subKey === '' ? escapedKey : escapedKey + '.' + subKey;
@@ -127,8 +123,9 @@ export function flattenAndSerialise(
       const {
         output: flattenedSubObject,
         annotations: subObjectAnnotations,
-      } = flattenAndSerialise(value, objectsAlreadySeen);
+      } = flattenAndSerialize(value, objectsAlreadySeen);
       flattened[escapedKey] = flattenedSubObject;
+
       if (subObjectAnnotations['']) {
         annotations[escapedKey] = subObjectAnnotations[''];
       }
@@ -136,9 +133,9 @@ export function flattenAndSerialise(
   }
 
   return { output: flattened, annotations };
-}
+};
 
-export function minimizeFlattened(flattened: Flattened): Flattened {
+export const minimizeFlattened = (flattened: Flattened): Flattened => {
   if (!isNonEmptyFlat(flattened)) {
     return flattened;
   }
@@ -148,13 +145,13 @@ export function minimizeFlattened(flattened: Flattened): Flattened {
       return !isDeep(value);
     })
   );
-}
+};
 
-function mapDeep(
+const mapDeep = (
   object: object,
   path: string[],
   mapper: (v: any) => any
-): object {
+): object => {
   if (path.length < 1) {
     throw new Error('Illegal Argument');
   }
@@ -176,19 +173,18 @@ function mapDeep(
     ...object,
     [head]: mapDeep((object as any)[head] ?? {}, tail, mapper),
   };
-}
+};
 
 /**
- * a bit like `mkdir -p`, but for objects
+ a bit like `mkdir -p`, but for objects
  */
-export function setDeep(object: any, path: string[], value: any) {
-  return mapDeep(object, path, () => value);
-}
+export const setDeep = (object: any, path: string[], value: any) =>
+  mapDeep(object, path, () => value);
 
 /**
  * beware: may mutate the original object
  */
-export function deepConvertArrayLikeObjects(object: object): object {
+export const deepConvertArrayLikeObjects = (object: object): object => {
   if (objectHasArrayLikeKeys(object)) {
     object = Object.values(object);
   }
@@ -200,15 +196,14 @@ export function deepConvertArrayLikeObjects(object: object): object {
   }
 
   return object;
-}
+};
 
 const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
 
-export function keyToPath(key: string) {
-  return key.split(/(?<!\\)\./g).map(unescapeKey);
-}
+export const keyToPath = (key: string) =>
+  key.split(/(?<!\\)\./g).map(unescapeKey);
 
-function partition<T>(arr: T[], goesLeft: (v: T) => boolean): [T[], T[]] {
+const partition = <T>(arr: T[], goesLeft: (v: T) => boolean): [T[], T[]] => {
   const left: T[] = [];
   const right: T[] = [];
 
@@ -221,12 +216,12 @@ function partition<T>(arr: T[], goesLeft: (v: T) => boolean): [T[], T[]] {
   }
 
   return [left, right];
-}
+};
 
-export function deserialiseFlattened(
+export const deserializeFlattened = (
   flattened: any,
   annotations: FlattenAnnotations
-): any {
+): any => {
   if (!isNonEmptyFlat(flattened)) {
     if (annotations['']) {
       return untransformValue(flattened, annotations['']);
@@ -260,4 +255,4 @@ export function deserialiseFlattened(
   innerNodeTypeAnnotations.forEach(applyAnnotation);
 
   return unflattened;
-}
+};

@@ -1,14 +1,14 @@
 import is from '@sindresorhus/is';
-import { TypeAnnotation } from './serialiser';
 
-export function objectHasArrayLikeKeys(object: object): boolean {
-  return areKeysArrayLike(Object.keys(object));
-}
+import { TypeAnnotation } from './serializer';
+
+export const objectHasArrayLikeKeys = (object: object): boolean =>
+  areKeysArrayLike(Object.keys(object));
 
 /**
  * keys are expected to be sorted alphanumerically.
  */
-export function areKeysArrayLike(keys: string[]): boolean {
+export const areKeysArrayLike = (keys: string[]): boolean => {
   const numberKeys: number[] = [];
 
   for (const key of keys) {
@@ -22,7 +22,7 @@ export function areKeysArrayLike(keys: string[]): boolean {
   }
 
   return numberKeys.every((value, index) => value === index);
-}
+};
 
 export const transformValue = (
   value: any

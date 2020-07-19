@@ -1,16 +1,18 @@
-import { flattenAndSerialise, deserialiseFlattened } from './serialiser';
-import { unflatten, flatten } from './flattener';
+import { flatten, unflatten } from './flattener';
+import { deserializeFlattened, flattenAndSerialize } from './serializer';
 
-export function serialise(value: any): string {
-  const { output, annotations } = flattenAndSerialise(value);
+export const serialize = (value: any): string => {
+  const { output, annotations } = flattenAndSerialize(value);
   const v = unflatten(output);
   const meta = unflatten(annotations);
-  return JSON.stringify({ value: v, meta });
-}
 
-export function deserialise(string: string): any {
+  return JSON.stringify({ value: v, meta });
+};
+
+export const deserialize = (string: string): any => {
   const { value, meta } = JSON.parse(string);
   const input = flatten(value);
   const annotations = flatten(meta);
-  return deserialiseFlattened(input, annotations);
-}
+
+  return deserializeFlattened(input, annotations);
+};
