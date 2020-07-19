@@ -6,7 +6,7 @@ import {
   setDeep,
   deepConvertArrayLikeObjects,
   FlattenAnnotations,
-} from './flattenizer';
+} from './serialiser';
 
 describe('entries', () => {
   it('works for arrays', () => {

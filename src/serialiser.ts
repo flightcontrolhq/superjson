@@ -66,7 +66,7 @@ export function escapeKey(key: string) {
   return key.replace(/\./g, '\\.');
 }
 
-type Flattened = Record<string, any> | null | undefined;
+export type Flattened = Record<string, any> | null | undefined;
 
 export type FlattenAnnotations = Record<string, TypeAnnotation>;
 

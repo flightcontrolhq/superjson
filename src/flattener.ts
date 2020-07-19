@@ -4,6 +4,7 @@ import {
   keyToPath,
   setDeep,
   deepConvertArrayLikeObjects,
+  Flattened,
 } from './serialiser';
 
 export function flatten(object: object): Record<string, any> {
@@ -26,10 +27,10 @@ export function flatten(object: object): Record<string, any> {
   return flattened;
 }
 
-export function unflatten(object: Record<string, any>): object {
+export function unflatten(object: Flattened): object {
   let unflattened = {};
 
-  for (const [key, value] of Object.entries(object)) {
+  for (const [key, value] of Object.entries(object as any)) {
     const path = keyToPath(key);
     unflattened = setDeep(unflattened, path, value);
   }
