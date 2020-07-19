@@ -66,7 +66,7 @@ type Flattened = Record<string, any> | null | undefined;
 
 export type FlattenAnnotations = Record<string, TypeAnnotation>;
 
-export function flatten(
+export function flattenAndSerialise(
   unflattened: any,
   objectsAlreadySeen = new Set<object>()
 ): { output: Flattened; annotations: FlattenAnnotations } {
@@ -106,7 +106,7 @@ export function flatten(
       const {
         output: flattenedSubObject,
         annotations: subObjectAnnotations,
-      } = flatten(value, objectsAlreadySeen);
+      } = flattenAndSerialise(value, objectsAlreadySeen);
 
       const fullKey = (subKey: string) =>
         subKey === '' ? escapedKey : escapedKey + '.' + subKey;
@@ -126,7 +126,7 @@ export function flatten(
       const {
         output: flattenedSubObject,
         annotations: subObjectAnnotations,
-      } = flatten(value, objectsAlreadySeen);
+      } = flattenAndSerialise(value, objectsAlreadySeen);
       flattened[escapedKey] = flattenedSubObject;
       if (subObjectAnnotations['']) {
         annotations[escapedKey] = subObjectAnnotations[''];
@@ -241,10 +241,10 @@ function partition<T>(arr: T[], goesLeft: (v: T) => boolean): [T[], T[]] {
   return [left, right];
 }
 
-export const unflatten = (
+export function deserialiseFlattened(
   flattened: any,
   annotations: FlattenAnnotations
-): any => {
+): any {
   if (!isNonEmptyFlat(flattened)) {
     if (annotations['']) {
       return untransformValue(flattened, annotations['']);
@@ -280,4 +280,4 @@ export const unflatten = (
   innerNodeTypeAnnotations.forEach(applyAnnotation);
 
   return unflattened;
-};
+}

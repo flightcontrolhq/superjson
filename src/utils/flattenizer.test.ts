@@ -1,5 +1,5 @@
 import {
-  flatten,
+  flattenAndSerialise,
   entries,
   unflatten,
   minimizeFlattened,
@@ -234,7 +234,7 @@ describe('flatten & unflatten', () => {
   ] of Object.entries(cases)) {
     test(testName, () => {
       const { output: transformed, annotations } = JSON.parse(
-        JSON.stringify(flatten(input))
+        JSON.stringify(flattenAndSerialise(input))
       );
       expect(transformed).toEqual(output);
       expect(annotations).toEqual(outputAnnotations ?? {});
@@ -249,7 +249,7 @@ describe('flatten & unflatten', () => {
       const b = { role: 'child', parent: [a] };
       a.children.push(b);
       expect(() => {
-        flatten(a);
+        flattenAndSerialise(a);
       }).toThrow(TypeError);
     });
   });

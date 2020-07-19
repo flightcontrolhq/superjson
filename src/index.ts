@@ -1,7 +1,7 @@
 import is from '@sindresorhus/is';
 
 import { JSONValue, SuperJSONValue, JSONType, SuperJSONResult } from './types';
-import { flatten, unflatten } from './utils/flattenizer';
+import { flattenAndSerialise, deserialiseFlattened } from './utils/flattenizer';
 import { isJSONPrimitive } from './utils/isJSONPrimitive';
 import { isSerializable } from './utils/isSerializable';
 import { transformValue, untransformValue } from './utils/transformer';
@@ -18,7 +18,7 @@ export const serialize = (input: SuperJSONValue): SuperJSONResult => {
   }
 
   if (is.array(input) || is.plainObject(input)) {
-    const flattened = flatten(input) as { [key: string]: any };
+    const flattened = flattenAndSerialise(input) as { [key: string]: any };
     let json: JSONValue = {};
     let meta: Record<string, JSONType> = {};
 
@@ -32,7 +32,7 @@ export const serialize = (input: SuperJSONValue): SuperJSONResult => {
       }
     }
 
-    json = unflatten(json) as { [key: string]: any };
+    json = deserialiseFlattened(json) as { [key: string]: any };
     if (is.array(input)) {
       json = Array.from(Object.values(json));
     }
@@ -58,13 +58,13 @@ export const deserialize = ({
   }
 
   if (is.array(json) || is.plainObject(json)) {
-    const flattened = flatten(json) as { [key: string]: any };
+    const flattened = flattenAndSerialise(json) as { [key: string]: any };
 
     for (const [key, metaForKey] of Object.entries(meta)) {
       flattened[key] = untransformValue(flattened[key], metaForKey);
     }
 
-    return unflatten(flattened);
+    return deserialiseFlattened(flattened);
   }
 
   throw new Error('invalid input');
