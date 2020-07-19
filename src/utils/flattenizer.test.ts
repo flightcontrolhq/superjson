@@ -221,4 +221,15 @@ describe('flatten & unflatten', () => {
       expect(untransformed).toEqual(unflattenedOutput ?? input);
     });
   }
+
+  describe('when given a self-referencing object', () => {
+    it('throws', () => {
+      const a = { role: 'parent', children: [] as any[] };
+      const b = { role: 'child', parent: [a] };
+      a.children.push(b);
+      expect(() => {
+        flatten(a);
+      }).toThrow(TypeError);
+    });
+  });
 });

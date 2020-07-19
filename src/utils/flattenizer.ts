@@ -39,19 +39,28 @@ const escapeKey = (key: string): string => {
 
 type Flattened = Record<string, any> | null | undefined;
 
-export function flatten(unflattened: any): Flattened {
+export function flatten(
+  unflattened: any,
+  objectsAlreadySeen = new Set<object>()
+): Flattened {
   if (!isDeep(unflattened)) {
     return unflattened;
   }
 
   const flattened: Flattened = {};
   for (const [key, value] of entries(unflattened)) {
+    if (objectsAlreadySeen.has(value)) {
+      throw new TypeError('Circular Reference');
+    }
+
+    objectsAlreadySeen.add(value);
+
     const escapedKey = escapeKey('' + key);
 
     flattened[escapedKey] = value;
 
     if (isDeep(value)) {
-      const flattenedSubObject = flatten(value);
+      const flattenedSubObject = flatten(value, objectsAlreadySeen);
       for (const [subKey, subValue] of Object.entries(
         flattenedSubObject as any
       )) {
@@ -110,7 +119,7 @@ export function areKeysArrayLike(keys: string[]): boolean {
     numberKeys.push(keyAsInt);
   }
 
-  return numberKeys.every((value, index) => value == index);
+  return numberKeys.every((value, index) => value === index);
 }
 
 /**
