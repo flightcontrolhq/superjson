@@ -1,105 +1,152 @@
-// based on https://github.com/sahellebusch/flattenizer/blob/master/src/flattenizer.ts
+import is from '@sindresorhus/is';
 
-type Nullable<A> = A | null | undefined;
-
-interface IFlattened<P> {
-  [path: string]: P;
+function isDeep(object: any): boolean {
+  return (
+    is.plainObject(object) ||
+    is.array(object) ||
+    is.map(object) ||
+    is.set(object)
+  );
 }
 
-interface IUnflattened<P> {
-  [key: string]: P | P[] | IUnflattened<P>;
+function isNonEmptyFlat(object: any): boolean {
+  return is.plainObject(object);
+}
+
+export function entries(object: any): [any, any][] {
+  if (is.array(object)) {
+    return object.map((v, i) => [i, v]);
+  }
+
+  if (is.set(object)) {
+    return [...object].map((v, i) => [i, v]);
+  }
+
+  if (is.map(object)) {
+    return [...object.entries()];
+  }
+
+  if (is.plainObject(object)) {
+    return Object.entries(object);
+  }
+
+  throw new Error('Illegal Argument: ' + typeof object);
 }
 
 const escapeKey = (key: string): string => {
   return key.replace(/\./g, '\\.');
 };
 
-export const flatten = <A extends IFlattened<any>, B extends IUnflattened<any>>(
-  unflattened: Nullable<B>
-): Nullable<A> => {
-  if (unflattened === undefined) {
-    return undefined;
+type Flattened = Record<string, any> | null | undefined;
+
+export function flatten(unflattened: any): Flattened {
+  if (!isDeep(unflattened)) {
+    return unflattened;
   }
 
-  if (unflattened === null) {
-    return null;
-  }
+  const flattened: Flattened = {};
+  for (const [key, value] of entries(unflattened)) {
+    const escapedKey = escapeKey('' + key);
 
-  if (typeof unflattened !== 'object') {
-    throw new TypeError('unflattened is not an object');
-  }
+    flattened[escapedKey] = value;
 
-  const flattened: A = Object.keys(unflattened).reduce((acc, key) => {
-    const value = unflattened[key];
-    if (typeof value === 'object' && value !== null) {
-      const flatObject = flatten(value);
-
-      for (const subKey in flatObject) {
-        //@ts-expect-error
-        acc[`${escapeKey(key)}.${subKey}`] = flatObject[subKey];
+    if (isDeep(value)) {
+      const flattenedSubObject = flatten(value);
+      for (const [subKey, subValue] of Object.entries(
+        flattenedSubObject as any
+      )) {
+        flattened[escapedKey + '.' + subKey] = subValue;
       }
-    } else {
-      //@ts-expect-error
-      acc[escapeKey(key)] = value;
     }
-
-    return acc;
-  }, {}) as A;
+  }
 
   return flattened;
-};
+}
 
-export const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
+export function minimizeFlattened(flattened: Flattened): Flattened {
+  if (!isNonEmptyFlat(flattened)) {
+    return flattened;
+  }
 
-const explodeProperty = (
-  currUnflattened: object,
-  key: string,
-  flattenedObj: object
-): void => {
-  const keys = key.split(/(?<!\\)\./g).map(unescapeKey);
-  // @ts-expect-error
-  const value = flattenedObj[key];
-  const lastKeyIndex = keys.length - 1;
+  return Object.fromEntries(
+    Object.entries(flattened!).filter(([_key, value]) => {
+      return !isDeep(value);
+    })
+  );
+}
 
-  for (let idx = 0; idx < lastKeyIndex; idx++) {
-    const currKey = keys[idx];
-    let nextKeyVal;
+/**
+ * a bit like `mkdir -p`, but for objects
+ */
+export function setDeep(objectToMutate: any, path: string[], value: any): void {
+  if (path.length < 1) {
+    throw new Error('Illegal Argument');
+  }
 
-    if (!currUnflattened.hasOwnProperty(currKey)) {
-      nextKeyVal = parseInt(keys[idx + 1], 10);
-      // @ts-expect-error
-      currUnflattened[currKey] = isNaN(nextKeyVal) ? {} : [];
+  const [head, ...tail] = path;
+
+  if (path.length === 1) {
+    objectToMutate[head] = value;
+    return;
+  }
+
+  objectToMutate[head] = objectToMutate[head] ?? {};
+  setDeep(objectToMutate[head], tail, value);
+}
+
+/**
+ * keys are expected to be sorted alphanumerically.
+ */
+export function areKeysArrayLike(keys: string[]): boolean {
+  const numberKeys: number[] = [];
+
+  for (const key of keys) {
+    const keyAsInt = parseInt(key);
+
+    if (is.nan(keyAsInt)) {
+      return false;
     }
 
-    // @ts-expect-error
-    currUnflattened = currUnflattened[currKey];
+    numberKeys.push(keyAsInt);
   }
 
-  // @ts-expect-error
-  currUnflattened[keys[lastKeyIndex]] = value;
-};
+  return numberKeys.every((value, index) => value == index);
+}
 
-export const unflatten = <
-  A extends IFlattened<any>,
-  B extends IUnflattened<any>
->(
-  flattened: Nullable<A>
-): Nullable<B> => {
-  if (flattened === undefined) {
-    return undefined;
+/**
+ * beware: may mutate the original object
+ */
+export function deepConvertArrayLikeObjects(object: object): object {
+  const keys = Object.keys(object);
+
+  if (areKeysArrayLike(keys)) {
+    object = Object.values(object);
   }
 
-  if (flattened === null) {
-    return null;
-  }
-  if (typeof flattened !== 'object') {
-    throw new TypeError('flattened is not an object');
+  for (const [key, value] of Object.entries(object)) {
+    if (is.plainObject(value)) {
+      (object as any)[key] = deepConvertArrayLikeObjects(value);
+    }
   }
 
-  const unflattened: B = Object.keys(flattened).reduce((acc, key) => {
-    explodeProperty(acc, key, flattened);
-    return acc;
-  }, {} as B);
+  return object;
+}
+
+const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
+
+export const unflatten = (flattenedMinimal: any): any => {
+  if (!isNonEmptyFlat(flattenedMinimal)) {
+    return flattenedMinimal;
+  }
+
+  const unflattened = {};
+
+  for (const [key, value] of Object.entries(flattenedMinimal)) {
+    const path = key.split(/(?<!\\)\./g).map(unescapeKey);
+    setDeep(unflattened, path, value);
+  }
+
+  deepConvertArrayLikeObjects(unflattened);
 
   return unflattened;
 };
