@@ -39,8 +39,21 @@ type LeafTypeAnnotation =
   | '-Infinity'
   | 'Infinity'
   | 'undefined';
+const LEAF_TYPE_ANNOTATIONS: LeafTypeAnnotation[] = [
+  'regexp',
+  'NaN',
+  '-Infinity',
+  'Infinity',
+  'undefined',
+];
 type ContainerTypeAnnotation = 'object' | 'map' | 'set';
 type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
+
+function isLeafTypeAnnotation(
+  type: TypeAnnotation
+): type is LeafTypeAnnotation {
+  return LEAF_TYPE_ANNOTATIONS.includes(type as any);
+}
 
 function getType(value: any): LeafTypeAnnotation | undefined {
   if (is.regExp(value)) {
@@ -149,10 +162,11 @@ export function minimizeFlattened(flattened: Flattened): Flattened {
   );
 }
 
-/**
- * a bit like `mkdir -p`, but for objects
- */
-export function setDeep(objectToMutate: any, path: string[], value: any): void {
+function mapDeep(
+  object: object,
+  path: string[],
+  mapper: (v: any) => any
+): object {
   if (path.length < 1) {
     throw new Error('Illegal Argument');
   }
@@ -160,12 +174,27 @@ export function setDeep(objectToMutate: any, path: string[], value: any): void {
   const [head, ...tail] = path;
 
   if (path.length === 1) {
-    objectToMutate[head] = value;
-    return;
+    if (head === '') {
+      return mapper(object);
+    }
+
+    return {
+      ...object,
+      [head]: mapper((object as any)[head]),
+    };
   }
 
-  objectToMutate[head] = objectToMutate[head] ?? {};
-  setDeep(objectToMutate[head], tail, value);
+  return {
+    ...object,
+    [head]: mapDeep((object as any)[head] ?? {}, tail, mapper),
+  };
+}
+
+/**
+ * a bit like `mkdir -p`, but for objects
+ */
+export function setDeep(object: any, path: string[], value: any) {
+  return mapDeep(object, path, () => value);
 }
 
 export function objectHasArrayLikeKeys(object: object): boolean {
@@ -210,19 +239,71 @@ export function deepConvertArrayLikeObjects(object: object): object {
 
 const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
 
-export const unflatten = (flattenedMinimal: any): any => {
-  if (!isNonEmptyFlat(flattenedMinimal)) {
-    return flattenedMinimal;
+function convert(type: TypeAnnotation): (v: any) => any {
+  switch (type) {
+    case 'undefined':
+      return () => undefined;
+    case 'object':
+      return (v: any[]) => Object.fromEntries(v.map((v, i) => [i, v]));
+    case 'map':
+      return (v: object) => new Map(Object.entries(v));
+    case 'set':
+      return (v: any[]) => new Set(v);
+    default:
+      throw new Error('not implemented: ' + type);
+  }
+}
+
+function partition<T>(arr: T[], goesLeft: (v: T) => boolean): [T[], T[]] {
+  const left: T[] = [];
+  const right: T[] = [];
+
+  for (const v of arr) {
+    if (goesLeft(v)) {
+      left.push(v);
+    } else {
+      right.push(v);
+    }
   }
 
-  const unflattened = {};
+  return [left, right];
+}
 
-  for (const [key, value] of Object.entries(flattenedMinimal)) {
-    const path = key.split(/(?<!\\)\./g).map(unescapeKey);
-    setDeep(unflattened, path, value);
+export const unflatten = (
+  flattened: any,
+  annotations: FlattenAnnotations
+): any => {
+  if (!isNonEmptyFlat(flattened)) {
+    if (annotations['']) {
+      return convert(annotations[''])(flattened);
+    }
+    return flattened;
   }
 
-  deepConvertArrayLikeObjects(unflattened);
+  let unflattened = {};
+
+  const keyToPath = (key: string) => key.split(/(?<!\\)\./g).map(unescapeKey);
+
+  for (const [key, value] of Object.entries(flattened)) {
+    unflattened = setDeep(unflattened, keyToPath(key), value);
+  }
+
+  const applyAnnotation = ([key, type]: [string, TypeAnnotation]) => {
+    unflattened = mapDeep(unflattened, keyToPath(key), convert(type));
+  };
+
+  const [
+    leafTypeAnnotations,
+    innerNodeTypeAnnotations,
+  ] = partition(Object.entries(annotations), ([_path, type]) =>
+    isLeafTypeAnnotation(type)
+  );
+
+  leafTypeAnnotations.forEach(applyAnnotation);
+
+  unflattened = deepConvertArrayLikeObjects(unflattened);
+
+  innerNodeTypeAnnotations.forEach(applyAnnotation);
 
   return unflattened;
 };

@@ -69,8 +69,7 @@ test('minimizeFlattened', () => {
 
 test('setDeep', () => {
   const object = { a: {} };
-  setDeep(object, ['a', '1', 'b', '2'], 5);
-  expect(object).toEqual({
+  expect(setDeep(object, ['a', '1', 'b', '2'], 5)).toEqual({
     a: {
       1: {
         b: {
@@ -90,10 +89,15 @@ test('areKeysArrayLike', () => {
 });
 
 test('deepConvertArrayLikeObjects', () => {
-  const arrayLike = { 0: 1, 1: 2, 2: 3, 3: { 0: { 1: 3, 2: 3 }, 1: { 0: 1 } } };
+  const arrayLike = {
+    0: 1,
+    1: null,
+    2: 3,
+    3: { 0: { 1: 3, 2: 3 }, 1: { 0: 1 } },
+  };
   expect(deepConvertArrayLikeObjects(arrayLike)).toEqual([
     1,
-    2,
+    null,
     3,
     [{ 1: 3, 2: 3 }, [1]],
   ]);
@@ -121,7 +125,7 @@ describe('flatten & unflatten', () => {
       },
     },
 
-    'special case: does not work for objects with array-like keys': {
+    'special case: objects with array-like keys': {
       input: {
         a: { 0: 3, 1: 5, 2: { 3: 'c' } },
         b: null,
@@ -136,7 +140,7 @@ describe('flatten & unflatten', () => {
         a: 'object',
       },
       unflattenedOutput: {
-        a: [3, 5, { 3: 'c' }],
+        a: { 0: 3, 1: 5, 2: { 3: 'c' } },
         b: null,
       },
     },
@@ -147,7 +151,7 @@ describe('flatten & unflatten', () => {
       },
       output: {
         'a.0': 1,
-        'a.1': undefined,
+        'a.1': null,
         'a.2': 2,
       },
       outputAnnotations: {
@@ -161,15 +165,25 @@ describe('flatten & unflatten', () => {
       },
       output: {
         'a.0': 1,
-        'a.1': undefined,
+        'a.1': null,
         'a.2': 2,
       },
       outputAnnotations: {
         a: 'set',
         'a.1': 'undefined',
       },
-      unflattenedOutput: {
-        a: [1, undefined, 2],
+    },
+
+    'works for top-level Sets': {
+      input: new Set([1, undefined, 2]),
+      output: {
+        '0': 1,
+        '1': null,
+        '2': 2,
+      },
+      outputAnnotations: {
+        '': 'set',
+        '1': 'undefined',
       },
     },
 
@@ -188,10 +202,6 @@ describe('flatten & unflatten', () => {
 
       outputAnnotations: {
         a: 'map',
-      },
-
-      unflattenedOutput: {
-        a: { 1: 'a', 2: 'b' },
       },
     },
 
@@ -228,7 +238,7 @@ describe('flatten & unflatten', () => {
       );
       expect(transformed).toEqual(output);
       expect(annotations).toEqual(outputAnnotations ?? {});
-      const untransformed = unflatten(transformed);
+      const untransformed = unflatten(transformed, annotations);
       expect(untransformed).toEqual(unflattenedOutput ?? input);
     });
   }
