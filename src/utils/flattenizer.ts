@@ -77,11 +77,6 @@ export function flattenAndSerialise(
       ? { '': transformed.type }
       : {};
 
-    const mustBeReplacedForJSONStringify = is.undefined(output);
-    if (mustBeReplacedForJSONStringify) {
-      output = null;
-    }
-
     return { output, annotations };
   }
 
