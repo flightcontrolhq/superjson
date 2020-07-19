@@ -39,7 +39,10 @@ const escapeKey = (key: string): string => {
 
 type Flattened = Record<string, any> | null | undefined;
 
-export type FlattenAnnotations = Record<string, 'is_object'>;
+export type FlattenAnnotations = Record<
+  string,
+  'is_object' | 'is_map' | 'is_set'
+>;
 
 export function flatten(
   unflattened: any,
@@ -54,6 +57,14 @@ export function flatten(
 
   if (is.plainObject(unflattened) && objectHasArrayLikeKeys(unflattened)) {
     annotations[''] = 'is_object';
+  }
+
+  if (is.set(unflattened)) {
+    annotations[''] = 'is_set';
+  }
+
+  if (is.map(unflattened)) {
+    annotations[''] = 'is_map';
   }
 
   for (const [key, value] of entries(unflattened)) {

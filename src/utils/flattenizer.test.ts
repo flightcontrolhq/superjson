@@ -167,6 +167,9 @@ describe('flatten & unflatten', () => {
         'a.1': 2,
         'a.2': undefined,
       },
+      outputAnnotations: {
+        a: 'is_set',
+      },
       unflattenedOutput: {
         a: [1, 2, undefined],
       },
@@ -187,6 +190,10 @@ describe('flatten & unflatten', () => {
         ]),
         'a.1': 'a',
         'a.2': 'b',
+      },
+
+      outputAnnotations: {
+        a: 'is_map',
       },
 
       unflattenedOutput: {
