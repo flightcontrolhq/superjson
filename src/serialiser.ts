@@ -97,7 +97,9 @@ export function flattenAndSerialise(
       throw new TypeError('Circular Reference');
     }
 
-    objectsAlreadySeen.add(value);
+    if (!is.primitive(value)) {
+      objectsAlreadySeen.add(value);
+    }
 
     const escapedKey = escapeKey('' + key);
 
