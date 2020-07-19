@@ -133,7 +133,7 @@ describe('flatten & unflatten', () => {
         b: null,
       },
       outputAnnotations: {
-        a: 'is_object',
+        a: 'object',
       },
       unflattenedOutput: {
         a: [3, 5, { 3: 'c' }],
@@ -150,6 +150,9 @@ describe('flatten & unflatten', () => {
         'a.1': 2,
         'a.2': undefined,
       },
+      outputAnnotations: {
+        'a.2': 'undefined',
+      },
     },
 
     'works for Sets': {
@@ -162,7 +165,8 @@ describe('flatten & unflatten', () => {
         'a.2': undefined,
       },
       outputAnnotations: {
-        a: 'is_set',
+        a: 'set',
+        'a.2': 'undefined',
       },
       unflattenedOutput: {
         a: [1, 2, undefined],
@@ -183,7 +187,7 @@ describe('flatten & unflatten', () => {
       },
 
       outputAnnotations: {
-        a: 'is_map',
+        a: 'map',
       },
 
       unflattenedOutput: {

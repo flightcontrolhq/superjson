@@ -33,38 +33,58 @@ export function entries(object: any): [any, any][] {
   throw new Error('Illegal Argument: ' + typeof object);
 }
 
+type LeafTypeAnnotation =
+  | 'regexp'
+  | 'NaN'
+  | '-Infinity'
+  | 'Infinity'
+  | 'undefined';
+type ContainerTypeAnnotation = 'object' | 'map' | 'set';
+type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
+
+function getType(value: any): LeafTypeAnnotation | undefined {
+  if (is.regExp(value)) {
+    return 'regexp';
+  }
+
+  if (is.undefined(value)) {
+    return 'undefined';
+  }
+
+  return undefined;
+}
+
 const escapeKey = (key: string): string => {
   return key.replace(/\./g, '\\.');
 };
 
 type Flattened = Record<string, any> | null | undefined;
 
-export type FlattenAnnotations = Record<
-  string,
-  'is_object' | 'is_map' | 'is_set'
->;
+export type FlattenAnnotations = Record<string, TypeAnnotation>;
 
 export function flatten(
   unflattened: any,
   objectsAlreadySeen = new Set<object>()
 ): { output: Flattened; annotations: FlattenAnnotations } {
   if (!isDeep(unflattened)) {
-    return unflattened;
+    const type = getType(unflattened);
+    const annotations: FlattenAnnotations = !!type ? { '': type } : {};
+    return { output: unflattened, annotations };
   }
 
   const flattened: Flattened = {};
   const annotations: FlattenAnnotations = {};
 
   if (is.plainObject(unflattened) && objectHasArrayLikeKeys(unflattened)) {
-    annotations[''] = 'is_object';
+    annotations[''] = 'object';
   }
 
   if (is.set(unflattened)) {
-    annotations[''] = 'is_set';
+    annotations[''] = 'set';
   }
 
   if (is.map(unflattened)) {
-    annotations[''] = 'is_map';
+    annotations[''] = 'map';
   }
 
   for (const [key, value] of entries(unflattened)) {
@@ -97,7 +117,14 @@ export function flatten(
         annotations[fullKey(subKey)] = subAnnotation;
       }
     } else {
-      flattened[escapedKey] = value;
+      const {
+        output: flattenedSubObject,
+        annotations: subObjectAnnotations,
+      } = flatten(value, objectsAlreadySeen);
+      flattened[escapedKey] = flattenedSubObject;
+      if (subObjectAnnotations['']) {
+        annotations[escapedKey] = subObjectAnnotations[''];
+      }
     }
   }
 
