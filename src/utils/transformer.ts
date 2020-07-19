@@ -1,9 +1,32 @@
 import is from '@sindresorhus/is';
-import { JSONType, JSONValue, SerializableJSONValue } from '../types';
+import { TypeAnnotation } from './flattenizer';
+
+export function objectHasArrayLikeKeys(object: object): boolean {
+  return areKeysArrayLike(Object.keys(object));
+}
+
+/**
+ * keys are expected to be sorted alphanumerically.
+ */
+export function areKeysArrayLike(keys: string[]): boolean {
+  const numberKeys: number[] = [];
+
+  for (const key of keys) {
+    const keyAsInt = parseInt(key);
+
+    if (is.nan(keyAsInt)) {
+      return false;
+    }
+
+    numberKeys.push(keyAsInt);
+  }
+
+  return numberKeys.every((value, index) => value === index);
+}
 
 export const transformValue = (
-  value: SerializableJSONValue
-): { value: JSONValue; type: JSONType } => {
+  value: any
+): { value: any; type: TypeAnnotation } | undefined => {
   if (is.undefined(value)) {
     return {
       value: undefined,
@@ -39,12 +62,22 @@ export const transformValue = (
       value: '' + value,
       type: 'regexp',
     };
+  } else if (is.map(value)) {
+    return {
+      value: new Error('if you see this, smth bad happened'),
+      type: 'map',
+    };
+  } else if (is.plainObject(value) && objectHasArrayLikeKeys(value)) {
+    return {
+      value: new Error('if you see this, smth bad happened'),
+      type: 'object',
+    };
   }
 
-  throw new Error('invalid input');
+  return undefined;
 };
 
-export const untransformValue = (json: JSONValue, type: JSONType) => {
+export const untransformValue = (json: any, type: TypeAnnotation) => {
   switch (type) {
     case 'bigint':
       return BigInt(json);
@@ -53,11 +86,13 @@ export const untransformValue = (json: JSONValue, type: JSONType) => {
     case 'Date':
       return new Date(json as string);
     case 'NaN':
-      return 0 / 0;
+      return Number.NaN;
     case 'Infinity':
-      return 1 / 0;
+      return Number.POSITIVE_INFINITY;
     case '-Infinity':
-      return -1 / 0;
+      return Number.NEGATIVE_INFINITY;
+    case 'map':
+      return new Map(Object.entries(json));
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {
@@ -66,7 +101,9 @@ export const untransformValue = (json: JSONValue, type: JSONType) => {
       const flags = regex.slice(regex.lastIndexOf('/') + 1);
       return new RegExp(body, flags);
     }
+    case 'object':
+      return Object.fromEntries((json as unknown[]).map((v, i) => [i, v]));
     default:
-      throw new Error('invalid input');
+      return json;
   }
 };
