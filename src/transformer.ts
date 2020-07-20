@@ -1,29 +1,43 @@
 import is from '@sindresorhus/is';
 
-type LeafTypeAnnotation =
-  | 'regexp'
+export type PrimitiveTypeAnnotation =
   | 'NaN'
   | '-Infinity'
   | 'Infinity'
   | 'undefined'
-  | 'bigint'
-  | 'Date';
+  | 'bigint';
+
+type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
 type ContainerTypeAnnotation = 'map' | 'set';
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
-const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = [
+const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
   '-Infinity',
   'Infinity',
   'undefined',
   'NaN',
   'bigint',
-  'map',
-  'regexp',
-  'set',
-  'Date',
 ];
+
+export const isPrimitiveTypeAnnotation = (
+  value: any
+): value is PrimitiveTypeAnnotation => {
+  return ALL_PRIMITIVE_TYPE_ANNOTATIONS.includes(value);
+};
+
+const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
+  ['map', 'regexp', 'set', 'Date']
+);
+
+export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number';
+
+export function isKeyTypeAnnotation(
+  string: unknown
+): string is KeyTypeAnnotation {
+  return string === 'number' || isPrimitiveTypeAnnotation(string);
+}
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
   return ALL_TYPE_ANNOTATIONS.includes(value);
@@ -105,3 +119,28 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return json;
   }
 };
+
+export function transformKey(
+  key: any
+): { key: string; type: KeyTypeAnnotation } | undefined {
+  if (is.number(key)) {
+    return { key: '' + key, type: 'number' };
+  }
+
+  if (is.undefined(key)) {
+    return { key: 'undefined', type: 'undefined' };
+  }
+
+  return undefined;
+}
+
+export function untransformKey(key: any, type: KeyTypeAnnotation): any {
+  switch (type) {
+    case 'number':
+      return Number(key);
+    case 'undefined':
+      return undefined;
+    default:
+      throw new Error('Not implemented');
+  }
+}

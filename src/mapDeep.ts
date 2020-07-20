@@ -23,7 +23,7 @@ const mapKey = (
 
 export const mapDeep = (
   object: object,
-  path: string[],
+  path: (string | number)[],
   mapper: (v: any) => any
 ): object => {
   if (path.length < 1) {

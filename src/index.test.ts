@@ -74,9 +74,10 @@ describe('stringify & parse', () => {
 
     'works for Maps': {
       input: {
-        a: new Map([
+        a: new Map<number | string | undefined, number | string>([
           [1, 'a'],
-          [2, 'b'],
+          ['2', 'b'],
+          [undefined, 5],
         ]),
       },
 
@@ -84,12 +85,17 @@ describe('stringify & parse', () => {
         a: {
           1: 'a',
           2: 'b',
+          undefined: 5,
         },
       },
 
       outputAnnotations: {
         values: {
           a: 'map',
+        },
+        keys: {
+          'a.1': 'number',
+          'a.undefined': 'undefined',
         },
       },
     },
