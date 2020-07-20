@@ -97,12 +97,17 @@ describe('stringify & parse', () => {
     'works for paths containing dots': {
       input: {
         'a.1': {
-          b: 3,
+          b: new Set([1, 2]),
         },
       },
       output: {
         'a.1': {
-          b: 3,
+          b: [1, 2],
+        },
+      },
+      outputAnnotations: {
+        values: {
+          'a\\.1.b': 'set',
         },
       },
     },
@@ -110,12 +115,105 @@ describe('stringify & parse', () => {
     'works for paths containing backslashes': {
       input: {
         'a\\.1': {
-          b: 3,
+          b: new Set([1, 2]),
         },
       },
       output: {
         'a\\.1': {
-          b: 3,
+          b: [1, 2],
+        },
+      },
+      outputAnnotations: {
+        values: {
+          'a\\\\.1.b': 'set',
+        },
+      },
+    },
+
+    'works for dates': {
+      input: {
+        meeting: {
+          date: new Date(2020, 1, 1),
+        },
+      },
+      output: {
+        meeting: {
+          date: new Date(2020, 1, 1).toISOString(),
+        },
+      },
+      outputAnnotations: {
+        values: {
+          'meeting.date': 'Date',
+        },
+      },
+    },
+
+    'works for regex': {
+      input: {
+        a: /hello/g,
+      },
+      output: {
+        a: '/hello/g',
+      },
+      outputAnnotations: {
+        values: {
+          a: 'regexp',
+        },
+      },
+    },
+
+    'works for Infinity': {
+      input: {
+        a: Number.POSITIVE_INFINITY,
+      },
+      output: {
+        a: undefined,
+      },
+      outputAnnotations: {
+        values: {
+          a: 'Infinity',
+        },
+      },
+    },
+
+    'works for -Infinity': {
+      input: {
+        a: Number.NEGATIVE_INFINITY,
+      },
+      output: {
+        a: undefined,
+      },
+      outputAnnotations: {
+        values: {
+          a: '-Infinity',
+        },
+      },
+    },
+
+    'works for NaN': {
+      input: {
+        a: NaN,
+      },
+      output: {
+        a: undefined,
+      },
+      outputAnnotations: {
+        values: {
+          a: 'NaN',
+        },
+      },
+    },
+
+    'works for bigint': {
+      input: {
+        a: BigInt('1021312312412312312313'),
+      },
+      output: {
+        a: '1021312312412312312313',
+      },
+      outputAnnotations: {
+        values: {
+          a: 'bigint',
         },
       },
     },
@@ -149,6 +247,38 @@ describe('stringify & parse', () => {
       expect(() => {
         SuperJSON.stringify(a);
       }).toThrow(TypeError);
+    });
+  });
+
+  describe('when given a non-SuperJSON object', () => {
+    it('throws', () => {
+      expect(() => {
+        SuperJSON.parse(
+          JSON.stringify({
+            value: {
+              a: 1,
+            },
+            meta: {
+              root: 'invalid_key',
+            },
+          })
+        );
+      }).toThrow();
+
+      expect(() => {
+        SuperJSON.parse(
+          JSON.stringify({
+            value: {
+              a: 1,
+            },
+            meta: {
+              values: {
+                a: 'invalid_key',
+              },
+            },
+          })
+        );
+      }).toThrow();
     });
   });
 });
