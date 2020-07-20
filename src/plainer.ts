@@ -26,16 +26,29 @@ const entries = (object: object | Map<any, any>): [any, any][] => {
   throw new Error('Illegal Argument: ' + typeof object);
 };
 
-export const plainer = (object: any, walker: Walker, path: any[] = []): any => {
+export const plainer = (
+  object: any,
+  walker: Walker,
+  path: any[] = [],
+  alreadySeenObjects = new Set<any>()
+): any => {
   if (!isDeep(object)) {
     return walker({ isLeaf: true, node: object, path });
+  }
+
+  if (alreadySeenObjects.has(object)) {
+    throw new TypeError('Circular Reference');
+  }
+
+  if (!is.primitive(object)) {
+    alreadySeenObjects.add(object);
   }
 
   walker({ isLeaf: false, path, node: object });
 
   if (is.array(object) || is.set(object)) {
     return [...object].map((value, key) =>
-      plainer(value, walker, [...path, key])
+      plainer(value, walker, [...path, key], alreadySeenObjects)
     );
   }
 
@@ -43,7 +56,7 @@ export const plainer = (object: any, walker: Walker, path: any[] = []): any => {
     return Object.fromEntries(
       entries(object).map(([key, value]) => [
         key,
-        plainer(value, walker, [...path, key]),
+        plainer(value, walker, [...path, key], alreadySeenObjects),
       ])
     );
   }
