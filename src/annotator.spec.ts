@@ -13,7 +13,9 @@ describe('annotator', () => {
     ).toBe(undefined);
 
     expect(annotations).toEqual({
-      'a.1.b': 'undefined',
+      values: {
+        'a.1.b': 'undefined',
+      },
     });
   });
 });

@@ -4,8 +4,6 @@ import { untransformValue } from './transformer';
 import { makeAnnotator } from './annotator';
 import { plainer } from './plainer';
 
-const isNonEmptyFlat = (object: any): boolean => is.plainObject(object);
-
 export const entries = (object: any): [any, any][] => {
   if (is.array(object)) {
     return object.map((v, i) => [i, v]);
@@ -41,7 +39,10 @@ export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
 export type Flattened = Record<string, any> | null | undefined;
 
-export type FlattenAnnotations = Record<string, TypeAnnotation>;
+export interface FlattenAnnotations {
+  root?: TypeAnnotation;
+  values?: Record<string, TypeAnnotation>;
+}
 
 export const flattenAndSerialize = (
   unflattened: any
@@ -101,17 +102,23 @@ export const deserializeFlattened = (
   unflattened: any,
   annotations: FlattenAnnotations
 ): any => {
-  if (!isNonEmptyFlat(unflattened)) {
-    if (annotations['']) {
-      return untransformValue(unflattened, annotations['']);
+  if (annotations.values) {
+    const annotationsWithPaths = Object.entries(annotations.values).map(
+      ([key, type]) => [keyToPath(key), type] as [string[], TypeAnnotation]
+    );
+    const annotationsWithPathsLeavesToRoot = annotationsWithPaths.sort(
+      ([pathA], [pathB]) => pathB.length - pathA.length
+    );
+
+    for (const [path, type] of annotationsWithPathsLeavesToRoot) {
+      unflattened = mapDeep(unflattened, path, v =>
+        untransformValue(v, type as TypeAnnotation)
+      );
     }
-    return unflattened;
   }
 
-  for (const [key, type] of Object.entries(annotations)) {
-    unflattened = mapDeep(unflattened, keyToPath(key), v =>
-      untransformValue(v, type)
-    );
+  if (annotations.root) {
+    unflattened = untransformValue(unflattened, annotations.root);
   }
 
   return unflattened;

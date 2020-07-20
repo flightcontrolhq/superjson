@@ -87,7 +87,9 @@ describe('flattenAndSerialize & deserialize', () => {
         a: [1, undefined, 2],
       },
       outputAnnotations: {
-        'a.1': 'undefined',
+        values: {
+          'a.1': 'undefined',
+        },
       },
     },
 
@@ -99,8 +101,10 @@ describe('flattenAndSerialize & deserialize', () => {
         a: [1, undefined, 2],
       },
       outputAnnotations: {
-        a: 'set',
-        'a.1': 'undefined',
+        values: {
+          a: 'set',
+          'a.1': 'undefined',
+        },
       },
     },
 
@@ -108,8 +112,10 @@ describe('flattenAndSerialize & deserialize', () => {
       input: new Set([1, undefined, 2]),
       output: [1, undefined, 2],
       outputAnnotations: {
-        '': 'set',
-        '1': 'undefined',
+        root: 'set',
+        values: {
+          '1': 'undefined',
+        },
       },
     },
 
@@ -129,7 +135,9 @@ describe('flattenAndSerialize & deserialize', () => {
       },
 
       outputAnnotations: {
-        a: 'map',
+        values: {
+          a: 'map',
+        },
       },
     },
 
