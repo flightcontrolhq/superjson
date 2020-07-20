@@ -6,7 +6,7 @@ interface WalkerValue {
   node: any;
 }
 
-type Walker = (v: WalkerValue) => any;
+export type Walker = (v: WalkerValue) => any;
 
 const isDeep = (object: any): boolean =>
   is.plainObject(object) ||

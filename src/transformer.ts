@@ -1,28 +1,5 @@
 import is from '@sindresorhus/is';
-
 import { TypeAnnotation } from './serializer';
-
-export const objectHasArrayLikeKeys = (object: object): boolean =>
-  areKeysArrayLike(Object.keys(object));
-
-/**
- * keys are expected to be sorted alphanumerically.
- */
-export const areKeysArrayLike = (keys: string[]): boolean => {
-  const numberKeys: number[] = [];
-
-  for (const key of keys) {
-    const keyAsInt = parseInt(key);
-
-    if (is.nan(keyAsInt)) {
-      return false;
-    }
-
-    numberKeys.push(keyAsInt);
-  }
-
-  return numberKeys.every((value, index) => value === index);
-};
 
 export const transformValue = (
   value: any
@@ -64,13 +41,8 @@ export const transformValue = (
     };
   } else if (is.map(value)) {
     return {
-      value: new Error('if you see this, smth bad happened'),
+      value: value,
       type: 'map',
-    };
-  } else if (is.plainObject(value) && objectHasArrayLikeKeys(value)) {
-    return {
-      value: new Error('if you see this, smth bad happened'),
-      type: 'object',
     };
   }
 
