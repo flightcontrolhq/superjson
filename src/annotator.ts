@@ -1,8 +1,36 @@
 import { Walker } from './plainer';
-import { transformValue, untransformValue } from './transformer';
-import { Annotations, TypeAnnotation } from './serializer';
-import { stringifyPath, parsePath } from './pathstringifier';
+import {
+  transformValue,
+  untransformValue,
+  TypeAnnotation,
+  isTypeAnnotation,
+} from './transformer';
+import {
+  stringifyPath,
+  parsePath,
+  StringifiedPath,
+  isStringifiedPath,
+} from './pathstringifier';
 import { mapDeep } from './mapDeep';
+
+export interface Annotations {
+  root?: TypeAnnotation;
+  values?: Record<StringifiedPath, TypeAnnotation>;
+}
+
+export function isAnnotations(object: any): object is Annotations {
+  if (!!object.root && !isTypeAnnotation(object.root)) {
+    return false;
+  }
+
+  if (!!object.values) {
+    return Object.entries(object.values).every(
+      ([key, value]) => isStringifiedPath(key) && isTypeAnnotation(value)
+    );
+  }
+
+  return true;
+}
 
 export const makeAnnotator = () => {
   const annotations: Annotations = {};

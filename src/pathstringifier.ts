@@ -1,13 +1,25 @@
+export type StringifiedPath = string;
 type Path = (number | string)[];
 
 const escape = (key: string) => key.replace(/\./g, '\\.');
 const unescape = (k: string) => k.replace(/\\\./g, '.');
 
-export const stringifyPath = (path: Path): string =>
+export const stringifyPath = (path: Path): StringifiedPath =>
   path
     .map(String)
     .map(escape)
     .join('.');
 
-export const parsePath = (string: string): Path =>
+export const parsePath = (string: StringifiedPath): Path =>
   string.split(/(?<!\\)\./g).map(unescape);
+
+export const isStringifiedPath = (
+  string: string
+): string is StringifiedPath => {
+  try {
+    parsePath(string);
+    return true;
+  } catch (anyError) {
+    return false;
+  }
+};

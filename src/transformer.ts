@@ -1,5 +1,33 @@
 import is from '@sindresorhus/is';
-import { TypeAnnotation } from './serializer';
+
+type LeafTypeAnnotation =
+  | 'regexp'
+  | 'NaN'
+  | '-Infinity'
+  | 'Infinity'
+  | 'undefined'
+  | 'bigint'
+  | 'Date';
+
+type ContainerTypeAnnotation = 'map' | 'set';
+
+export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
+
+const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = [
+  '-Infinity',
+  'Infinity',
+  'undefined',
+  'NaN',
+  'bigint',
+  'map',
+  'regexp',
+  'set',
+  'Date',
+];
+
+export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
+  return ALL_TYPE_ANNOTATIONS.includes(value);
+};
 
 export const transformValue = (
   value: any
@@ -73,8 +101,6 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       const flags = regex.slice(regex.lastIndexOf('/') + 1);
       return new RegExp(body, flags);
     }
-    case 'object':
-      return Object.fromEntries((json as unknown[]).map((v, i) => [i, v]));
     default:
       return json;
   }

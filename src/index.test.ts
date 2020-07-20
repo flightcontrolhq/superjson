@@ -1,13 +1,12 @@
-import { serialize, Annotations } from './serializer';
-import { applyAnnotations } from './annotator';
+import * as SuperJSON from './';
+import { Annotations } from './annotator';
 
-describe('flattenAndSerialize & deserialize', () => {
+describe('stringify & parse', () => {
   const cases: Record<
     string,
     {
       input: any;
       output: any;
-      unflattenedOutput?: any;
       outputAnnotations?: Annotations;
     }
   > = {
@@ -124,15 +123,20 @@ describe('flattenAndSerialize & deserialize', () => {
 
   for (const [
     testName,
-    { input, output, unflattenedOutput, outputAnnotations },
+    {
+      input,
+      output: expectedOutput,
+      outputAnnotations: expectedOutputAnnotations,
+    },
   ] of Object.entries(cases)) {
     test(testName, () => {
-      const { output: flattened, annotations } = serialize(input);
-      expect(annotations).toEqual(outputAnnotations ?? {});
-      expect(flattened).toEqual(output);
+      const { value, meta } = SuperJSON.serialize(input);
 
-      const untransformed = applyAnnotations(flattened, annotations);
-      expect(untransformed).toEqual(unflattenedOutput ?? input);
+      expect(value).toEqual(expectedOutput);
+      expect(meta).toEqual(expectedOutputAnnotations);
+
+      const untransformed = SuperJSON.deserialize({ value, meta });
+      expect(untransformed).toEqual(input);
     });
   }
 
@@ -143,7 +147,7 @@ describe('flattenAndSerialize & deserialize', () => {
       a.children.push(b);
 
       expect(() => {
-        serialize(a);
+        SuperJSON.stringify(a);
       }).toThrow(TypeError);
     });
   });
