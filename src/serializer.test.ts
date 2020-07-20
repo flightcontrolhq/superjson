@@ -1,51 +1,5 @@
-import {
-  deserializeFlattened,
-  entries,
-  flattenAndSerialize,
-  FlattenAnnotations,
-} from './serializer';
-
-describe('entries', () => {
-  it('works for arrays', () => {
-    expect(entries(['a', 'b', 'c'])).toEqual([
-      [0, 'a'],
-      [1, 'b'],
-      [2, 'c'],
-    ]);
-  });
-
-  it('works for objects', () => {
-    expect(entries({ 0: 'a', 1: 'b', 2: 'c' })).toEqual([
-      ['0', 'a'],
-      ['1', 'b'],
-      ['2', 'c'],
-    ]);
-  });
-
-  it('works for sets', () => {
-    expect(entries(new Set(['a', 'b', 'c']))).toEqual([
-      [0, 'a'],
-      [1, 'b'],
-      [2, 'c'],
-    ]);
-  });
-
-  it('works for maps', () => {
-    expect(
-      entries(
-        new Map<any, any>([
-          ['0', 'a'],
-          [1, 'b'],
-          [undefined, 'c'],
-        ])
-      )
-    ).toEqual([
-      ['0', 'a'],
-      [1, 'b'],
-      [undefined, 'c'],
-    ]);
-  });
-});
+import { flattenAndSerialize, FlattenAnnotations } from './serializer';
+import { applyAnnotations } from './annotator';
 
 describe('flattenAndSerialize & deserialize', () => {
   const cases: Record<
@@ -177,7 +131,7 @@ describe('flattenAndSerialize & deserialize', () => {
       expect(annotations).toEqual(outputAnnotations ?? {});
       expect(flattened).toEqual(output);
 
-      const untransformed = deserializeFlattened(flattened, annotations);
+      const untransformed = applyAnnotations(flattened, annotations);
       expect(untransformed).toEqual(unflattenedOutput ?? input);
     });
   }
