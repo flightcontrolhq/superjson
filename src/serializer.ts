@@ -16,14 +16,14 @@ export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
 export type Flattened = Record<string, any> | null | undefined;
 
-export interface FlattenAnnotations {
+export interface Annotations {
   root?: TypeAnnotation;
   values?: Record<string, TypeAnnotation>;
 }
 
-export const flattenAndSerialize = (
+export const serialize = (
   unflattened: any
-): { output: Flattened; annotations: FlattenAnnotations } => {
+): { output: Flattened; annotations: Annotations } => {
   const { annotations, annotator } = makeAnnotator();
 
   const output = plainer(unflattened, annotator);

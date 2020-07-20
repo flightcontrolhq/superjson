@@ -1,4 +1,4 @@
-import { flattenAndSerialize, FlattenAnnotations } from './serializer';
+import { serialize, Annotations } from './serializer';
 import { applyAnnotations } from './annotator';
 
 describe('flattenAndSerialize & deserialize', () => {
@@ -8,7 +8,7 @@ describe('flattenAndSerialize & deserialize', () => {
       input: any;
       output: any;
       unflattenedOutput?: any;
-      outputAnnotations?: FlattenAnnotations;
+      outputAnnotations?: Annotations;
     }
   > = {
     'works for objects': {
@@ -127,7 +127,7 @@ describe('flattenAndSerialize & deserialize', () => {
     { input, output, unflattenedOutput, outputAnnotations },
   ] of Object.entries(cases)) {
     test(testName, () => {
-      const { output: flattened, annotations } = flattenAndSerialize(input);
+      const { output: flattened, annotations } = serialize(input);
       expect(annotations).toEqual(outputAnnotations ?? {});
       expect(flattened).toEqual(output);
 
@@ -143,7 +143,7 @@ describe('flattenAndSerialize & deserialize', () => {
       a.children.push(b);
 
       expect(() => {
-        flattenAndSerialize(a);
+        serialize(a);
       }).toThrow(TypeError);
     });
   });

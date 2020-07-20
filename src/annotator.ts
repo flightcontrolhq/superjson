@@ -1,11 +1,11 @@
 import { Walker } from './plainer';
 import { transformValue, untransformValue } from './transformer';
-import { FlattenAnnotations, TypeAnnotation } from './serializer';
+import { Annotations, TypeAnnotation } from './serializer';
 import { stringifyPath, parsePath } from './pathstringifier';
 import { mapDeep } from './mapDeep';
 
 export const makeAnnotator = () => {
-  const annotations: FlattenAnnotations = {};
+  const annotations: Annotations = {};
 
   const annotator: Walker = ({ path, node }) => {
     const transformed = transformValue(node);
@@ -29,10 +29,7 @@ export const makeAnnotator = () => {
   return { annotations, annotator };
 };
 
-export const applyAnnotations = (
-  plain: any,
-  annotations: FlattenAnnotations
-): any => {
+export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   if (annotations.values) {
     const annotationsWithPaths = Object.entries(annotations.values).map(
       ([key, type]) => [parsePath(key), type] as [string[], TypeAnnotation]
