@@ -31,14 +31,6 @@ const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.co
   ['map', 'regexp', 'set', 'Date']
 );
 
-export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number';
-
-export function isKeyTypeAnnotation(
-  string: unknown
-): string is KeyTypeAnnotation {
-  return string === 'number' || isPrimitiveTypeAnnotation(string);
-}
-
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
   return ALL_TYPE_ANNOTATIONS.includes(value);
 };
@@ -120,6 +112,14 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
   }
 };
 
+export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number';
+
+export function isKeyTypeAnnotation(
+  string: unknown
+): string is KeyTypeAnnotation {
+  return string === 'number' || isPrimitiveTypeAnnotation(string);
+}
+
 export function transformKey(
   key: any
 ): { key: string; type: KeyTypeAnnotation } | undefined {
@@ -127,8 +127,12 @@ export function transformKey(
     return { key: '' + key, type: 'number' };
   }
 
-  if (is.undefined(key)) {
-    return { key: 'undefined', type: 'undefined' };
+  const transformed = transformValue(key)!;
+  if (transformed) {
+    return {
+      key: '' + transformed.value,
+      type: transformed.type as KeyTypeAnnotation,
+    };
   }
 
   return undefined;
@@ -138,9 +142,7 @@ export function untransformKey(key: any, type: KeyTypeAnnotation): any {
   switch (type) {
     case 'number':
       return Number(key);
-    case 'undefined':
-      return undefined;
     default:
-      throw new Error('Not implemented');
+      return untransformValue(key, type);
   }
 }
