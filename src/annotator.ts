@@ -1,22 +1,23 @@
-import { Walker } from './plainer';
+import is from '@sindresorhus/is';
+
+import { mapDeep } from './mapDeep';
 import {
-  transformValue,
-  untransformValue,
-  TypeAnnotation,
-  isTypeAnnotation,
-  isKeyTypeAnnotation,
-  KeyTypeAnnotation,
-  transformKey,
-  untransformKey,
-} from './transformer';
-import {
-  stringifyPath,
-  parsePath,
   StringifiedPath,
   isStringifiedPath,
+  parsePath,
+  stringifyPath,
 } from './pathstringifier';
-import { mapDeep } from './mapDeep';
-import is from '@sindresorhus/is';
+import { Walker } from './plainer';
+import {
+  KeyTypeAnnotation,
+  TypeAnnotation,
+  isKeyTypeAnnotation,
+  isTypeAnnotation,
+  transformKey,
+  transformValue,
+  untransformKey,
+  untransformValue,
+} from './transformer';
 
 export interface Annotations {
   root?: TypeAnnotation;

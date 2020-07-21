@@ -1,6 +1,7 @@
+import { JSONValue, SuperJSONValue } from 'types';
+
 import * as SuperJSON from './';
 import { Annotations } from './annotator';
-import { SuperJSONValue, JSONValue } from 'types';
 
 describe('stringify & parse', () => {
   const cases: Record<

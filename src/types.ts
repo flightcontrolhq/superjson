@@ -1,5 +1,6 @@
-import { Annotations, isAnnotations } from './annotator';
 import is from '@sindresorhus/is';
+
+import { Annotations, isAnnotations } from './annotator';
 
 export type PrimitveJSONValue = string | number | boolean | undefined | null;
 

@@ -1,7 +1,8 @@
 import is from '@sindresorhus/is';
-import { makeAnnotator, applyAnnotations } from './annotator';
+
+import { applyAnnotations, makeAnnotator } from './annotator';
 import { plainer } from './plainer';
-import { SuperJSONResult, isSuperJSONResult, SuperJSONValue } from './types';
+import { SuperJSONResult, SuperJSONValue, isSuperJSONResult } from './types';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { annotations, annotator } = makeAnnotator();
