@@ -1,14 +1,20 @@
 import is from '@sindresorhus/is';
 
-const mapKey = (
+export const mapDeep = (
   object: object,
-  key: string | number,
+  path: (string | number)[],
   mapper: (v: any) => any
-) => {
+): object => {
+  if (path.length === 0) {
+    return mapper(object);
+  }
+
+  const [head, ...tail] = path;
+
   if (is.array(object)) {
     return object.map((v, i) => {
-      if (i === key) {
-        return mapper(v);
+      if (i === head) {
+        return mapDeep(v, tail, mapper);
       }
 
       return v;
@@ -16,25 +22,7 @@ const mapKey = (
   } else {
     return {
       ...object,
-      [key]: mapper((object as any)[key]),
+      [head]: mapDeep((object as any)[head], tail, mapper),
     };
   }
-};
-
-export const mapDeep = (
-  object: object,
-  path: (string | number)[],
-  mapper: (v: any) => any
-): object => {
-  if (path.length < 1) {
-    throw new Error('Illegal Argument');
-  }
-
-  const [head, ...tail] = path;
-
-  if (path.length === 1) {
-    return mapKey(object, head, mapper);
-  }
-
-  return mapKey(object, head, v => mapDeep(v ?? {}, tail, mapper));
 };
