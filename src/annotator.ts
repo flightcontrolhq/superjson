@@ -16,7 +16,7 @@ import {
   isStringifiedPath,
 } from './pathstringifier';
 import { mapDeep } from './mapDeep';
-import is from '@sindresorhus/is/dist';
+import is from '@sindresorhus/is';
 
 export interface Annotations {
   root?: TypeAnnotation;
