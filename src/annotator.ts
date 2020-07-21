@@ -54,6 +54,7 @@ export const makeAnnotator = () => {
 
       for (const [key, value] of node.entries()) {
         const transformed = transformKey(key);
+
         if (transformed) {
           newNode.set(transformed.key, value);
 
@@ -95,6 +96,7 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
     const annotationsWithPaths = Object.entries(annotations.values).map(
       ([key, type]) => [parsePath(key), type] as [string[], TypeAnnotation]
     );
+
     const annotationsWithPathsLeavesToRoot = annotationsWithPaths.sort(
       ([pathA], [pathB]) => pathB.length - pathA.length
     );
@@ -111,7 +113,6 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
       const path = parsePath(key);
       const mapKey = path[path.length - 1];
       const pathToMap = path.slice(0, path.length - 1);
-
       const untransformedKey = untransformKey(mapKey, type);
 
       plain = mapDeep(plain, pathToMap, (v: Map<any, any>) => {
