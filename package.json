@@ -1,20 +1,54 @@
 {
-  "name": "superjson",
   "version": "0.0.6",
-  "description": "extends JSON.stringify and JSON.parse to support additional JS types (Dates, RegExps, Functions, etc.)",
-  "keywords": [],
-  "author": "Matthew Mueller <matt@lapwinglabs.com>",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/lapwinglabs/superjson.git"
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --notify --verbose",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build"
+  },
+  "peerDependencies": {},
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "importSort": {
+    ".ts": {
+      "style": "module"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "plugins": [
+      "./node_modules/prettier-plugin-import-sort/src/index.js"
+    ]
+  },
+  "name": "superjson",
+  "author": "merelinguist",
+  "module": "dist/superjson.esm.js",
+  "devDependencies": {
+    "husky": "^4.2.5",
+    "import-sort-style-module": "^6.0.0",
+    "prettier-plugin-import-sort": "^0.0.4",
+    "tsdx": "^0.13.2",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.6"
   },
   "dependencies": {
-    "acorn": "^3.1.0",
-    "component-type": "^1.1.0",
-    "json3": "^3.3.2"
-  },
-  "devDependencies": {
-    "mocha": "*"
-  },
-  "main": "index"
+    "@sindresorhus/is": "^3.0.0"
+  }
 }
