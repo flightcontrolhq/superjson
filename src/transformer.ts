@@ -112,12 +112,16 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
   }
 };
 
-export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number';
+export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number' | 'boolean';
 
 export function isKeyTypeAnnotation(
   string: unknown
 ): string is KeyTypeAnnotation {
-  return string === 'number' || isPrimitiveTypeAnnotation(string);
+  return (
+    string === 'number' ||
+    string === 'boolean' ||
+    isPrimitiveTypeAnnotation(string)
+  );
 }
 
 export function transformKey(
@@ -125,6 +129,10 @@ export function transformKey(
 ): { key: string; type: KeyTypeAnnotation } | undefined {
   if (is.number(key)) {
     return { key: '' + key, type: 'number' };
+  }
+
+  if (is.boolean(key)) {
+    return { key: '' + key, type: 'boolean' };
   }
 
   const transformed = transformValue(key)!;
@@ -142,6 +150,8 @@ export function untransformKey(key: any, type: KeyTypeAnnotation): any {
   switch (type) {
     case 'number':
       return Number(key);
+    case 'boolean':
+      return Boolean(key);
     default:
       return untransformValue(key, type);
   }

@@ -75,28 +75,38 @@ describe('stringify & parse', () => {
 
     'works for Maps': {
       input: {
-        a: new Map<number | string | undefined, number | string>([
-          [1, 'a'],
-          ['2', 'b'],
-          [undefined, 5],
-        ]),
+        a: new Map([[1, 'a']]),
+        b: new Map([['2', 'b']]),
+        c: new Map([[undefined, 5]]),
+        d: new Map([[true, 'true key']]),
       },
 
       output: {
         a: {
           1: 'a',
+        },
+        b: {
           2: 'b',
+        },
+        c: {
           undefined: 5,
+        },
+        d: {
+          true: 'true key',
         },
       },
 
       outputAnnotations: {
         values: {
           a: 'map',
+          b: 'map',
+          c: 'map',
+          d: 'map',
         },
         keys: {
           'a.1': 'number',
-          'a.undefined': 'undefined',
+          'c.undefined': 'undefined',
+          'd.true': 'boolean',
         },
       },
     },
