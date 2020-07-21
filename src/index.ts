@@ -1,53 +1,30 @@
 import is from '@sindresorhus/is';
-import {
-  makeAnnotator,
-  applyAnnotations,
-  isAnnotations,
-  Annotations,
-} from './annotator';
+import { makeAnnotator, applyAnnotations } from './annotator';
 import { plainer } from './plainer';
+import { SuperJSONResult, isSuperJSONResult, SuperJSONValue } from './types';
 
-interface SuperJSONStringPayload<T = any> {
-  value: T;
-  meta?: Annotations;
-}
-
-function isSuperJSONStringPayload(
-  object: any
-): object is SuperJSONStringPayload {
-  if (is.undefined(object.value)) {
-    return false;
-  }
-
-  if (is.undefined(object.meta)) {
-    return true;
-  }
-
-  return isAnnotations(object.meta);
-}
-
-export const serialize = (object: any): SuperJSONStringPayload => {
+export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { annotations, annotator } = makeAnnotator();
   const output = plainer(object, annotator);
 
   return {
-    value: output,
+    json: output,
     meta: is.emptyObject(annotations) ? undefined : annotations,
   };
 };
 
-export const deserialize = (payload: any): any => {
-  if (!isSuperJSONStringPayload(payload)) {
+export const deserialize = (payload: SuperJSONResult): SuperJSONValue => {
+  if (!isSuperJSONResult(payload)) {
     throw new Error('Not a SuperJSON payload.');
   }
 
-  const { value, meta } = payload as SuperJSONStringPayload;
+  const { json, meta } = payload as SuperJSONResult;
 
   if (!!meta) {
-    return applyAnnotations(value, meta);
+    return applyAnnotations(json, meta);
   }
 
-  return value;
+  return json;
 };
 
 export const stringify = (object: any): string => {

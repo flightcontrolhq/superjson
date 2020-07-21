@@ -1,12 +1,13 @@
 import * as SuperJSON from './';
 import { Annotations } from './annotator';
+import { SuperJSONValue, JSONValue } from 'types';
 
 describe('stringify & parse', () => {
   const cases: Record<
     string,
     {
-      input: any;
-      output: any;
+      input: SuperJSONValue;
+      output: JSONValue;
       outputAnnotations?: Annotations;
     }
   > = {
@@ -234,12 +235,12 @@ describe('stringify & parse', () => {
     },
   ] of Object.entries(cases)) {
     test(testName, () => {
-      const { value, meta } = SuperJSON.serialize(input);
+      const { json, meta } = SuperJSON.serialize(input);
 
-      expect(value).toEqual(expectedOutput);
+      expect(json).toEqual(expectedOutput);
       expect(meta).toEqual(expectedOutputAnnotations);
 
-      const untransformed = SuperJSON.deserialize({ value, meta });
+      const untransformed = SuperJSON.deserialize({ json, meta });
       expect(untransformed).toEqual(input);
     });
   }

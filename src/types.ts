@@ -1,11 +1,9 @@
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | JSONArray
-  | JSONObject
-  | undefined // undefined is equal to "don't include in JSON"
-  | null;
+import { Annotations, isAnnotations } from './annotator';
+import is from '@sindresorhus/is';
+
+export type PrimitveJSONValue = string | number | boolean | undefined | null;
+
+export type JSONValue = PrimitveJSONValue | JSONArray | JSONObject;
 
 export interface JSONArray extends Array<JSONValue> {}
 
@@ -15,6 +13,7 @@ export interface JSONObject {
 
 export type SerializableJSONValue =
   | Set<any>
+  | Map<PrimitveJSONValue, SuperJSONValue>
   | undefined
   | bigint
   | Date
@@ -34,15 +33,17 @@ export interface SuperJSONObject {
 
 export interface SuperJSONResult {
   json: JSONValue;
-  meta: null | JSONType | Record<string, JSONType>;
+  meta?: Annotations;
 }
 
-export type JSONType =
-  | 'undefined'
-  | 'bigint'
-  | 'Date'
-  | 'NaN'
-  | 'Infinity'
-  | '-Infinity'
-  | 'set'
-  | 'regexp';
+export function isSuperJSONResult(object: any): object is SuperJSONResult {
+  if (is.undefined(object.json)) {
+    return false;
+  }
+
+  if (is.undefined(object.meta)) {
+    return true;
+  }
+
+  return isAnnotations(object.meta);
+}
