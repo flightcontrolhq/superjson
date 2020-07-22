@@ -13,7 +13,8 @@
       "contributions": [
         "code",
         "doc",
-        "design"
+        "design",
+        "test"
       ]
     },
     {
@@ -23,7 +24,8 @@
       "profile": "http://simonknott.de",
       "contributions": [
         "code",
-        "ideas"
+        "ideas",
+        "test"
       ]
     },
     {
@@ -33,6 +35,16 @@
       "profile": "https://twitter.com/flybayer",
       "contributions": [
         "ideas"
+      ]
+    },
+    {
+      "login": "mrleebo",
+      "name": "Jeremy Liberman",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/2754163?v=4",
+      "profile": "http://jeremyliberman.com/",
+      "contributions": [
+        "test",
+        "code"
       ]
     }
   ],
