@@ -13,7 +13,8 @@
       "contributions": [
         "code",
         "doc",
-        "design"
+        "design",
+        "test"
       ]
     },
     {
