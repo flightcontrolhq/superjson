@@ -34,6 +34,16 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "mrleebo",
+      "name": "Jeremy Liberman",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/2754163?v=4",
+      "profile": "http://jeremyliberman.com/",
+      "contributions": [
+        "test",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
