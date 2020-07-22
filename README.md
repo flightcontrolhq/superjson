@@ -45,100 +45,7 @@
 
 At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limitations of JSON. We often find ourselves working with `Date`, `Map`, `Set` or `BigInt`, but `JSON.stringify` doesn't support any of them without going through the hassle of converting manually!
 
-Superjson solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`. Look at the difference between manually converting invalid fields, and using Superjson to handle this for you:
-
-
-```js
-// 😔 without superjson
-
-// retrieve user object
-const user = await db.user.findOne();
-
-/* 
-user = {
-  id: 1,
-  createdAt: new Date(1),
-  updatedAt: new Date(2),
-  name: undefined,
-  email: 'me@here.com',
-  posts: [
-    {
-      id: 1,
-      createdAt: new Date(3),
-      updatedAt: new Date(4),
-      body: 'hello world!',
-    },
-  ],
-}; 
-*/
-
-// manually update invalid fields 
-const serializableUser = {
-  ...user,
-  createdAt: user.createdAt.toIsoString(),
-  updatedAt: user.updatedAt.toIsoString(),
-  name: 'undefined',
-  posts: user.posts.map(post => ({
-    ...post,
-    createdAt: post.createdAt.toIsoString(),
-    updatedAt: post.updatedAt.toIsoString(),
-  })),
-};
-
-// api response
-return JSON.stringify(serializableUser);
-
-// fetch user from api response
-const res = await fetch('/api/user');
-const json = await res.json();
-
-// restore fields
-const user = {
-  ...res,
-  createdAt: new Date(res.createdAt),
-  updatedAt: new Date(res.updatedAt),
-  name: undefined,
-  posts: res.posts.map(post => ({
-    ...post,
-    createdAt: new Date(post.createdAt),
-    updatedAt: new Date(post.createdAt),
-  })),
-};
-```
-
-```js
-// ✨ with superjson
-
-// retrieve user object
-const user = await db.user.findOne();
-
-/* 
-user = {
-  id: 1,
-  createdAt: new Date(1),
-  updatedAt: new Date(2),
-  name: undefined,
-  email: 'me@here.com',
-  posts: [
-    {
-      id: 1,
-      createdAt: new Date(3),
-      updatedAt: new Date(4),
-      body: 'hello world!',
-    },
-  ],
-}; 
-*/
-
-// api response
-return superjson.stringify(serializableUser);
-
-// fetch user from api response
-const res = await fetch('/api/user');
-
-// restore fields
-const user = superjson.parse(res);
-```
+Superjson solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`.
 
 ## Getting started
 
@@ -150,22 +57,20 @@ yarn add superjson
 
 ## Usage
 
-The easiest way to use `superjson` are its `stringify` and `parse` functions. If you know how to use `JSON.stringify`, you already know Superjson!
+The easiest way to use Superjson` is with its `stringify` and `parse` functions. If you know how to use `JSON.stringify`, you already know Superjson!
 
 Easily stringify any expression you’d like:
 
 ```js
-import { stringify } from 'superjson';
+import superjson from 'superjson';
 
-const json = stringify({date: new Date(0)});
+const json = superjson.stringify({date: new Date(0)});
 ```
 
 And parse your JSON like so:
 
-```js
-import { parse } from 'superjson';
-
-const object = stringify(json);
+```jss
+const object = superjson.parse(json);
 ```
 
 Alternatively, you can use our lower-level `serializer` and `deserializer` functions. These transform any JavaScript expression into an object which is valid for JSON serialization.
@@ -179,7 +84,7 @@ const object = {
   test: /superjson/,
 };
 
-const {json, meta} = serialize(object);
+const {json, meta} = superjson.serialize(object);
 
 /*
 json = {
@@ -200,20 +105,20 @@ meta = {
 
 Superjson supports many extra types which JSON does not. You can serialize all these:
 
-| type        | supported by standard JSON? |
-|-------------|-----------------------------|
-| `string`    | ✅                           |
-| `number`    | ✅                           |
-| `boolean`   | ✅                           |
-| `null`      | ✅                           |
-| `Array`     | ✅                           |
-| `Object`    | ✅                           |
-| `undefined` | ❌                           |
-| `bigint`    | ❌                           |
-| `Date`      | ❌                           |
-| `RegExp`    | ❌                           |
-| `Set`       | ❌                           |
-| `Map`       | ❌                           |
+| type        | supported by standard JSON? | supported by Superjson? |
+|-------------|-----------------------------|-------------------------|
+| `string`    | ✅                           | ✅                       |
+| `number`    | ✅                           | ✅                       |
+| `boolean`   | ✅                           | ✅                       |
+| `null`      | ✅                           | ✅                       |
+| `Array`     | ✅                           | ✅                       |
+| `Object`    | ✅                           | ✅                       |
+| `undefined` | ❌                           | ✅                       |
+| `bigint`    | ❌                           | ✅                       |
+| `Date`      | ❌                           | ✅                       |
+| `RegExp`    | ❌                           | ✅                       |
+| `Set`       | ❌                           | ✅                       |
+| `Map`       | ❌                           | ✅                       |
 
 ## Contributors ✨
 
