@@ -1,5 +1,4 @@
-import is from '@sindresorhus/is';
-
+import { isMap } from './is';
 import { mapDeep } from './mapDeep';
 import {
   StringifiedPath,
@@ -49,7 +48,7 @@ export const makeAnnotator = () => {
   const annotations: Annotations = {};
 
   const annotator: Walker = ({ path, node }) => {
-    if (is.map(node)) {
+    if (isMap(node)) {
       const newNode = new Map<string, any>();
 
       for (const [key, value] of node.entries()) {
@@ -102,7 +101,7 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
     );
 
     for (const [path, type] of annotationsWithPathsLeavesToRoot) {
-      plain = mapDeep(plain, path, v =>
+      plain = mapDeep(plain, path, (v) =>
         untransformValue(v, type as TypeAnnotation)
       );
     }
