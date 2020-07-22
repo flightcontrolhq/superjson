@@ -1,0 +1,26 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "merelinguist",
+      "name": "Dylan Brookes",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/24858006?v=4",
+      "profile": "https://merelinguist.me",
+      "contributions": [
+        "code",
+        "doc",
+        "design"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "superjson",
+  "projectOwner": "blitz-js",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
