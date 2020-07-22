@@ -43,7 +43,7 @@
 
 ## Backstory
 
-At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limitations of JSON. Modern databases often store complex types, like Date objects, but it impossible to easily `stringify` your responses without converting any object types to strings. Moreover, you often have to keep track of which fields you need to convert back to objects in your client!
+At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limitations of JSON. We often find ourselves working with `Date`, `Map`, `Set` or `BigInt`, but `JSON.stringify` doesn't support any of them without going through the hassle of converting manually!
 
 Superjson solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`. Look at the difference between manually converting invalid fields, and using Superjson to handle this for you:
 
