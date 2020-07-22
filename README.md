@@ -69,7 +69,7 @@ const json = superjson.stringify({date: new Date(0)});
 
 And parse your JSON like so:
 
-```jss
+```js
 const object = superjson.parse(json);
 ```
 
