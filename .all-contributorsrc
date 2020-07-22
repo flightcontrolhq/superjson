@@ -15,6 +15,16 @@
         "doc",
         "design"
       ]
+    },
+    {
+      "login": "Skn0tt",
+      "name": "Simon Knott",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/14912729?v=4",
+      "profile": "http://simonknott.de",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
