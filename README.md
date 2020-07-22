@@ -152,7 +152,7 @@ yarn add superjson
 
 The easiest way to use `superjson` are its `stringify` and `parse` functions. If you know how to use `JSON.stringify`, you already know Superjson!
 
-Simply stringify any expression you’d like:
+Easily stringify any expression you’d like:
 
 ```js
 import { stringify } from 'superjson';
