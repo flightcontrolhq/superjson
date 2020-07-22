@@ -242,4 +242,4 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 There are many libraries similar to Superjson:
 
 - [Serialize JavaScript](https://github.com/yahoo/serialize-javascript) by Eric Ferraiuolo
-- [devalue](https://github.com/Rich-Harris/devalue)
+- [devalue](https://github.com/Rich-Harris/devalue) by Rich Harris
