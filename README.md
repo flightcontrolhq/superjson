@@ -33,27 +33,6 @@
   </a>
 </p>
 
-## Backstory
-
-At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limitations of JSON. Modern databases often store complex types, like Date objects, but it impossible to easily `stringify` your responses without converting any object types to strings. Moreover, you often have to keep track of which fields you need to convert back to objects in your client!
-
-`superjson` solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`. Look at the difference between manually converting invalid fields, and using `superjson` to handle this for you:
-
-
-```js
-// without superjson
-
-const user = await db.user.findOne()
-
-/*
-json = {
-  id: 1,
-  createdAt:  Thu Jan 01 1970 01:00:00 GMT+0100 (Greenwich Mean Time)
-  timestamp: "2020-06-20T04:56:50.293Z",
-}
-```
-
-
 ## Key features
 
 - 🍱 Reliable serialization and deserialization
@@ -61,27 +40,180 @@ json = {
 - 🐾 Negligible runtime footprint
 - 💫 Framework agnostic
 
-## Example
+
+## Backstory
+
+At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limitations of JSON. Modern databases often store complex types, like Date objects, but it impossible to easily `stringify` your responses without converting any object types to strings. Moreover, you often have to keep track of which fields you need to convert back to objects in your client!
+
+Superjson solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`. Look at the difference between manually converting invalid fields, and using Superjson to handle this for you:
+
 
 ```js
-const input = {
-  normal: 'string',
-  timestamp: new Date(),
+// 😔 without superjson
+
+// retrieve user object
+const user = await db.user.findOne();
+
+/* 
+user = {
+  id: 1,
+  createdAt: new Date(1),
+  updatedAt: new Date(2),
+  name: undefined,
+  email: 'me@here.com',
+  posts: [
+    {
+      id: 1,
+      createdAt: new Date(3),
+      updatedAt: new Date(4),
+      body: 'hello world!',
+    },
+  ],
+}; 
+*/
+
+// manually update invalid fields 
+const serializableUser = {
+  ...user,
+  createdAt: user.createdAt.toIsoString(),
+  updatedAt: user.updatedAt.toIsoString(),
+  name: 'undefined',
+  posts: user.posts.map(post => ({
+    ...post,
+    createdAt: post.createdAt.toIsoString(),
+    updatedAt: post.updatedAt.toIsoString(),
+  })),
 };
 
-const { json, meta } = serialize(input);
+// api response
+return JSON.stringify(serializableUser);
+
+// fetch user from api response
+const res = await fetch('/api/user');
+const json = await res.json();
+
+// restore fields
+const user = {
+  ...res,
+  createdAt: new Date(res.createdAt),
+  updatedAt: new Date(res.updatedAt),
+  name: undefined,
+  posts: res.posts.map(post => ({
+    ...post,
+    createdAt: new Date(post.createdAt),
+    updatedAt: new Date(post.createdAt),
+  })),
+};
+```
+
+```js
+// ✨ with superjson
+
+// retrieve user object
+const user = await db.user.findOne();
+
+/* 
+user = {
+  id: 1,
+  createdAt: new Date(1),
+  updatedAt: new Date(2),
+  name: undefined,
+  email: 'me@here.com',
+  posts: [
+    {
+      id: 1,
+      createdAt: new Date(3),
+      updatedAt: new Date(4),
+      body: 'hello world!',
+    },
+  ],
+}; 
+*/
+
+// api response
+return superjson.stringify(serializableUser);
+
+// fetch user from api response
+const res = await fetch('/api/user');
+
+// restore fields
+const user = superjson.parse(res);
+```
+
+## Getting started
+
+Install the library with your package manager of choice, e.g.:
+
+```
+yarn add superjson
+```
+
+## Usage
+
+The simplest way of using `superjson` is with its `stringify` and `parse` functions. If you know how to use `JSON.stringify` in JavaScript, you already know Superjson!
+
+Simply stringify any expression you’d like:
+
+```js
+import { stringify } from 'superjson';
+
+const json = stringify({date: new Date(0)});
+```
+
+And parse your JSON like so:
+
+```js
+import { parse } from 'superjson';
+
+const object = stringify(json);
+```
+
+Alternatively, you can use our lower-level `serializer` and `deserializer` functions. These transform any JavaScript expression into an object which is valid for JSON serialization.
+
+For example:
+
+```js
+const object = {
+  normal: 'string',
+  timestamp: new Date(),
+  test: /superjson/,
+};
+
+const {json, meta} = serialize(object);
 
 /*
 json = {
   normal: 'string',
   timestamp: "2020-06-20T04:56:50.293Z",
-}
+  test: "/blitz/",
+};
 
+// note that `normal` is not included here; `meta` only has special cases
 meta = {
-  timestamp: 'Date',
-}
+  timestamp: 'date',
+  test: 'regexp',
+};
 */
 ```
+
+## API
+
+Superjson supports many extra types which JSON does not. You can serialize all these:
+
+| type        | supported by standard JSON? |
+|-------------|-----------------------------|
+| `string`    | ✅                           |
+| `number`    | ✅                           |
+| `boolean`   | ✅                           |
+| `null`      | ✅                           |
+| `Array`     | ✅                           |
+| `Object`    | ✅                           |
+| `undefined` | ❌                           |
+| `bigint`    | ❌                           |
+| `Date`      | ❌                           |
+| `RegExp`    | ❌                           |
+| `Set`       | ❌                           |
+| `Map`       | ❌                           |
 
 ## Contributors ✨
 
