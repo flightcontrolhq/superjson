@@ -23,6 +23,7 @@ export interface Annotations {
   root?: TypeAnnotation;
   values?: Record<StringifiedPath, TypeAnnotation>;
   referentialEqualities?: Record<StringifiedPath, StringifiedPath[]>;
+  referentialEqualitiesRoot?: StringifiedPath[];
   keys?: Record<StringifiedPath, KeyTypeAnnotation>;
 }
 
@@ -42,6 +43,10 @@ export function isAnnotations(object: any): object is Annotations {
       return Object.entries(object.referentialEqualities).every(
         ([key, value]) => isStringifiedPath(key) && (value as string[]).every(isStringifiedPath)
       );
+    }
+
+    if (!!object.root && !isTypeAnnotation(object.root)) {
+      return false
     }
   
     if (!!object.keys) {
@@ -116,11 +121,16 @@ export const makeAnnotator = () => {
       if (paths.length > 1) {
         const [ shortestPath, ...identityPaths ] = paths.sort((a, b) => a.length - b.length).map(stringifyPath)
 
-        if (!annotations.referentialEqualities) {
-          annotations.referentialEqualities = {}
-        }
-
-        annotations.referentialEqualities[shortestPath] = identityPaths
+        const isRoot = shortestPath.length === 0;
+        if (isRoot) {
+          annotations.referentialEqualitiesRoot = identityPaths
+        } else {
+          if (!annotations.referentialEqualities) {
+            annotations.referentialEqualities = {}
+          }
+  
+          annotations.referentialEqualities[shortestPath] = identityPaths
+        }        
       }
     }
 
@@ -173,6 +183,12 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
       for (const identicalObjectPath of identicalObjectsPaths.map(parsePath)) {
         setDeep(plain, identicalObjectPath, () => object)
       }
+    }
+  }
+
+  if (annotations.referentialEqualitiesRoot) {
+    for (const identicalObjectPath of annotations.referentialEqualitiesRoot.map(parsePath)) {
+      setDeep(plain, identicalObjectPath, () => plain)
     }
   }
 

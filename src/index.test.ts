@@ -264,25 +264,54 @@ describe('stringify & parse', () => {
         },
       },
     },
+
+    "works for self-referencing objects": {
+      input: () => {
+        const a = { role: 'parent', children: [] as any[] };
+        const b = { role: 'child', parents: [a] };
+        a.children.push(b);
+        return a;
+      },
+      output: {
+        role: "parent",
+        children: [{
+          role: "child",
+          parents: [null]
+        }]
+      },
+      outputAnnotations: {
+        referentialEqualitiesRoot: ["children.0.parents.0"]
+      }
+    }
   };
 
-  function deepFreeze(object: any) {
+  function deepFreeze(object: any, alreadySeenObjects = new Set()) {
     if (is.primitive(object)) {
       return;
     }
 
-    if (is.plainObject(object)) {
-      Object.values(object).forEach(deepFreeze);
+    if (alreadySeenObjects.has(object)) {
+      return;
+    } else {
+      alreadySeenObjects.add(object);
     }
 
-    if (is.array(object) || is.set(object)) {
-      object.forEach(deepFreeze);
+    if (is.plainObject(object)) {
+      Object.values(object).forEach(o => deepFreeze(o, alreadySeenObjects));
+    }
+
+    if (is.set(object)) {
+      object.forEach(o => deepFreeze(o, alreadySeenObjects));
+    }
+
+    if (is.array(object)) {
+      object.forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
     if (is.map(object)) {
       object.forEach((value, key) => {
-        deepFreeze(key);
-        deepFreeze(value);
+        deepFreeze(key, alreadySeenObjects);
+        deepFreeze(value, alreadySeenObjects);
       });
     }
 
@@ -313,18 +342,6 @@ describe('stringify & parse', () => {
       customExpectations?.(untransformed);
     });
   }
-
-  describe('when given a self-referencing object', () => {
-    it('throws', () => {
-      const a = { role: 'parent', children: [] as any[] };
-      const b = { role: 'child', parent: [a] };
-      a.children.push(b);
-
-      expect(() => {
-        SuperJSON.stringify(a);
-      }).toThrow(TypeError);
-    });
-  });
 
   describe('when given a non-SuperJSON object', () => {
     it('throws', () => {

@@ -36,15 +36,15 @@ export const plainer = (
     return walker({ isLeaf: true, node: object, path });
   }
 
+  walker({ isLeaf: false, path, node: object });
+
   if (alreadySeenObjects.includes(object)) {
-    throw new TypeError('Circular Reference');
+    return null;
   }
 
   if (!is.primitive(object)) {
     alreadySeenObjects = [...alreadySeenObjects, object]
   }
-
-  walker({ isLeaf: false, path, node: object });
 
   if (is.array(object) || is.set(object)) {
     return [...object].map((value, key) =>
