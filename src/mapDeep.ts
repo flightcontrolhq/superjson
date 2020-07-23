@@ -1,6 +1,17 @@
-import is from '@sindresorhus/is';
+export const getDeep = (
+  object: object,
+  path: (string | number)[]
+): object => {
+  if (path.length === 0) {
+    return object;
+  }
 
-export const mapDeep = (
+  const [head, ...tail] = path;
+
+  return getDeep((object as any)[head], tail);
+};
+
+export const setDeep = (
   object: object,
   path: (string | number)[],
   mapper: (v: any) => any
@@ -9,20 +20,12 @@ export const mapDeep = (
     return mapper(object);
   }
 
-  const [head, ...tail] = path;
+  const front = path.slice(0, path.length - 1);
+  const last = path[path.length - 1];
 
-  if (is.array(object)) {
-    return object.map((v, i) => {
-      if (i === head) {
-        return mapDeep(v, tail, mapper);
-      }
+  const parent: any = getDeep(object, front);
 
-      return v;
-    });
-  } else {
-    return {
-      ...object,
-      [head]: mapDeep((object as any)[head], tail, mapper),
-    };
-  }
+  parent[last] = mapper(parent[last])
+
+  return object;
 };

@@ -2,7 +2,7 @@ import { makeAnnotator } from './annotator';
 
 describe('annotator', () => {
   test('simple example', () => {
-    const { annotations, annotator } = makeAnnotator();
+    const { getAnnotations, annotator } = makeAnnotator();
 
     expect(
       annotator({
@@ -12,7 +12,7 @@ describe('annotator', () => {
       })
     ).toBe(undefined);
 
-    expect(annotations).toEqual({
+    expect(getAnnotations()).toEqual({
       values: {
         'a.1.b': 'undefined',
       },

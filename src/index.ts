@@ -5,8 +5,10 @@ import { plainer } from './plainer';
 import { SuperJSONResult, SuperJSONValue, isSuperJSONResult } from './types';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
-  const { annotations, annotator } = makeAnnotator();
+  const { getAnnotations, annotator } = makeAnnotator();
   const output = plainer(object, annotator);
+
+  const annotations = getAnnotations();
 
   return {
     json: output,

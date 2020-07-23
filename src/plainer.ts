@@ -30,18 +30,18 @@ export const plainer = (
   object: any,
   walker: Walker,
   path: any[] = [],
-  alreadySeenObjects = new Set<any>()
+  alreadySeenObjects: any[] = []
 ): any => {
   if (!isDeep(object)) {
     return walker({ isLeaf: true, node: object, path });
   }
 
-  if (alreadySeenObjects.has(object)) {
+  if (alreadySeenObjects.includes(object)) {
     throw new TypeError('Circular Reference');
   }
 
   if (!is.primitive(object)) {
-    alreadySeenObjects.add(object);
+    alreadySeenObjects = [...alreadySeenObjects, object]
   }
 
   walker({ isLeaf: false, path, node: object });
