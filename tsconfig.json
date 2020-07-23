@@ -1,10 +1,6 @@
 {
   "include": ["src", "types"],
   "compilerOptions": {
-    // custom
-    "downlevelIteration": true,
-
-    // tsdx
     "module": "esnext",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
