@@ -9,7 +9,9 @@ export type PrimitiveTypeAnnotation =
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
-type ContainerTypeAnnotation = 'map' | 'set';
+type MapTypeAnnotation = 'map:number' | 'map:string' | "map:bigint" | "map:boolean";
+
+type ContainerTypeAnnotation = MapTypeAnnotation | 'set';
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
@@ -28,7 +30,7 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  ['map', 'regexp', 'set', 'Date']
+  ['map:number', 'map:string', 'map:bigint', 'map:boolean', 'regexp', 'set', 'Date']
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
@@ -74,10 +76,34 @@ export const transformValue = (
       type: 'regexp',
     };
   } else if (is.map(value)) {
-    return {
-      value: value,
-      type: 'map',
-    };
+    const { done: valueIsEmpty, value: firstKey } = value.keys().next()
+    const returnValueDoesntMatter = valueIsEmpty;
+    if (returnValueDoesntMatter || is.string(firstKey)) {
+      return { value, type: "map:string" }
+    }
+
+    if (is.number(firstKey)) {
+      return {
+        value: value,
+        type: 'map:number',
+      };  
+    }
+
+    if (is.bigint(firstKey)) {
+      return {
+        value: value,
+        type: 'map:bigint',
+      };  
+    }
+
+    if (is.boolean(firstKey)) {
+      return {
+        value: value,
+        type: 'map:boolean',
+      };  
+    }
+
+    throw new Error("Key type not supported.")
   }
 
   return undefined;
@@ -97,8 +123,14 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return Number.POSITIVE_INFINITY;
     case '-Infinity':
       return Number.NEGATIVE_INFINITY;
-    case 'map':
+    case 'map:number':
+      return new Map(Object.entries(json).map(([k, v]) => [Number(k), v]));
+    case 'map:string':
       return new Map(Object.entries(json));
+    case "map:boolean":
+      return new Map(Object.entries(json).map(([k, v]) => [Boolean(k), v]));
+    case "map:bigint":
+      return new Map(Object.entries(json).map(([k, v]) => [BigInt(k), v]));
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {
@@ -112,47 +144,3 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
   }
 };
 
-export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number' | 'boolean';
-
-export function isKeyTypeAnnotation(
-  string: unknown
-): string is KeyTypeAnnotation {
-  return (
-    string === 'number' ||
-    string === 'boolean' ||
-    isPrimitiveTypeAnnotation(string)
-  );
-}
-
-export function transformKey(
-  key: any
-): { key: string; type: KeyTypeAnnotation } | undefined {
-  if (is.number(key)) {
-    return { key: '' + key, type: 'number' };
-  }
-
-  if (is.boolean(key)) {
-    return { key: '' + key, type: 'boolean' };
-  }
-
-  const transformed = transformValue(key)!;
-  if (transformed) {
-    return {
-      key: '' + transformed.value,
-      type: transformed.type as KeyTypeAnnotation,
-    };
-  }
-
-  return undefined;
-}
-
-export function untransformKey(key: any, type: KeyTypeAnnotation): any {
-  switch (type) {
-    case 'number':
-      return Number(key);
-    case 'boolean':
-      return Boolean(key);
-    default:
-      return untransformValue(key, type);
-  }
-}
