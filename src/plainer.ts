@@ -1,5 +1,5 @@
-import is from '@sindresorhus/is';
 import * as IteratorUtils from "./iteratorutils"
+import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 interface WalkerValue {
   isLeaf: boolean;
@@ -10,17 +10,14 @@ interface WalkerValue {
 export type Walker = (v: WalkerValue) => any;
 
 const isDeep = (object: any): boolean =>
-  is.plainObject(object) ||
-  is.array(object) ||
-  is.map(object) ||
-  is.set(object);
+  isPlainObject(object) || isArray(object) || isMap(object) || isSet(object);
 
 const entries = (object: object | Map<any, any>): Iterator<[any, any]> => {
-  if (is.map(object)) {
+  if (isMap(object)) {
     return object.entries();
   }
 
-  if (is.plainObject(object)) {
+  if (isPlainObject(object)) {
     return Object.entries(object).values()
   }
 
@@ -41,19 +38,19 @@ export const plainer = (
     throw new TypeError('Circular Reference');
   }
 
-  if (!is.primitive(object)) {
+  if (!isPrimitive(object)) {
     alreadySeenObjects.add(object);
   }
 
   walker({ isLeaf: false, path, node: object });
 
-  if (is.array(object) || is.set(object)) {
+  if (isArray(object) || isSet(object)) {
     return IteratorUtils.map(object.values(), (value, index) =>
     plainer(value, walker, [...path, index], alreadySeenObjects)
   );
   }
 
-  if (is.plainObject(object) || is.map(object)) {
+  if (isPlainObject(object) || isMap(object)) {
     return Object.fromEntries(IteratorUtils.map(entries(object), ([key, value]) => [
       key,
       plainer(value, walker, [...path, key], alreadySeenObjects),

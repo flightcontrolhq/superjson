@@ -1,6 +1,5 @@
-import is from '@sindresorhus/is';
-
 import { applyAnnotations, makeAnnotator } from './annotator';
+import { isEmptyObject } from './is';
 import { plainer } from './plainer';
 import { SuperJSONResult, SuperJSONValue, isSuperJSONResult } from './types';
 
@@ -10,7 +9,7 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
 
   return {
     json: output,
-    meta: is.emptyObject(annotations) ? undefined : annotations,
+    meta: isEmptyObject(annotations) ? undefined : annotations,
   };
 };
 
