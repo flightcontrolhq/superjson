@@ -27,23 +27,33 @@ export interface Annotations {
 }
 
 export function isAnnotations(object: any): object is Annotations {
-  if (!!object.root && !isTypeAnnotation(object.root)) {
+  try {
+    if (!!object.root && !isTypeAnnotation(object.root)) {
+      return false;
+    }
+  
+    if (!!object.values) {
+      return Object.entries(object.values).every(
+        ([key, value]) => isStringifiedPath(key) && isTypeAnnotation(value)
+      );
+    }
+  
+    if (!!object.referentialEqualities) {
+      return Object.entries(object.referentialEqualities).every(
+        ([key, value]) => isStringifiedPath(key) && (value as string[]).every(isStringifiedPath)
+      );
+    }
+  
+    if (!!object.keys) {
+      return Object.entries(object.keys).every(
+        ([key, value]) => isStringifiedPath(key) && isKeyTypeAnnotation(value)
+      );
+    }
+  
+    return true;
+  } catch (error) {
     return false;
   }
-
-  if (!!object.values) {
-    return Object.entries(object.values).every(
-      ([key, value]) => isStringifiedPath(key) && isTypeAnnotation(value)
-    );
-  }
-
-  if (!!object.keys) {
-    return Object.entries(object.keys).every(
-      ([key, value]) => isStringifiedPath(key) && isKeyTypeAnnotation(value)
-    );
-  }
-
-  return true;
 }
 
 export const makeAnnotator = () => {
