@@ -1,6 +1,5 @@
-import is from '@sindresorhus/is';
-
 import { setDeep, getDeep } from './accessDeep';
+import { isMap, isPrimitive } from './is';
 import {
   StringifiedPath,
   isStringifiedPath,
@@ -72,12 +71,12 @@ export const makeAnnotator = () => {
   }
 
   const annotator: Walker = ({ path, node }) => {
-    if (!is.primitive(node)) {
+    if (!isPrimitive(node)) {
       registerObjectPath(node, path);
     }
     
 
-    if (is.map(node)) {
+    if (isMap(node)) {
       const newNode = new Map<string, any>();
 
       for (const [key, value] of node.entries()) {

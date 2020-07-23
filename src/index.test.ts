@@ -1,9 +1,8 @@
-import is from "@sindresorhus/is"
-
-import { JSONValue, SuperJSONValue } from 'types';
+import { JSONValue, SuperJSONValue } from './types';
 
 import * as SuperJSON from './';
 import { Annotations } from './annotator';
+import { isPrimitive, isPlainObject, isArray, isSet, isMap } from './is';
 
 describe('stringify & parse', () => {
   const cases: Record<
@@ -286,7 +285,7 @@ describe('stringify & parse', () => {
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
-    if (is.primitive(object)) {
+    if (isPrimitive(object)) {
       return;
     }
 
@@ -296,19 +295,19 @@ describe('stringify & parse', () => {
       alreadySeenObjects.add(object);
     }
 
-    if (is.plainObject(object)) {
+    if (isPlainObject(object)) {
       Object.values(object).forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
-    if (is.set(object)) {
+    if (isSet(object)) {
       object.forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
-    if (is.array(object)) {
+    if (isArray(object)) {
       object.forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
-    if (is.map(object)) {
+    if (isMap(object)) {
       object.forEach((value, key) => {
         deepFreeze(key, alreadySeenObjects);
         deepFreeze(value, alreadySeenObjects);

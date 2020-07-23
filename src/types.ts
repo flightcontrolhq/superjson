@@ -1,6 +1,5 @@
-import is from '@sindresorhus/is';
-
 import { Annotations, isAnnotations } from './annotator';
+import { isUndefined } from './is';
 
 export type PrimitveJSONValue = string | number | boolean | undefined | null;
 
@@ -45,11 +44,11 @@ export interface SuperJSONResult {
 }
 
 export function isSuperJSONResult(object: any): object is SuperJSONResult {
-  if (is.undefined(object.json)) {
+  if (isUndefined(object.json)) {
     return false;
   }
 
-  if (is.undefined(object.meta)) {
+  if (isUndefined(object.meta)) {
     return true;
   }
 
