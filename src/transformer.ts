@@ -1,4 +1,16 @@
-import is from '@sindresorhus/is';
+import {
+  isBigint,
+  isBoolean,
+  isDate,
+  isInfinite,
+  isMap,
+  isNaNValue,
+  isNumber,
+  isRegExp,
+  isSet,
+  isUndefined,
+  isString,
+} from './is';
 
 export type PrimitiveTypeAnnotation =
   | 'NaN'
@@ -40,63 +52,63 @@ export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  if (is.undefined(value)) {
+  if (isUndefined(value)) {
     return {
       value: undefined,
       type: 'undefined',
     };
-  } else if (is.bigint(value)) {
+  } else if (isBigint(value)) {
     return {
       value: value.toString(),
       type: 'bigint',
     };
-  } else if (is.date(value)) {
+  } else if (isDate(value)) {
     return {
       value: value.toISOString(),
       type: 'Date',
     };
-  } else if (is.nan(value)) {
+  } else if (isNaNValue(value)) {
     return {
       value: undefined,
       type: 'NaN',
     };
-  } else if (is.infinite(value)) {
+  } else if (isInfinite(value)) {
     return {
       value: undefined,
       type: value > 0 ? 'Infinity' : '-Infinity',
     };
-  } else if (is.set(value)) {
+  } else if (isSet(value)) {
     return {
       value: Array.from(value) as any[],
       type: 'set',
     };
-  } else if (is.regExp(value)) {
+  } else if (isRegExp(value)) {
     return {
       value: '' + value,
       type: 'regexp',
     };
-  } else if (is.map(value)) {
+  } else if (isMap(value)) {
     const { done: valueIsEmpty, value: firstKey } = value.keys().next()
     const returnValueDoesntMatter = valueIsEmpty;
-    if (returnValueDoesntMatter || is.string(firstKey)) {
+    if (returnValueDoesntMatter || isString(firstKey)) {
       return { value, type: "map:string" }
     }
 
-    if (is.number(firstKey)) {
+    if (isNumber(firstKey)) {
       return {
         value: value,
         type: 'map:number',
       };  
     }
 
-    if (is.bigint(firstKey)) {
+    if (isBigint(firstKey)) {
       return {
         value: value,
         type: 'map:bigint',
       };  
     }
 
-    if (is.boolean(firstKey)) {
+    if (isBoolean(firstKey)) {
       return {
         value: value,
         type: 'map:boolean',

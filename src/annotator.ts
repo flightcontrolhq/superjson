@@ -69,7 +69,7 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
     );
 
     for (const [path, type] of annotationsWithPathsLeavesToRoot) {
-      plain = mapDeep(plain, path, v =>
+      plain = mapDeep(plain, path, (v) =>
         untransformValue(v, type as TypeAnnotation)
       );
     }
