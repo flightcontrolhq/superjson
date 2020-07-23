@@ -1,0 +1,57 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "merelinguist",
+      "name": "Dylan Brookes",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/24858006?v=4",
+      "profile": "https://merelinguist.me",
+      "contributions": [
+        "code",
+        "doc",
+        "design",
+        "test"
+      ]
+    },
+    {
+      "login": "Skn0tt",
+      "name": "Simon Knott",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/14912729?v=4",
+      "profile": "http://simonknott.de",
+      "contributions": [
+        "code",
+        "ideas",
+        "test"
+      ]
+    },
+    {
+      "login": "flybayer",
+      "name": "Brandon Bayer",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/8813276?v=4",
+      "profile": "https://twitter.com/flybayer",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "mrleebo",
+      "name": "Jeremy Liberman",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/2754163?v=4",
+      "profile": "http://jeremyliberman.com/",
+      "contributions": [
+        "test",
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "superjson",
+  "projectOwner": "blitz-js",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
