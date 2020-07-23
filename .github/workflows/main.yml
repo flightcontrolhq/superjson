@@ -53,4 +53,5 @@ jobs:
           tool: 'benchmarkjs'
           output-file-path: output.txt
           comment-on-alert: true
+          save-data-file: ${{ github.ref == 'refs/heads/main' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
