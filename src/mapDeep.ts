@@ -2,13 +2,11 @@ export const getDeep = (
   object: object,
   path: (string | number)[]
 ): object => {
-  if (path.length === 0) {
-    return object;
+  for (const key of path) {
+    object = (object as any)[key]
   }
 
-  const [head, ...tail] = path;
-
-  return getDeep((object as any)[head], tail);
+  return object
 };
 
 export const setDeep = (
