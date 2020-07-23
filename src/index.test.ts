@@ -1,9 +1,8 @@
-import is from "@sindresorhus/is"
-
-import { JSONValue, SuperJSONValue } from 'types';
+import { JSONValue, SuperJSONValue } from './types';
 
 import * as SuperJSON from './';
 import { Annotations } from './annotator';
+import { isPrimitive, isPlainObject, isArray, isSet, isMap } from './is';
 
 describe('stringify & parse', () => {
   const cases: Record<
@@ -267,19 +266,19 @@ describe('stringify & parse', () => {
   };
 
   function deepFreeze(object: any) {
-    if (is.primitive(object)) {
+    if (isPrimitive(object)) {
       return;
     }
 
-    if (is.plainObject(object)) {
+    if (isPlainObject(object)) {
       Object.values(object).forEach(deepFreeze);
     }
 
-    if (is.array(object) || is.set(object)) {
+    if (isArray(object) || isSet(object)) {
       object.forEach(deepFreeze);
     }
 
-    if (is.map(object)) {
+    if (isMap(object)) {
       object.forEach((value, key) => {
         deepFreeze(key);
         deepFreeze(value);
