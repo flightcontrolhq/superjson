@@ -52,7 +52,14 @@ export const makeAnnotator = () => {
     if (is.map(node)) {
       const newNode = new Map<string, any>();
 
-      for (const [key, value] of node.entries()) {
+      const entries = node.entries();
+      while (true) {
+        const { done, value: entry } = entries.next()
+        if (done) {
+          break;
+        }
+
+        const [ key, value ] = entry
         const transformed = transformKey(key);
 
         if (transformed) {
