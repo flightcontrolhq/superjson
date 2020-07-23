@@ -1,4 +1,5 @@
 import is from '@sindresorhus/is';
+import * as IteratorUtils from "./iteratorutils"
 
 interface WalkerValue {
   isLeaf: boolean;
@@ -26,19 +27,6 @@ const entries = (object: object | Map<any, any>): Iterator<[any, any]> => {
   throw new Error('Illegal Argument: ' + typeof object);
 };
 
-const mapIterable = <A, B>(iterable: Iterator<A>, mapper: (v: A, index: number) => B): B[] => {
-  const result: B[] = [];
-
-  while (true) {
-    const { done, value } = iterable.next()
-    if (done) {
-      return result;
-    }
-
-    result.push(mapper(value, result.length))
-  }
-}
-
 export const plainer = (
   object: any,
   walker: Walker,
@@ -60,13 +48,13 @@ export const plainer = (
   walker({ isLeaf: false, path, node: object });
 
   if (is.array(object) || is.set(object)) {
-    return mapIterable(object.values(), (value, index) =>
+    return IteratorUtils.map(object.values(), (value, index) =>
     plainer(value, walker, [...path, index], alreadySeenObjects)
   );
   }
 
   if (is.plainObject(object) || is.map(object)) {
-    return Object.fromEntries(mapIterable(entries(object), ([key, value]) => [
+    return Object.fromEntries(IteratorUtils.map(entries(object), ([key, value]) => [
       key,
       plainer(value, walker, [...path, key], alreadySeenObjects),
     ]));
