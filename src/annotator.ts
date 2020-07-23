@@ -1,6 +1,6 @@
 import is from '@sindresorhus/is';
 
-import { setDeep, getDeep } from './mapDeep';
+import { setDeep, getDeep } from './accessDeep';
 import {
   StringifiedPath,
   isStringifiedPath,
