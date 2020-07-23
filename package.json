@@ -45,6 +45,7 @@
     "url": "https://github.com/blitz-js/superjson"
   },
   "devDependencies": {
+    "benchmark": "^2.1.4",
     "husky": "^4.2.5",
     "import-sort-style-module": "^6.0.0",
     "prettier-plugin-import-sort": "^0.0.4",
