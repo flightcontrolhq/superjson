@@ -15,7 +15,7 @@ export const map = <A, B>(
 ): B[] => {
   const result: B[] = [];
 
-  forEach(iterator, (value) => {
+  forEach(iterator, value => {
     result.push(map(value, result.length));
   });
 
