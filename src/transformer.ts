@@ -8,8 +8,8 @@ import {
   isNumber,
   isRegExp,
   isSet,
-  isUndefined,
   isString,
+  isUndefined,
 } from './is';
 
 export type PrimitiveTypeAnnotation =

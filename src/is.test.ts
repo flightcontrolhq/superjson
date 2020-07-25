@@ -16,7 +16,7 @@ test('Basic true tests', () => {
   expect(isNull(null)).toBe(true);
 
   expect(isArray([])).toBe(true);
-  expect(isArray(new Array())).toBe(true);
+  expect(isArray([])).toBe(true);
   expect(isString('')).toBe(true);
   expect(isString('_')).toBe(true);
 
@@ -57,7 +57,7 @@ test('Primitive tests', () => {
 
   expect(isPrimitive(NaN)).toBe(false);
   expect(isPrimitive([])).toBe(false);
-  expect(isPrimitive(new Array())).toBe(false);
+  expect(isPrimitive([])).toBe(false);
   expect(isPrimitive({})).toBe(false);
   expect(isPrimitive(new Object())).toBe(false);
   expect(isPrimitive(new Date())).toBe(false);
