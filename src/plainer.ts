@@ -1,5 +1,5 @@
-import * as IteratorUtils from './iteratorutils';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import * as IteratorUtils from './iteratorutils';
 
 interface WalkerValue {
   isLeaf: boolean;
@@ -41,7 +41,7 @@ export const plainer = (
   }
 
   if (!isPrimitive(object)) {
-    alreadySeenObjects = [...alreadySeenObjects, object]
+    alreadySeenObjects = [...alreadySeenObjects, object];
   }
 
   if (isArray(object) || isSet(object)) {
