@@ -103,6 +103,72 @@ meta = {
 
 ## API
 
+### serialize
+
+Serializes any JavaScript value into a JSON-compatible object.
+
+#### Examples
+
+```js
+const object = {
+  normal: 'string',
+  timestamp: new Date(),
+  test: /superjson/,
+};
+
+const {json, meta} = serialize(object);
+```
+
+Returns **`json and meta, both JSON values.`**
+
+## deserialize
+
+Deserializes the output of Superjson back into your original value.
+
+#### Examples
+
+```js
+const {json, meta} = serialize(object);
+
+deserialize({json, meta});
+```
+
+Returns **`your original value`**
+
+### stringify
+
+Serializes and then stringifies your JavaScript value.
+
+#### Examples
+
+```js
+const object = {
+  normal: 'string',
+  timestamp: new Date(),
+  test: /superjson/,
+};
+
+const jsonString = stringify(object);
+```
+
+Returns **`string`**
+
+### parse
+
+Parses and then deserializes your the JSON string of `stringify`.
+
+#### Examples
+
+```js
+const jsonString = stringify(object);
+
+parse(jsonString);s
+```
+
+Returns **`string`**
+
+***
+
 Superjson supports many extra types which JSON does not. You can serialize all these:
 
 | type        | supported by standard JSON? | supported by Superjson? |
