@@ -112,7 +112,7 @@ export const makeAnnotator = () => {
   };
 
   function getAnnotations(): Annotations {
-    for (const paths of objectIdentities.values()) {
+    IteratorUtils.forEach(objectIdentities.values(), paths => {
       if (paths.length > 1) {
         const [ shortestPath, ...identityPaths ] = paths.sort((a, b) => a.length - b.length).map(stringifyPath)
 
@@ -122,7 +122,7 @@ export const makeAnnotator = () => {
 
         annotations.referentialEqualities[shortestPath] = identityPaths
       }
-    }
+    })
 
     return annotations;
   }
