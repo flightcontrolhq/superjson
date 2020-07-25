@@ -64,7 +64,7 @@ Easily stringify any expression you’d like:
 ```js
 import superjson from 'superjson';
 
-const json = superjson.stringify({date: new Date(0)});
+const jsonString = superjson.stringify({date: new Date(0)});
 ```
 
 And parse your JSON like so:
