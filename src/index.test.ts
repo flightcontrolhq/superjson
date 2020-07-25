@@ -75,7 +75,10 @@ describe('stringify & parse', () => {
 
     'works for Maps': {
       input: {
-        a: new Map([[1, 'a'], [NaN, 'b']]),
+        a: new Map([
+          [1, 'a'],
+          [NaN, 'b'],
+        ]),
         b: new Map([['2', 'b']]),
         d: new Map([[true, 'true key']]),
       },
@@ -83,7 +86,7 @@ describe('stringify & parse', () => {
       output: {
         a: {
           1: 'a',
-          NaN: 'b'
+          NaN: 'b',
         },
         b: {
           2: 'b',
@@ -98,7 +101,7 @@ describe('stringify & parse', () => {
           a: 'map:number',
           b: 'map:string',
           d: 'map:boolean',
-        }
+        },
       },
     },
 

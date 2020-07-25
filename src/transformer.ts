@@ -21,7 +21,11 @@ export type PrimitiveTypeAnnotation =
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
-type MapTypeAnnotation = 'map:number' | 'map:string' | "map:bigint" | "map:boolean";
+type MapTypeAnnotation =
+  | 'map:number'
+  | 'map:string'
+  | 'map:bigint'
+  | 'map:boolean';
 
 type ContainerTypeAnnotation = MapTypeAnnotation | 'set';
 
@@ -42,7 +46,15 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  ['map:number', 'map:string', 'map:bigint', 'map:boolean', 'regexp', 'set', 'Date']
+  [
+    'map:number',
+    'map:string',
+    'map:bigint',
+    'map:boolean',
+    'regexp',
+    'set',
+    'Date',
+  ]
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
@@ -88,34 +100,34 @@ export const transformValue = (
       type: 'regexp',
     };
   } else if (isMap(value)) {
-    const { done: valueIsEmpty, value: firstKey } = value.keys().next()
+    const { done: valueIsEmpty, value: firstKey } = value.keys().next();
     const returnValueDoesntMatter = valueIsEmpty;
     if (returnValueDoesntMatter || isString(firstKey)) {
-      return { value, type: "map:string" }
+      return { value, type: 'map:string' };
     }
 
     if (isNumber(firstKey)) {
       return {
         value: value,
         type: 'map:number',
-      };  
+      };
     }
 
     if (isBigint(firstKey)) {
       return {
         value: value,
         type: 'map:bigint',
-      };  
+      };
     }
 
     if (isBoolean(firstKey)) {
       return {
         value: value,
         type: 'map:boolean',
-      };  
+      };
     }
 
-    throw new Error("Key type not supported.")
+    throw new Error('Key type not supported.');
   }
 
   return undefined;
@@ -139,9 +151,9 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return new Map(Object.entries(json).map(([k, v]) => [Number(k), v]));
     case 'map:string':
       return new Map(Object.entries(json));
-    case "map:boolean":
+    case 'map:boolean':
       return new Map(Object.entries(json).map(([k, v]) => [Boolean(k), v]));
-    case "map:bigint":
+    case 'map:bigint':
       return new Map(Object.entries(json).map(([k, v]) => [BigInt(k), v]));
     case 'set':
       return new Set(json as unknown[]);
@@ -155,4 +167,3 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return json;
   }
 };
-

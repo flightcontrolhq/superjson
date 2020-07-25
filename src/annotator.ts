@@ -12,14 +12,13 @@ import {
   transformValue,
   untransformValue,
 } from './transformer';
-import * as IteratorUtils from "./iteratorutils"
 
 export interface Annotations {
   root?: TypeAnnotation;
   values?: Record<StringifiedPath, TypeAnnotation>;
 }
 
-export function isAnnotations(object: any): object is Annotations {
+export const isAnnotations = (object: any): object is Annotations => {
   if (!!object.root && !isTypeAnnotation(object.root)) {
     return false;
   }
@@ -31,7 +30,7 @@ export function isAnnotations(object: any): object is Annotations {
   }
 
   return true;
-}
+};
 
 export const makeAnnotator = () => {
   const annotations: Annotations = {};
@@ -70,7 +69,7 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
     );
 
     for (const [path, type] of annotationsWithPathsLeavesToRoot) {
-      plain = mapDeep(plain, path, (v) =>
+      plain = mapDeep(plain, path, v =>
         untransformValue(v, type as TypeAnnotation)
       );
     }
