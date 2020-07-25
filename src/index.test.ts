@@ -288,15 +288,15 @@ describe('stringify & parse', () => {
     }
 
     if (isPlainObject(object)) {
-      Object.values(object).forEach((o) => deepFreeze(o, alreadySeenObjects));
+      Object.values(object).forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isSet(object)) {
-      object.forEach((o) => deepFreeze(o, alreadySeenObjects));
+      object.forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isArray(object)) {
-      object.forEach((o) => deepFreeze(o, alreadySeenObjects));
+      object.forEach(o => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isMap(object)) {
