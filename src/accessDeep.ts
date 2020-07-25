@@ -1,12 +1,9 @@
-export const getDeep = (
-  object: object,
-  path: (string | number)[]
-): object => {
+export const getDeep = (object: object, path: (string | number)[]): object => {
   for (const key of path) {
-    object = (object as any)[key]
+    object = (object as any)[key];
   }
 
-  return object
+  return object;
 };
 
 export const setDeep = (
@@ -23,7 +20,7 @@ export const setDeep = (
 
   const parent: any = getDeep(object, front);
 
-  parent[last] = mapper(parent[last])
+  parent[last] = mapper(parent[last]);
 
   return object;
 };

@@ -1,7 +1,7 @@
 import * as SuperJSON from './';
-import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
-import { isPrimitive, isPlainObject, isArray, isSet, isMap } from './is';
+import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import { JSONValue, SuperJSONValue } from './types';
 
 describe('stringify & parse', () => {
   const cases: Record<
@@ -107,30 +107,27 @@ describe('stringify & parse', () => {
       },
     },
 
-    "preserves object identity": {
+    'preserves object identity': {
       input: () => {
-        const a = { id: "a" }
-        const b = { id: "b" }
+        const a = { id: 'a' };
+        const b = { id: 'b' };
         return {
           options: [a, b],
-          selected: a
-        }
+          selected: a,
+        };
       },
       output: {
-        options: [
-          { id: "a" },
-          { id: "b" }
-        ],
-        selected: { id: "a" }
+        options: [{ id: 'a' }, { id: 'b' }],
+        selected: { id: 'a' },
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: ["options.0"]
-        }
+          selected: ['options.0'],
+        },
       },
-      customExpectations: output => {
-        expect(output.selected).toBe(output.options[0])
-      }
+      customExpectations: (output) => {
+        expect(output.selected).toBe(output.options[0]);
+      },
     },
 
     'works for paths containing dots': {
@@ -287,14 +284,14 @@ describe('stringify & parse', () => {
       input,
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
-      customExpectations
+      customExpectations,
     },
   ] of Object.entries(cases)) {
     test(testName, () => {
-      const inputValue = typeof input === "function" ? input() : input;
+      const inputValue = typeof input === 'function' ? input() : input;
 
       // let's make sure SuperJSON doesn't mutate our input!
-      deepFreeze(inputValue)
+      deepFreeze(inputValue);
       const { json, meta } = SuperJSON.serialize(inputValue);
 
       expect(json).toEqual(expectedOutput);
