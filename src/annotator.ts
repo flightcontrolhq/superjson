@@ -81,7 +81,7 @@ export const makeAnnotator = () => {
   };
 
   function getAnnotations(): Annotations {
-    IteratorUtils.forEach(objectIdentities.values(), (paths) => {
+    IteratorUtils.forEach(objectIdentities.values(), paths => {
       if (paths.length > 1) {
         const [shortestPath, ...identityPaths] = paths
           .sort((a, b) => a.length - b.length)
@@ -112,7 +112,7 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
     );
 
     for (const [path, type] of annotationsWithPathsLeavesToRoot) {
-      plain = setDeep(plain, path, (v) =>
+      plain = setDeep(plain, path, v =>
         untransformValue(v, type as TypeAnnotation)
       );
     }

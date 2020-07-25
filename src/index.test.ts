@@ -125,7 +125,7 @@ describe('stringify & parse', () => {
           selected: ['options.0'],
         },
       },
-      customExpectations: (output) => {
+      customExpectations: output => {
         expect(output.selected).toBe(output.options[0]);
       },
     },
