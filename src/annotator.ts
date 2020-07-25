@@ -12,6 +12,7 @@ import {
   transformValue,
   untransformValue,
 } from './transformer';
+import * as IteratorUtils from "./iteratorutils"
 
 export interface Annotations {
   root?: TypeAnnotation;
