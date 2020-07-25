@@ -90,14 +90,14 @@ export const makeAnnotator = () => {
 
         const isRoot = shortestPath.length === 0;
         if (isRoot) {
-          annotations.referentialEqualitiesRoot = identityPaths
+          annotations.referentialEqualitiesRoot = identityPaths;
         } else {
           if (!annotations.referentialEqualities) {
-            annotations.referentialEqualities = {}
+            annotations.referentialEqualities = {};
           }
-  
-          annotations.referentialEqualities[shortestPath] = identityPaths
-        }        
+
+          annotations.referentialEqualities[shortestPath] = identityPaths;
+        }
       }
     });
 
@@ -141,8 +141,10 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   }
 
   if (annotations.referentialEqualitiesRoot) {
-    for (const identicalObjectPath of annotations.referentialEqualitiesRoot.map(parsePath)) {
-      setDeep(plain, identicalObjectPath, () => plain)
+    for (const identicalObjectPath of annotations.referentialEqualitiesRoot.map(
+      parsePath
+    )) {
+      setDeep(plain, identicalObjectPath, () => plain);
     }
   }
 

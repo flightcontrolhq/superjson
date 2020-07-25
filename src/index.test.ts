@@ -254,7 +254,7 @@ describe('stringify & parse', () => {
       },
     },
 
-    "works for self-referencing objects": {
+    'works for self-referencing objects': {
       input: () => {
         const a = { role: 'parent', children: [] as any[] };
         const b = { role: 'child', parents: [a] };
@@ -262,16 +262,18 @@ describe('stringify & parse', () => {
         return a;
       },
       output: {
-        role: "parent",
-        children: [{
-          role: "child",
-          parents: [null]
-        }]
+        role: 'parent',
+        children: [
+          {
+            role: 'child',
+            parents: [null],
+          },
+        ],
       },
       outputAnnotations: {
-        referentialEqualitiesRoot: ["children.0.parents.0"]
-      }
-    }
+        referentialEqualitiesRoot: ['children.0.parents.0'],
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -286,15 +288,15 @@ describe('stringify & parse', () => {
     }
 
     if (isPlainObject(object)) {
-      Object.values(object).forEach(o => deepFreeze(o, alreadySeenObjects));
+      Object.values(object).forEach((o) => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isSet(object)) {
-      object.forEach(o => deepFreeze(o, alreadySeenObjects));
+      object.forEach((o) => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isArray(object)) {
-      object.forEach(o => deepFreeze(o, alreadySeenObjects));
+      object.forEach((o) => deepFreeze(o, alreadySeenObjects));
     }
 
     if (isMap(object)) {
