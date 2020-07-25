@@ -70,7 +70,7 @@ const jsonString = superjson.stringify({date: new Date(0)});
 And parse your JSON like so:
 
 ```js
-const object = superjson.parse(json);
+const object = superjson.parse(jsonString);
 ```
 
 Alternatively, transform any JavaScript value into a JSON-compatible one by using our lower-level `serializer` and `deserializer` functions.
