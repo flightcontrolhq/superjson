@@ -1,6 +1,7 @@
 import { JSONValue, SuperJSONValue } from './types';
 
 import * as SuperJSON from './';
+import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
 import { isPrimitive, isPlainObject, isArray, isSet, isMap } from './is';
 

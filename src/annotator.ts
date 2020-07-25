@@ -17,6 +17,7 @@ import {
   untransformKey,
   untransformValue,
 } from './transformer';
+import * as IteratorUtils from "./iteratorutils"
 
 export interface Annotations {
   root?: TypeAnnotation;
@@ -74,7 +75,7 @@ export const makeAnnotator = () => {
     if (isMap(node)) {
       const newNode = new Map<string, any>();
 
-      for (const [key, value] of node.entries()) {
+      IteratorUtils.forEach(node.entries(), ([key, value]) => {
         const transformed = transformKey(key);
 
         if (transformed) {
@@ -87,7 +88,7 @@ export const makeAnnotator = () => {
           annotations.keys[stringifyPath([...path, transformed.key])] =
             transformed.type;
         }
-      }
+      })
 
       node = newNode;
     }
