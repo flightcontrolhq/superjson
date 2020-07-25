@@ -1,4 +1,3 @@
-import { isMap } from './is';
 import { mapDeep } from './mapDeep';
 import {
   StringifiedPath,
@@ -8,24 +7,18 @@ import {
 } from './pathstringifier';
 import { Walker } from './plainer';
 import {
-  KeyTypeAnnotation,
   TypeAnnotation,
-  isKeyTypeAnnotation,
   isTypeAnnotation,
-  transformKey,
   transformValue,
-  untransformKey,
   untransformValue,
 } from './transformer';
-import * as IteratorUtils from "./iteratorutils"
 
 export interface Annotations {
   root?: TypeAnnotation;
   values?: Record<StringifiedPath, TypeAnnotation>;
-  keys?: Record<StringifiedPath, KeyTypeAnnotation>;
 }
 
-export function isAnnotations(object: any): object is Annotations {
+export const isAnnotations = (object: any): object is Annotations => {
   if (!!object.root && !isTypeAnnotation(object.root)) {
     return false;
   }
@@ -36,40 +29,13 @@ export function isAnnotations(object: any): object is Annotations {
     );
   }
 
-  if (!!object.keys) {
-    return Object.entries(object.keys).every(
-      ([key, value]) => isStringifiedPath(key) && isKeyTypeAnnotation(value)
-    );
-  }
-
   return true;
-}
+};
 
 export const makeAnnotator = () => {
   const annotations: Annotations = {};
 
   const annotator: Walker = ({ path, node }) => {
-    if (isMap(node)) {
-      const newNode = new Map<string, any>();
-
-      IteratorUtils.forEach(node.entries(), ([key, value]) => {
-        const transformed = transformKey(key);
-
-        if (transformed) {
-          newNode.set(transformed.key, value);
-
-          if (!annotations.keys) {
-            annotations.keys = {};
-          }
-
-          annotations.keys[stringifyPath([...path, transformed.key])] =
-            transformed.type;
-        }
-      })
-
-      node = newNode;
-    }
-
     const transformed = transformValue(node);
 
     if (transformed) {
@@ -82,6 +48,7 @@ export const makeAnnotator = () => {
 
         annotations.values[stringifyPath(path)] = transformed.type;
       }
+
       return transformed.value;
     } else {
       return node;
@@ -102,24 +69,9 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
     );
 
     for (const [path, type] of annotationsWithPathsLeavesToRoot) {
-      plain = mapDeep(plain, path, (v) =>
+      plain = mapDeep(plain, path, v =>
         untransformValue(v, type as TypeAnnotation)
       );
-    }
-  }
-
-  if (annotations.keys) {
-    for (const [key, type] of Object.entries(annotations.keys)) {
-      const path = parsePath(key);
-      const mapKey = path[path.length - 1];
-      const pathToMap = path.slice(0, path.length - 1);
-      const untransformedKey = untransformKey(mapKey, type);
-
-      plain = mapDeep(plain, pathToMap, (v: Map<any, any>) => {
-        v.set(untransformedKey, v.get(mapKey));
-        v.delete(mapKey);
-        return v;
-      });
     }
   }
 
