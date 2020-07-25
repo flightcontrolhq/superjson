@@ -1,5 +1,5 @@
 import { setDeep, getDeep } from './accessDeep';
-import { isMap, isPrimitive } from './is';
+import { isPrimitive } from './is';
 import {
   StringifiedPath,
   isStringifiedPath,
@@ -8,22 +8,18 @@ import {
 } from './pathstringifier';
 import { Walker } from './plainer';
 import {
-  KeyTypeAnnotation,
   TypeAnnotation,
-  isKeyTypeAnnotation,
   isTypeAnnotation,
-  transformKey,
   transformValue,
-  untransformKey,
   untransformValue,
 } from './transformer';
+import * as IteratorUtils from "./iteratorutils"
 
 export interface Annotations {
   root?: TypeAnnotation;
   values?: Record<StringifiedPath, TypeAnnotation>;
   referentialEqualities?: Record<StringifiedPath, StringifiedPath[]>;
   referentialEqualitiesRoot?: StringifiedPath[];
-  keys?: Record<StringifiedPath, KeyTypeAnnotation>;
 }
 
 export function isAnnotations(object: any): object is Annotations {
@@ -48,12 +44,6 @@ export function isAnnotations(object: any): object is Annotations {
       return false
     }
   
-    if (!!object.keys) {
-      return Object.entries(object.keys).every(
-        ([key, value]) => isStringifiedPath(key) && isKeyTypeAnnotation(value)
-      );
-    }
-  
     return true;
   } catch (error) {
     return false;
@@ -74,28 +64,6 @@ export const makeAnnotator = () => {
     if (!isPrimitive(node)) {
       registerObjectPath(node, path);
     }
-    
-
-    if (isMap(node)) {
-      const newNode = new Map<string, any>();
-
-      for (const [key, value] of node.entries()) {
-        const transformed = transformKey(key);
-
-        if (transformed) {
-          newNode.set(transformed.key, value);
-
-          if (!annotations.keys) {
-            annotations.keys = {};
-          }
-
-          annotations.keys[stringifyPath([...path, transformed.key])] =
-            transformed.type;
-        }
-      }
-
-      node = newNode;
-    }
 
     const transformed = transformValue(node);
 
@@ -109,6 +77,7 @@ export const makeAnnotator = () => {
 
         annotations.values[stringifyPath(path)] = transformed.type;
       }
+
       return transformed.value;
     } else {
       return node;
@@ -116,7 +85,7 @@ export const makeAnnotator = () => {
   };
 
   function getAnnotations(): Annotations {
-    for (const paths of objectIdentities.values()) {
+    IteratorUtils.forEach(objectIdentities.values(), paths => {
       if (paths.length > 1) {
         const [ shortestPath, ...identityPaths ] = paths.sort((a, b) => a.length - b.length).map(stringifyPath)
 
@@ -131,7 +100,7 @@ export const makeAnnotator = () => {
           annotations.referentialEqualities[shortestPath] = identityPaths
         }        
       }
-    }
+    })
 
     return annotations;
   }
@@ -153,21 +122,6 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
       plain = setDeep(plain, path, v =>
         untransformValue(v, type as TypeAnnotation)
       );
-    }
-  }
-
-  if (annotations.keys) {
-    for (const [key, type] of Object.entries(annotations.keys)) {
-      const path = parsePath(key);
-      const mapKey = path[path.length - 1];
-      const pathToMap = path.slice(0, path.length - 1);
-      const untransformedKey = untransformKey(mapKey, type);
-
-      plain = setDeep(plain, pathToMap, (v: Map<any, any>) => {
-        v.set(untransformedKey, v.get(mapKey));
-        v.delete(mapKey);
-        return v;
-      });
     }
   }
 

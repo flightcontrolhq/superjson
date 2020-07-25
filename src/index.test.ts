@@ -1,6 +1,5 @@
-import { JSONValue, SuperJSONValue } from './types';
-
 import * as SuperJSON from './';
+import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
 import { isPrimitive, isPlainObject, isArray, isSet, isMap } from './is';
 
@@ -78,21 +77,21 @@ describe('stringify & parse', () => {
 
     'works for Maps': {
       input: {
-        a: new Map([[1, 'a']]),
+        a: new Map([
+          [1, 'a'],
+          [NaN, 'b'],
+        ]),
         b: new Map([['2', 'b']]),
-        c: new Map([[undefined, 5]]),
         d: new Map([[true, 'true key']]),
       },
 
       output: {
         a: {
           1: 'a',
+          NaN: 'b',
         },
         b: {
           2: 'b',
-        },
-        c: {
-          undefined: 5,
         },
         d: {
           true: 'true key',
@@ -101,15 +100,9 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: 'map',
-          b: 'map',
-          c: 'map',
-          d: 'map',
-        },
-        keys: {
-          'a.1': 'number',
-          'c.undefined': 'undefined',
-          'd.true': 'boolean',
+          a: 'map:number',
+          b: 'map:string',
+          d: 'map:boolean',
         },
       },
     },

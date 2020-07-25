@@ -1,3 +1,4 @@
+import * as IteratorUtils from './iteratorutils';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 interface WalkerValue {
@@ -11,13 +12,13 @@ export type Walker = (v: WalkerValue) => any;
 const isDeep = (object: any): boolean =>
   isPlainObject(object) || isArray(object) || isMap(object) || isSet(object);
 
-const entries = (object: object | Map<any, any>): [any, any][] => {
+const entries = (object: object | Map<any, any>): Iterator<[any, any]> => {
   if (isMap(object)) {
-    return [...object.entries()];
+    return object.entries();
   }
 
   if (isPlainObject(object)) {
-    return Object.entries(object);
+    return Object.entries(object).values();
   }
 
   throw new Error('Illegal Argument: ' + typeof object);
@@ -44,14 +45,14 @@ export const plainer = (
   }
 
   if (isArray(object) || isSet(object)) {
-    return [...object].map((value, key) =>
-      plainer(value, walker, [...path, key], alreadySeenObjects)
+    return IteratorUtils.map(object.values(), (value, index) =>
+      plainer(value, walker, [...path, index], alreadySeenObjects)
     );
   }
 
   if (isPlainObject(object) || isMap(object)) {
     return Object.fromEntries(
-      entries(object).map(([key, value]) => [
+      IteratorUtils.map(entries(object), ([key, value]) => [
         key,
         plainer(value, walker, [...path, key], alreadySeenObjects),
       ])
