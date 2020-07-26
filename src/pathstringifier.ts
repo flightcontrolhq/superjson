@@ -12,14 +12,3 @@ export const stringifyPath = (path: Path): StringifiedPath =>
 
 export const parsePath = (string: StringifiedPath): Path =>
   string.split(/(?<!\\)\./g).map(unescape);
-
-export const isStringifiedPath = (
-  string: string
-): string is StringifiedPath => {
-  try {
-    parsePath(string);
-    return true;
-  } catch (anyError) {
-    return false;
-  }
-};

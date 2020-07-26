@@ -82,6 +82,7 @@ describe('stringify & parse', () => {
           [NaN, 'b'],
         ]),
         b: new Map([['2', 'b']]),
+        c: new Map<bigint, string>([[BigInt('10'), 'a']]),
         d: new Map([[true, 'true key']]),
       },
 
@@ -93,6 +94,9 @@ describe('stringify & parse', () => {
         b: {
           2: 'b',
         },
+        c: {
+          10: 'a',
+        },
         d: {
           true: 'true key',
         },
@@ -102,6 +106,7 @@ describe('stringify & parse', () => {
         values: {
           a: 'map:number',
           b: 'map:string',
+          c: 'map:bigint',
           d: 'map:boolean',
         },
       },
@@ -320,7 +325,7 @@ describe('stringify & parse', () => {
       expect(() => {
         SuperJSON.parse(
           JSON.stringify({
-            value: {
+            json: {
               a: 1,
             },
             meta: {
@@ -333,13 +338,36 @@ describe('stringify & parse', () => {
       expect(() => {
         SuperJSON.parse(
           JSON.stringify({
-            value: {
+            meta: {
+              root: 'invalid_key',
+            },
+          })
+        );
+      }).toThrow();
+
+      expect(() => {
+        SuperJSON.parse(
+          JSON.stringify({
+            json: {
               a: 1,
             },
             meta: {
               values: {
                 a: 'invalid_key',
               },
+            },
+          })
+        );
+      }).toThrow();
+
+      expect(() => {
+        SuperJSON.parse(
+          JSON.stringify({
+            json: {
+              a: 1,
+            },
+            meta: {
+              referentialEqualities: [1, 2],
             },
           })
         );

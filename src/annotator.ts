@@ -1,12 +1,7 @@
 import { getDeep, setDeep } from './accessDeep';
-import { isPrimitive } from './is';
+import { isPrimitive, isString, isArray } from './is';
 import * as IteratorUtils from './iteratorutils';
-import {
-  StringifiedPath,
-  isStringifiedPath,
-  parsePath,
-  stringifyPath,
-} from './pathstringifier';
+import { StringifiedPath, parsePath, stringifyPath } from './pathstringifier';
 import { Walker } from './plainer';
 import {
   TypeAnnotation,
@@ -28,16 +23,23 @@ export function isAnnotations(object: any): object is Annotations {
     }
 
     if (!!object.values) {
-      return Object.entries(object.values).every(
-        ([key, value]) => isStringifiedPath(key) && isTypeAnnotation(value)
-      );
+      const valuesAreValid = Object.entries(
+        object.values
+      ).every(([_key, value]) => isTypeAnnotation(value));
+
+      if (!valuesAreValid) {
+        return false;
+      }
     }
 
     if (!!object.referentialEqualities) {
-      return Object.entries(object.referentialEqualities).every(
-        ([key, value]) =>
-          isStringifiedPath(key) && (value as string[]).every(isStringifiedPath)
-      );
+      const referentialEqualitiesAreValid = Object.entries(
+        object.referentialEqualities
+      ).every(([_key, value]) => isArray(value) && value.every(isString));
+
+      if (!referentialEqualitiesAreValid) {
+        return false;
+      }
     }
 
     return true;

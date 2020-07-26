@@ -1,5 +1,4 @@
 import { Annotations, isAnnotations } from './annotator';
-import { isUndefined } from './is';
 
 export type PrimitveJSONValue = string | number | boolean | undefined | null;
 
@@ -15,6 +14,7 @@ type MapWithUniformKeys =
   | Map<string, SuperJSONValue>
   | Map<number, SuperJSONValue>
   | Map<undefined, SuperJSONValue>
+  | Map<bigint, SuperJSONValue>
   | Map<null, SuperJSONValue>
   | Map<boolean, SuperJSONValue>;
 
@@ -44,13 +44,9 @@ export interface SuperJSONResult {
 }
 
 export function isSuperJSONResult(object: any): object is SuperJSONResult {
-  if (isUndefined(object.json)) {
-    return false;
+  if (object.meta) {
+    return isAnnotations(object.meta);
   }
 
-  if (isUndefined(object.meta)) {
-    return true;
-  }
-
-  return isAnnotations(object.meta);
+  return true;
 }

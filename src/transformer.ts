@@ -39,12 +39,6 @@ const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
   'bigint',
 ];
 
-export const isPrimitiveTypeAnnotation = (
-  value: any
-): value is PrimitiveTypeAnnotation => {
-  return ALL_PRIMITIVE_TYPE_ANNOTATIONS.includes(value);
-};
-
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
   [
     'map:number',
@@ -164,6 +158,6 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return new RegExp(body, flags);
     }
     default:
-      return json;
+      throw new Error('Type unknown: ' + type);
   }
 };
