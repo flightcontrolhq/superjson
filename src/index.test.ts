@@ -1,14 +1,16 @@
 import * as SuperJSON from './';
 import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
+import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 describe('stringify & parse', () => {
   const cases: Record<
     string,
     {
-      input: SuperJSONValue;
+      input: (() => SuperJSONValue) | SuperJSONValue;
       output: JSONValue;
       outputAnnotations?: Annotations;
+      customExpectations?: (value: any) => void;
     }
   > = {
     'works for objects': {
@@ -75,21 +77,21 @@ describe('stringify & parse', () => {
 
     'works for Maps': {
       input: {
-        a: new Map([[1, 'a']]),
+        a: new Map([
+          [1, 'a'],
+          [NaN, 'b'],
+        ]),
         b: new Map([['2', 'b']]),
-        c: new Map([[undefined, 5]]),
         d: new Map([[true, 'true key']]),
       },
 
       output: {
         a: {
           1: 'a',
+          NaN: 'b',
         },
         b: {
           2: 'b',
-        },
-        c: {
-          undefined: 5,
         },
         d: {
           true: 'true key',
@@ -98,16 +100,33 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: 'map',
-          b: 'map',
-          c: 'map',
-          d: 'map',
+          a: 'map:number',
+          b: 'map:string',
+          d: 'map:boolean',
         },
-        keys: {
-          'a.1': 'number',
-          'c.undefined': 'undefined',
-          'd.true': 'boolean',
+      },
+    },
+
+    'preserves object identity': {
+      input: () => {
+        const a = { id: 'a' };
+        const b = { id: 'b' };
+        return {
+          options: [a, b],
+          selected: a,
+        };
+      },
+      output: {
+        options: [{ id: 'a' }, { id: 'b' }],
+        selected: { id: 'a' },
+      },
+      outputAnnotations: {
+        referentialEqualities: {
+          selected: ['options.0'],
         },
+      },
+      customExpectations: output => {
+        expect(output.selected).toBe(output.options[0]);
       },
     },
 
@@ -236,22 +255,51 @@ describe('stringify & parse', () => {
     },
   };
 
+  function deepFreeze(object: any) {
+    if (isPrimitive(object)) {
+      return;
+    }
+
+    if (isPlainObject(object)) {
+      Object.values(object).forEach(deepFreeze);
+    }
+
+    if (isArray(object) || isSet(object)) {
+      object.forEach(deepFreeze);
+    }
+
+    if (isMap(object)) {
+      object.forEach((value, key) => {
+        deepFreeze(key);
+        deepFreeze(value);
+      });
+    }
+
+    Object.freeze(object);
+  }
+
   for (const [
     testName,
     {
       input,
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
+      customExpectations,
     },
   ] of Object.entries(cases)) {
     test(testName, () => {
-      const { json, meta } = SuperJSON.serialize(input);
+      const inputValue = typeof input === 'function' ? input() : input;
+
+      // let's make sure SuperJSON doesn't mutate our input!
+      deepFreeze(inputValue);
+      const { json, meta } = SuperJSON.serialize(inputValue);
 
       expect(json).toEqual(expectedOutput);
       expect(meta).toEqual(expectedOutputAnnotations);
 
       const untransformed = SuperJSON.deserialize({ json, meta });
-      expect(untransformed).toEqual(input);
+      expect(untransformed).toEqual(inputValue);
+      customExpectations?.(untransformed);
     });
   }
 

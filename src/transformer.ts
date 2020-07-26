@@ -1,4 +1,16 @@
-import is from '@sindresorhus/is';
+import {
+  isBigint,
+  isBoolean,
+  isDate,
+  isInfinite,
+  isMap,
+  isNaNValue,
+  isNumber,
+  isRegExp,
+  isSet,
+  isString,
+  isUndefined,
+} from './is';
 
 export type PrimitiveTypeAnnotation =
   | 'NaN'
@@ -9,7 +21,13 @@ export type PrimitiveTypeAnnotation =
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
-type ContainerTypeAnnotation = 'map' | 'set';
+type MapTypeAnnotation =
+  | 'map:number'
+  | 'map:string'
+  | 'map:bigint'
+  | 'map:boolean';
+
+type ContainerTypeAnnotation = MapTypeAnnotation | 'set';
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
@@ -28,7 +46,15 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  ['map', 'regexp', 'set', 'Date']
+  [
+    'map:number',
+    'map:string',
+    'map:bigint',
+    'map:boolean',
+    'regexp',
+    'set',
+    'Date',
+  ]
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
@@ -38,46 +64,70 @@ export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  if (is.undefined(value)) {
+  if (isUndefined(value)) {
     return {
       value: undefined,
       type: 'undefined',
     };
-  } else if (is.bigint(value)) {
+  } else if (isBigint(value)) {
     return {
       value: value.toString(),
       type: 'bigint',
     };
-  } else if (is.date(value)) {
+  } else if (isDate(value)) {
     return {
       value: value.toISOString(),
       type: 'Date',
     };
-  } else if (is.nan(value)) {
+  } else if (isNaNValue(value)) {
     return {
       value: undefined,
       type: 'NaN',
     };
-  } else if (is.infinite(value)) {
+  } else if (isInfinite(value)) {
     return {
       value: undefined,
       type: value > 0 ? 'Infinity' : '-Infinity',
     };
-  } else if (is.set(value)) {
+  } else if (isSet(value)) {
     return {
       value: Array.from(value) as any[],
       type: 'set',
     };
-  } else if (is.regExp(value)) {
+  } else if (isRegExp(value)) {
     return {
       value: '' + value,
       type: 'regexp',
     };
-  } else if (is.map(value)) {
-    return {
-      value: value,
-      type: 'map',
-    };
+  } else if (isMap(value)) {
+    const { done: valueIsEmpty, value: firstKey } = value.keys().next();
+    const returnValueDoesntMatter = valueIsEmpty;
+    if (returnValueDoesntMatter || isString(firstKey)) {
+      return { value, type: 'map:string' };
+    }
+
+    if (isNumber(firstKey)) {
+      return {
+        value: value,
+        type: 'map:number',
+      };
+    }
+
+    if (isBigint(firstKey)) {
+      return {
+        value: value,
+        type: 'map:bigint',
+      };
+    }
+
+    if (isBoolean(firstKey)) {
+      return {
+        value: value,
+        type: 'map:boolean',
+      };
+    }
+
+    throw new Error('Key type not supported.');
   }
 
   return undefined;
@@ -97,8 +147,14 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return Number.POSITIVE_INFINITY;
     case '-Infinity':
       return Number.NEGATIVE_INFINITY;
-    case 'map':
+    case 'map:number':
+      return new Map(Object.entries(json).map(([k, v]) => [Number(k), v]));
+    case 'map:string':
       return new Map(Object.entries(json));
+    case 'map:boolean':
+      return new Map(Object.entries(json).map(([k, v]) => [Boolean(k), v]));
+    case 'map:bigint':
+      return new Map(Object.entries(json).map(([k, v]) => [BigInt(k), v]));
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {
@@ -111,48 +167,3 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return json;
   }
 };
-
-export type KeyTypeAnnotation = PrimitiveTypeAnnotation | 'number' | 'boolean';
-
-export function isKeyTypeAnnotation(
-  string: unknown
-): string is KeyTypeAnnotation {
-  return (
-    string === 'number' ||
-    string === 'boolean' ||
-    isPrimitiveTypeAnnotation(string)
-  );
-}
-
-export function transformKey(
-  key: any
-): { key: string; type: KeyTypeAnnotation } | undefined {
-  if (is.number(key)) {
-    return { key: '' + key, type: 'number' };
-  }
-
-  if (is.boolean(key)) {
-    return { key: '' + key, type: 'boolean' };
-  }
-
-  const transformed = transformValue(key)!;
-  if (transformed) {
-    return {
-      key: '' + transformed.value,
-      type: transformed.type as KeyTypeAnnotation,
-    };
-  }
-
-  return undefined;
-}
-
-export function untransformKey(key: any, type: KeyTypeAnnotation): any {
-  switch (type) {
-    case 'number':
-      return Number(key);
-    case 'boolean':
-      return Boolean(key);
-    default:
-      return untransformValue(key, type);
-  }
-}
