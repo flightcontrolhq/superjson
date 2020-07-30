@@ -19,6 +19,7 @@ export interface Annotations {
   root?: TypeAnnotation;
   values?: Record<StringifiedPath, TypeAnnotation>;
   referentialEqualities?: Record<StringifiedPath, StringifiedPath[]>;
+  referentialEqualitiesRoot?: StringifiedPath[];
 }
 
 export function isAnnotations(object: any): object is Annotations {
@@ -87,11 +88,16 @@ export const makeAnnotator = () => {
           .sort((a, b) => a.length - b.length)
           .map(stringifyPath);
 
-        if (!annotations.referentialEqualities) {
-          annotations.referentialEqualities = {};
-        }
+        const isRoot = shortestPath.length === 0;
+        if (isRoot) {
+          annotations.referentialEqualitiesRoot = identityPaths;
+        } else {
+          if (!annotations.referentialEqualities) {
+            annotations.referentialEqualities = {};
+          }
 
-        annotations.referentialEqualities[shortestPath] = identityPaths;
+          annotations.referentialEqualities[shortestPath] = identityPaths;
+        }
       }
     });
 
@@ -131,6 +137,14 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
       for (const identicalObjectPath of identicalObjectsPaths.map(parsePath)) {
         setDeep(plain, identicalObjectPath, () => object);
       }
+    }
+  }
+
+  if (annotations.referentialEqualitiesRoot) {
+    for (const identicalObjectPath of annotations.referentialEqualitiesRoot.map(
+      parsePath
+    )) {
+      setDeep(plain, identicalObjectPath, () => plain);
     }
   }
 
