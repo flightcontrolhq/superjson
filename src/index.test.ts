@@ -374,6 +374,36 @@ describe('stringify & parse', () => {
       expect(deserialized.s7).toBeInstanceOf(Train);
       expect(typeof deserialized.s7.brag()).toBe('string');
     });
+
+    describe('with accessor attributes', () => {
+      it('works', () => {
+        class Currency {
+          constructor(private valueInUsd: number) {}
+
+          get inUSD() {
+            return this.valueInUsd;
+          }
+        }
+
+        SuperJSON.registerClass(Currency);
+
+        const { json, meta } = SuperJSON.serialize({
+          price: new Currency(100) as any, // typing is to be solved
+        });
+
+        expect(json).toEqual({
+          price: {
+            valueInUsd: 100,
+          },
+        });
+
+        const result: any = SuperJSON.parse(JSON.stringify({ json, meta }));
+
+        const price: Currency = result.price;
+
+        expect(price.inUSD).toBe(100);
+      });
+    });
   });
 
   describe('when given a non-SuperJSON object', () => {
