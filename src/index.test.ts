@@ -100,9 +100,9 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: 'map:number',
-          b: 'map:string',
-          d: 'map:boolean',
+          a: ['map', 'number'],
+          b: ['map', 'string'],
+          d: ['map', 'boolean'],
         },
       },
     },
@@ -362,7 +362,11 @@ describe('stringify & parse', () => {
         },
       });
 
-      expect(meta).toEqual({});
+      expect(meta).toEqual({
+        values: {
+          s7: ['class', 'Train'],
+        },
+      });
 
       const deserialized: any = SuperJSON.deserialize(
         JSON.parse(JSON.stringify({ json, meta }))
