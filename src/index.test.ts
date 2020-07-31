@@ -334,6 +334,44 @@ describe('stringify & parse', () => {
     });
   }
 
+  describe('when serializing custom class instances', () => {
+    it('revives them to their original class', () => {
+      class Train {
+        constructor(
+          private topSpeed: number,
+          private color: 'red' | 'blue' | 'yellow',
+          private brand: string
+        ) {}
+
+        public brag() {
+          return `I'm a ${this.brand} in freakin' ${this.color} and I go ${this.topSpeed} km/h, isn't that bonkers?`;
+        }
+      }
+
+      SuperJSON.registerClass(Train);
+
+      const { json, meta } = SuperJSON.serialize({
+        s7: new Train(100, 'yellow', 'Bombardier') as any, // typing is to be solved
+      });
+
+      expect(json).toEqual({
+        s7: {
+          topSpeed: 100,
+          color: 'yellow',
+          brand: 'Bombardier',
+        },
+      });
+
+      expect(meta).toEqual({});
+
+      const deserialized: any = SuperJSON.deserialize(
+        JSON.parse(JSON.stringify({ json, meta }))
+      );
+      expect(deserialized.s7).toBeInstanceOf(Train);
+      expect(typeof deserialized.s7.brag()).toBe('string');
+    });
+  });
+
   describe('when given a non-SuperJSON object', () => {
     it('throws', () => {
       expect(() => {

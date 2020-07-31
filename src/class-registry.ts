@@ -1,3 +1,5 @@
+import { Class } from './types';
+
 class DoubleIndexedKV<K, V> {
   keyToValue = new Map<K, V>();
   valueToKey = new Map<V, K>();
@@ -29,8 +31,6 @@ class DoubleIndexedKV<K, V> {
     this.valueToKey.clear();
   }
 }
-
-type Class = { new (): any };
 
 const classRegistry = new DoubleIndexedKV<string, Class>();
 
