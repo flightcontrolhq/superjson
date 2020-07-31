@@ -351,7 +351,7 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier') as any, // typing is to be solved
+        s7: new Train(100, 'yellow', 'Bombardier'),
       });
 
       expect(json).toEqual({
@@ -388,7 +388,7 @@ describe('stringify & parse', () => {
         SuperJSON.registerClass(Currency);
 
         const { json, meta } = SuperJSON.serialize({
-          price: new Currency(100) as any, // typing is to be solved
+          price: new Currency(100),
         });
 
         expect(json).toEqual({
