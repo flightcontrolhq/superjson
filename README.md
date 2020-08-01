@@ -165,7 +165,7 @@ const jsonString = stringify(object);
 parse(jsonString);s
 ```
 
-Returns **`string`**
+Returns **`string`**.
 
 ***
 
