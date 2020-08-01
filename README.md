@@ -155,7 +155,7 @@ Returns **`string`**.
 
 ### parse
 
-Parses and then deserializes your the JSON string of `stringify`.
+Parses and then deserializes the JSON string returned by `stringify`.
 
 #### Examples
 
