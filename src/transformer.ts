@@ -1,41 +1,26 @@
 import {
   isBigint,
-  isBoolean,
   isDate,
   isInfinite,
   isMap,
   isNaNValue,
-  isNumber,
   isRegExp,
   isSet,
-  isString,
   isUndefined,
 } from './is';
+import * as IteratorUtils from './iteratorutils';
 
-export type PrimitiveTypeAnnotation =
-  | 'NaN'
-  | '-Infinity'
-  | 'Infinity'
-  | 'undefined'
-  | 'bigint';
+export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
-type MapTypeAnnotation =
-  | 'map:number'
-  | 'map:string'
-  | 'map:bigint'
-  | 'map:boolean';
-
-type ContainerTypeAnnotation = MapTypeAnnotation | 'set';
+type ContainerTypeAnnotation = 'map' | 'set';
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
 const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
-  '-Infinity',
-  'Infinity',
   'undefined',
-  'NaN',
+  'number',
   'bigint',
 ];
 
@@ -46,15 +31,7 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  [
-    'map:number',
-    'map:string',
-    'map:bigint',
-    'map:boolean',
-    'regexp',
-    'set',
-    'Date',
-  ]
+  ['map', 'regexp', 'set', 'Date']
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
@@ -81,13 +58,13 @@ export const transformValue = (
     };
   } else if (isNaNValue(value)) {
     return {
-      value: undefined,
-      type: 'NaN',
+      value: 'NaN',
+      type: 'number',
     };
   } else if (isInfinite(value)) {
     return {
-      value: undefined,
-      type: value > 0 ? 'Infinity' : '-Infinity',
+      value: value > 0 ? 'Infinity' : '-Infinity',
+      type: 'number',
     };
   } else if (isSet(value)) {
     return {
@@ -100,34 +77,11 @@ export const transformValue = (
       type: 'regexp',
     };
   } else if (isMap(value)) {
-    const { done: valueIsEmpty, value: firstKey } = value.keys().next();
-    const returnValueDoesntMatter = valueIsEmpty;
-    if (returnValueDoesntMatter || isString(firstKey)) {
-      return { value, type: 'map:string' };
-    }
-
-    if (isNumber(firstKey)) {
-      return {
-        value: value,
-        type: 'map:number',
-      };
-    }
-
-    if (isBigint(firstKey)) {
-      return {
-        value: value,
-        type: 'map:bigint',
-      };
-    }
-
-    if (isBoolean(firstKey)) {
-      return {
-        value: value,
-        type: 'map:boolean',
-      };
-    }
-
-    throw new Error('Key type not supported.');
+    const entries = IteratorUtils.map(value.entries(), pair => pair);
+    return {
+      value: entries,
+      type: 'map',
+    };
   }
 
   return undefined;
@@ -141,20 +95,10 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return undefined;
     case 'Date':
       return new Date(json as string);
-    case 'NaN':
-      return Number.NaN;
-    case 'Infinity':
-      return Number.POSITIVE_INFINITY;
-    case '-Infinity':
-      return Number.NEGATIVE_INFINITY;
-    case 'map:number':
-      return new Map(Object.entries(json).map(([k, v]) => [Number(k), v]));
-    case 'map:string':
-      return new Map(Object.entries(json));
-    case 'map:boolean':
-      return new Map(Object.entries(json).map(([k, v]) => [Boolean(k), v]));
-    case 'map:bigint':
-      return new Map(Object.entries(json).map(([k, v]) => [BigInt(k), v]));
+    case 'number':
+      return Number(json);
+    case 'map':
+      return new Map(json);
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {
