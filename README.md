@@ -73,7 +73,7 @@ And parse your JSON like so:
 const object = superjson.parse(jsonString);
 ```
 
-Alternatively, transform any JavaScript value into a JSON-compatible one by using our lower-level `serializer` and `deserializer` functions.
+Alternatively, transform any JavaScript value into a JSON-compatible one by using our lower-level `serialize` and `deserialize` functions.
 
 For example:
 
