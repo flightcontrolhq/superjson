@@ -133,7 +133,7 @@ const {json, meta} = serialize(object);
 deserialize({json, meta});
 ```
 
-Returns **`your original value`**
+Returns **`your original value`**.
 
 ### stringify
 
