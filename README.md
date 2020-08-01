@@ -119,7 +119,7 @@ const object = {
 const {json, meta} = serialize(object);
 ```
 
-Returns **`json and meta, both JSON values.`**
+Returns **`json` and `meta`, both JSON-compatible values.**
 
 ## deserialize
 
