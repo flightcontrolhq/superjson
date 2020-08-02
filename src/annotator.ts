@@ -1,41 +1,35 @@
 import { getDeep, setDeep } from './accessDeep';
-import { isPrimitive, isString } from './is';
+import { isPrimitive, isNull, isString } from './is';
 import * as IteratorUtils from './iteratorutils';
 import { Walker } from './plainer';
 import {
   TypeAnnotation,
-  //  isTypeAnnotation,
+  isTypeAnnotation,
   transformValue,
   untransformValue,
-  isTypeAnnotation,
 } from './transformer';
-import {
-  TreeEntry,
-  treeify,
-  detreeify,
-  Tree,
-  treeifyPaths,
-  detreeifyPaths,
-  isTree,
-} from './treeifier';
-import * as TreeCompressor from './treecompressor';
+import { PathTree } from './pathtree';
 
 export interface Annotations {
-  values?: Tree<TypeAnnotation>;
-  referentialEqualities?: Tree<Tree<string>>;
+  values?: PathTree.MinimizedTree<TypeAnnotation>;
+  referentialEqualities?: PathTree.MinimizedTree<
+    PathTree.MinimizedTree<string>
+  >;
 }
 
 export function isAnnotations(object: any): object is Annotations {
   try {
     if (object.values) {
-      if (!isTree(object.values, isTypeAnnotation)) {
+      if (!PathTree.isMinimizedTree(object.values, isTypeAnnotation)) {
         return false;
       }
     }
 
     if (object.referentialEqualities) {
       if (
-        !isTree(object.referentialEqualities, tree => isTree(tree, isString))
+        !PathTree.isMinimizedTree(object.referentialEqualities, tree =>
+          PathTree.isMinimizedTree(tree, isString)
+        )
       ) {
         return false;
       }
@@ -48,7 +42,7 @@ export function isAnnotations(object: any): object is Annotations {
 }
 
 export const makeAnnotator = () => {
-  const valueAnnotations: TreeEntry<TypeAnnotation>[] = [];
+  let valueAnnotations = PathTree.create<TypeAnnotation | null>(null);
 
   const objectIdentities = new Map<any, any[][]>();
   function registerObjectPath(object: any, path: any[]) {
@@ -65,10 +59,11 @@ export const makeAnnotator = () => {
     const transformed = transformValue(node);
 
     if (transformed) {
-      valueAnnotations.push({
-        path: path.map(String),
-        value: transformed.type,
-      });
+      valueAnnotations = PathTree.append(
+        valueAnnotations,
+        path.map(String),
+        transformed.type
+      );
 
       return transformed.value;
     } else {
@@ -79,37 +74,45 @@ export const makeAnnotator = () => {
   function getAnnotations(): Annotations {
     const annotations: Annotations = {};
 
-    const annotationsValuesTree = TreeCompressor.compress(
-      treeify(valueAnnotations)
-    );
-    if (Object.keys(annotationsValuesTree).length > 0) {
-      annotations.values = annotationsValuesTree;
+    const valueAnnotationsMinimized = PathTree.minimize(valueAnnotations);
+    if (valueAnnotationsMinimized) {
+      annotations.values = valueAnnotationsMinimized;
     }
 
-    const referentialEqualitiesTreeEntries = IteratorUtils.flatMap<
-      any[][],
-      TreeEntry<Tree<string>>
-    >(objectIdentities.values(), paths => {
+    let referentialEqualitiesAnnotations = PathTree.create<PathTree.MinimizedTree<
+      string
+    > | null>(null);
+
+    IteratorUtils.forEach(objectIdentities.values(), paths => {
       if (paths.length <= 1) {
-        return [];
+        return;
       }
 
-      const [shortestPath, ...identityPaths] = paths.sort(
-        (a, b) => a.length - b.length
+      const [shortestPath, ...identityPaths] = paths
+        .map(path => path.map(String))
+        .sort((a, b) => a.length - b.length);
+      let identities = PathTree.create<string | null>(null);
+      for (const identityPath of identityPaths) {
+        identities = PathTree.appendPath(identities, identityPath);
+      }
+
+      const minimizedIdentities = PathTree.minimize(identities);
+      if (!minimizedIdentities) {
+        throw new Error('Illegal State');
+      }
+
+      referentialEqualitiesAnnotations = PathTree.append(
+        referentialEqualitiesAnnotations,
+        shortestPath,
+        minimizedIdentities
       );
-      return [
-        {
-          path: shortestPath,
-          value: TreeCompressor.compress(treeifyPaths(identityPaths)!),
-        },
-      ];
     });
 
-    const annotationsReferentialEqualitiesTree = TreeCompressor.compress(
-      treeify(referentialEqualitiesTreeEntries)
+    const referentialEqualitiesAnnotationsMinimized = PathTree.minimize(
+      referentialEqualitiesAnnotations
     );
-    if (Object.keys(annotationsReferentialEqualitiesTree).length > 0) {
-      annotations.referentialEqualities = annotationsReferentialEqualitiesTree;
+    if (referentialEqualitiesAnnotationsMinimized) {
+      annotations.referentialEqualities = referentialEqualitiesAnnotationsMinimized;
     }
 
     return annotations;
@@ -120,29 +123,41 @@ export const makeAnnotator = () => {
 
 export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   if (annotations.values) {
-    const valueAnnotations = detreeify(
-      TreeCompressor.uncompress(annotations.values)
-    );
+    PathTree.traverse(PathTree.unminimize(annotations.values), (type, path) => {
+      if (isNull(type)) {
+        if (path.length === 0) {
+          return;
+        }
 
-    valueAnnotations.forEach(({ path, value: type }) => {
+        throw new Error('Illegal State');
+      }
+
       plain = setDeep(plain, path, v => untransformValue(v, type));
     });
   }
 
   if (annotations.referentialEqualities) {
-    const referentialEqualitiesAnnotations = detreeify(
-      TreeCompressor.uncompress(annotations.referentialEqualities)
-    );
-    for (const { path, value } of referentialEqualitiesAnnotations) {
-      const object = getDeep(plain, path);
+    PathTree.traverse(
+      PathTree.unminimize(annotations.referentialEqualities),
+      (identicalObjects, path) => {
+        if (isNull(identicalObjects)) {
+          if (path.length === 0) {
+            return;
+          }
 
-      const identicalObjectPaths = detreeifyPaths(
-        TreeCompressor.uncompress(value)
-      );
-      for (const identicalObjectPath of identicalObjectPaths) {
-        setDeep(plain, identicalObjectPath, () => object);
+          throw new Error('Illegal State');
+        }
+
+        const object = getDeep(plain, path);
+
+        PathTree.traversePaths(
+          PathTree.unminimize(identicalObjects),
+          identicalObjectPath => {
+            plain = setDeep(plain, identicalObjectPath, () => object);
+          }
+        );
       }
-    }
+    );
   }
 
   return plain;

@@ -1,5 +1,5 @@
 import { stringifyPath, parsePath } from './pathstringifier';
-import { isUndefined, isNull, isArray } from './is';
+import { isUndefined, isNull, isArray, isPlainObject } from './is';
 
 function isPrefix<T>(to: T[], prefixCandidate: T[]) {
   return prefixCandidate.every((value, index) => {
@@ -12,14 +12,34 @@ export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
 type InnerNode<T> = [T, Record<string, Tree<T>>];
 
+export function isTree<T>(
+  v: any,
+  valueChecker: (nodeValue: T) => boolean
+): v is Tree<T> {
+  if (!isArray(v)) {
+    return false;
+  }
+
+  if (v.length === 1) {
+    return valueChecker(v[0]);
+  } else if (v.length === 2) {
+    return (
+      valueChecker(v[0]) &&
+      Object.values(v[1]).every(v => isTree(v, valueChecker))
+    );
+  }
+
+  return false;
+}
+
 export module PathTree {
   export function create<T>(value: T): Tree<T> {
-    return [value, {}];
+    return [value];
   }
 
   export function get<T>(
     tree: Tree<T>,
-    path: (string | number)[]
+    path: string[]
   ): [T, true] | [null, false] {
     if (path.length === 0) {
       return [tree[0] as T, true];
@@ -81,6 +101,15 @@ export module PathTree {
     }
   }
 
+  export function appendPath(
+    tree: Tree<string | null>,
+    path: string[]
+  ): Tree<string | null> {
+    const front = path.slice(0, path.length - 1);
+    const last = path[path.length - 1];
+    return append(tree, front, last);
+  }
+
   /**
    * Depth-first traversal,
    * root is traversed before its children.
@@ -103,12 +132,34 @@ export module PathTree {
     }
   }
 
+  export function traversePaths(
+    tree: Tree<string | null>,
+    walker: (path: string[]) => void
+  ) {
+    traverse(tree, (last, front) => !isNull(last) && walker([...front, last]));
+  }
+
+  export type MinimizedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
+
+  export function isMinimizedTree<T>(
+    v: any,
+    valueChecker: (v: T) => boolean
+  ): v is MinimizedTree<T> {
+    if (isUndefined(v)) {
+      return true;
+    }
+
+    if (isPlainObject(v)) {
+      return Object.values(v).every(v => isTree(v, valueChecker));
+    }
+
+    return isTree(v, valueChecker);
+  }
+
   /**
    * @description Minimizes trees that start with a `null`-root
    */
-  export function minimize<T>(
-    tree: Tree<T | null>
-  ): Tree<T> | Record<string, Tree<T>> | undefined {
+  export function minimize<T>(tree: Tree<T | null>): MinimizedTree<T> {
     if (isNull(tree[0])) {
       if (tree.length === 1) {
         return undefined;
@@ -120,9 +171,7 @@ export module PathTree {
     return tree as Tree<T>;
   }
 
-  export function unminimize<T>(
-    tree: Tree<T> | Record<string, Tree<T>> | undefined
-  ): Tree<T | null> {
+  export function unminimize<T>(tree: MinimizedTree<T>): Tree<T | null> {
     if (isArray(tree)) {
       return tree;
     }
