@@ -2,7 +2,7 @@ import { TreeEntry, treeify, detreeify } from './treeifier';
 
 describe('treeify & detreeify', () => {
   interface TestCase {
-    input: TreeEntry[];
+    input: TreeEntry<string>[];
     expectedOutput: object;
   }
 
@@ -20,8 +20,8 @@ describe('treeify & detreeify', () => {
       ],
       expectedOutput: {
         hello: {
-          world: 'lol',
-          reader: 'lel',
+          world: ['lol'],
+          reader: ['lel'],
         },
       },
     },
@@ -39,7 +39,7 @@ describe('treeify & detreeify', () => {
       expectedOutput: [
         'lol',
         {
-          hello: 'world',
+          hello: ['world'],
         },
       ],
     },
@@ -52,7 +52,7 @@ describe('treeify & detreeify', () => {
         a: [
           'set',
           {
-            1: 'undefined',
+            1: ['undefined'],
           },
         ],
       },
@@ -60,7 +60,7 @@ describe('treeify & detreeify', () => {
     aa: {
       input: [{ path: ['a'], value: 'map:number' }],
       expectedOutput: {
-        a: 'map:number',
+        a: ['map:number'],
       },
     },
   };
@@ -69,7 +69,8 @@ describe('treeify & detreeify', () => {
     test(name, () => {
       const output = treeify(testcase.input);
       expect(output).toEqual(testcase.expectedOutput);
-      expect(detreeify(output)).toEqual(testcase.input);
+      expect(output).toBeDefined();
+      expect(detreeify(output!)).toEqual(testcase.input);
     });
   });
 });

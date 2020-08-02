@@ -1,52 +1,65 @@
-import { Tree, TreeInnerNode } from './treeifier';
-import { isArray, isString, isPlainObject } from './is';
+import {
+  Tree,
+  TreeInnerNodeWithoutValue,
+  TreeInnerNodeWithValue,
+} from './treeifier';
+import { isArray } from './is';
 import { escapeKey, parsePath } from './pathstringifier';
 
-export const compress = <T extends string = string>(tree: Tree<T>): Tree<T> => {
-  if (isArray(tree)) {
+export const compress = <T>(tree: Tree<T>): Tree<T> => {
+  const isLeaf = isArray(tree) && tree.length === 1;
+  if (isLeaf) {
     return tree;
   }
 
-  return Object.fromEntries(
-    Object.entries(tree).map(([segment, child]) => {
-      if (isString(child) || isArray(child)) {
-        return [segment, child];
-      }
+  const isInnerNodeWithValue = isArray(tree) && tree.length === 2;
+  if (isInnerNodeWithValue) {
+    const [value, children] = tree as TreeInnerNodeWithValue<T>;
+    return [value, compress(children) as TreeInnerNodeWithoutValue<T>];
+  }
 
-      if (isPlainObject(child)) {
+  return Object.fromEntries(
+    Object.entries(tree as TreeInnerNodeWithoutValue<T>).map(
+      ([edge, child]) => {
+        const childHasValue = isArray(child);
+        if (childHasValue) {
+          return [edge, child];
+        }
+
         child = Object.fromEntries(
           Object.entries(child).map(([key, value]) => [escapeKey(key), value])
         );
-        child = compress(child) as TreeInnerNode<T>;
+        child = compress(child) as TreeInnerNodeWithoutValue<T>;
+
+        const keysOfChild = Object.keys(child);
+        const hasMultipleKeys = keysOfChild.length > 1;
+        if (hasMultipleKeys) {
+          return [edge, child];
+        }
+
+        const [singleChildKey] = keysOfChild;
+        let singleChildValue = child[singleChildKey];
+
+        return [`${escapeKey(edge)}.${singleChildKey}`, singleChildValue];
       }
-
-      const keysOfChild = Object.keys(child);
-      const hasMultipleKeys = keysOfChild.length > 1;
-      if (hasMultipleKeys) {
-        return [segment, child];
-      }
-
-      const [singleChildKey] = keysOfChild;
-      let singleChildValue = child[singleChildKey];
-
-      return [`${escapeKey(segment)}.${singleChildKey}`, singleChildValue];
-    })
+    )
   );
 };
 
-export const uncompress = <T extends string = string>(
-  tree: Tree<T>
-): Tree<T> => {
-  if (isArray(tree)) {
+export const uncompress = <T>(tree: Tree<T>): Tree<T> => {
+  const isLeaf = isArray(tree) && tree.length === 1;
+  if (isLeaf) {
     return tree;
+  }
+
+  const isInnerNodeWithValue = isArray(tree) && tree.length === 2;
+  if (isInnerNodeWithValue) {
+    const [value, children] = tree as TreeInnerNodeWithValue<T>;
+    return [value, uncompress(children) as TreeInnerNodeWithoutValue<T>];
   }
 
   return Object.fromEntries(
     Object.entries(tree).map(([segment, child]) => {
-      if (!isString(child)) {
-        return [segment, child];
-      }
-
       const path = parsePath(segment);
       if (path.length === 1) {
         return [segment, child];
@@ -56,7 +69,7 @@ export const uncompress = <T extends string = string>(
       const innerKeys = path.slice(1, path.length - 1);
       const lastKey = path[path.length - 1];
 
-      const newChild: TreeInnerNode = {};
+      const newChild: TreeInnerNodeWithoutValue<T> = {};
       let lastNode = newChild;
       for (const key of innerKeys) {
         const newNode = {};

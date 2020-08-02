@@ -44,7 +44,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a.1': 'undefined',
+          'a.1': ['undefined'],
         },
       },
     },
@@ -58,7 +58,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: ['set', { 1: 'undefined' }],
+          a: ['set', { 1: ['undefined'] }],
         },
       },
     },
@@ -67,7 +67,7 @@ describe('stringify & parse', () => {
       input: new Set([1, undefined, 2]),
       output: [1, undefined, 2],
       outputAnnotations: {
-        values: ['set', { 1: 'undefined' }],
+        values: ['set', { 1: ['undefined'] }],
       },
     },
 
@@ -96,9 +96,9 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: 'map:number',
-          b: 'map:string',
-          d: 'map:boolean',
+          a: ['map:number'],
+          b: ['map:string'],
+          d: ['map:boolean'],
         },
       },
     },
@@ -118,7 +118,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: ['options.0'],
+          selected: [{ options: ['0'] }],
         },
       },
       customExpectations: output => {
@@ -139,7 +139,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\.1.b': 'set',
+          'a\\.1.b': ['set'],
         },
       },
     },
@@ -157,7 +157,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\\\.1.b': 'set',
+          'a\\\\.1.b': ['set'],
         },
       },
     },
@@ -175,7 +175,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'meeting.date': 'Date',
+          'meeting.date': ['Date'],
         },
       },
     },
@@ -189,7 +189,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'regexp',
+          a: ['regexp'],
         },
       },
     },
@@ -203,7 +203,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'Infinity',
+          a: ['Infinity'],
         },
       },
     },
@@ -217,7 +217,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: '-Infinity',
+          a: ['-Infinity'],
         },
       },
     },
@@ -231,7 +231,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'NaN',
+          a: ['NaN'],
         },
       },
     },
@@ -245,7 +245,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'bigint',
+          a: ['bigint'],
         },
       },
     },
@@ -267,7 +267,7 @@ describe('stringify & parse', () => {
         ],
       },
       outputAnnotations: {
-        referentialEqualitiesRoot: ['children.0.parents.0'],
+        referentialEqualities: [{ 'children.0.parents': ['0'] }],
       },
     },
   };

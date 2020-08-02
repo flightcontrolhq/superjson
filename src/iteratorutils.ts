@@ -9,15 +9,22 @@ export const forEach = <T>(iterator: Iterator<T>, func: (v: T) => void) => {
   }
 };
 
-export const map = <A, B>(
+export const flatMap = <A, B>(
   iterator: Iterator<A>,
-  map: (v: A, index: number) => B
+  map: (v: A, index: number) => B[]
 ): B[] => {
   const result: B[] = [];
 
   forEach(iterator, value => {
-    result.push(map(value, result.length));
+    result.push(...map(value, result.length));
   });
 
   return result;
+};
+
+export const map = <A, B>(
+  iterator: Iterator<A>,
+  map: (v: A, index: number) => B
+): B[] => {
+  return flatMap(iterator, (v, i) => [map(v, i)]);
 };

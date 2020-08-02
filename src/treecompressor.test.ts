@@ -3,33 +3,33 @@ import { compress, uncompress } from './treecompressor';
 
 describe('compress & uncompress', () => {
   interface TestCase {
-    input: Tree;
-    expectedOutput: Tree;
+    input: Tree<string>;
+    expectedOutput: Tree<String>;
   }
 
   const cases: Record<string, TestCase> = {
     simple: {
       input: {
-        this: { is: { a: { nested: 'tree' } } },
+        this: { is: { a: { nested: ['tree'] } } },
       },
       expectedOutput: {
-        'this.is.a.nested': 'tree',
+        'this.is.a.nested': ['tree'],
       },
     },
     'with keys that need escaping': {
       input: {
-        'this.needs': { 'to.be': 'escaped' },
+        'this.needs': { 'to.be': ['escaped'] },
       },
       expectedOutput: {
-        'this\\.needs.to\\.be': 'escaped',
+        'this\\.needs.to\\.be': ['escaped'],
       },
     },
     'a: map:number': {
       input: {
-        a: 'map:number',
+        a: ['map:number'],
       },
       expectedOutput: {
-        a: 'map:number',
+        a: ['map:number'],
       },
     },
   };

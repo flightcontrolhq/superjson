@@ -1,47 +1,44 @@
 import { getDeep, setDeep } from './accessDeep';
-import { isPrimitive } from './is';
+import { isPrimitive, isString } from './is';
 import * as IteratorUtils from './iteratorutils';
-import {
-  StringifiedPath,
-  isStringifiedPath,
-  parsePath,
-  stringifyPath,
-} from './pathstringifier';
 import { Walker } from './plainer';
 import {
   TypeAnnotation,
   //  isTypeAnnotation,
   transformValue,
   untransformValue,
+  isTypeAnnotation,
 } from './transformer';
-import { TreeEntry, treeify, detreeify, Tree } from './treeifier';
+import {
+  TreeEntry,
+  treeify,
+  detreeify,
+  Tree,
+  treeifyPaths,
+  detreeifyPaths,
+  isTree,
+} from './treeifier';
 import * as TreeCompressor from './treecompressor';
 
 export interface Annotations {
   values?: Tree<TypeAnnotation>;
-  referentialEqualities?: Record<StringifiedPath, StringifiedPath[]>;
-  referentialEqualitiesRoot?: StringifiedPath[];
+  referentialEqualities?: Tree<Tree<string>>;
 }
 
 export function isAnnotations(object: any): object is Annotations {
   try {
-    /*
-    if (!!object.root && !isTypeAnnotation(object.root)) {
-      return false;
+    if (object.values) {
+      if (!isTree(object.values, isTypeAnnotation)) {
+        return false;
+      }
     }
 
-    if (!!object.values) {
-      return Object.entries(object.values).every(
-        ([key, value]) => isStringifiedPath(key) && isTypeAnnotation(value)
-      );
-    }
-    */
-
-    if (!!object.referentialEqualities) {
-      return Object.entries(object.referentialEqualities).every(
-        ([key, value]) =>
-          isStringifiedPath(key) && (value as string[]).every(isStringifiedPath)
-      );
+    if (object.referentialEqualities) {
+      if (
+        !isTree(object.referentialEqualities, tree => isTree(tree, isString))
+      ) {
+        return false;
+      }
     }
 
     return true;
@@ -52,7 +49,6 @@ export function isAnnotations(object: any): object is Annotations {
 
 export const makeAnnotator = () => {
   const valueAnnotations: TreeEntry<TypeAnnotation>[] = [];
-  const annotations: Annotations = {};
 
   const objectIdentities = new Map<any, any[][]>();
   function registerObjectPath(object: any, path: any[]) {
@@ -81,27 +77,39 @@ export const makeAnnotator = () => {
   };
 
   function getAnnotations(): Annotations {
-    IteratorUtils.forEach(objectIdentities.values(), paths => {
-      if (paths.length > 1) {
-        const [shortestPath, ...identityPaths] = paths
-          .sort((a, b) => a.length - b.length)
-          .map(stringifyPath);
+    const annotations: Annotations = {};
 
-        const isRoot = shortestPath.length === 0;
-        if (isRoot) {
-          annotations.referentialEqualitiesRoot = identityPaths;
-        } else {
-          if (!annotations.referentialEqualities) {
-            annotations.referentialEqualities = {};
-          }
+    const annotationsValuesTree = TreeCompressor.compress(
+      treeify(valueAnnotations)
+    );
+    if (Object.keys(annotationsValuesTree).length > 0) {
+      annotations.values = annotationsValuesTree;
+    }
 
-          annotations.referentialEqualities[shortestPath] = identityPaths;
-        }
+    const referentialEqualitiesTreeEntries = IteratorUtils.flatMap<
+      any[][],
+      TreeEntry<Tree<string>>
+    >(objectIdentities.values(), paths => {
+      if (paths.length <= 1) {
+        return [];
       }
+
+      const [shortestPath, ...identityPaths] = paths.sort(
+        (a, b) => a.length - b.length
+      );
+      return [
+        {
+          path: shortestPath,
+          value: TreeCompressor.compress(treeifyPaths(identityPaths)!),
+        },
+      ];
     });
 
-    if (valueAnnotations.length > 0) {
-      annotations.values = TreeCompressor.compress(treeify(valueAnnotations));
+    const annotationsReferentialEqualitiesTree = TreeCompressor.compress(
+      treeify(referentialEqualitiesTreeEntries)
+    );
+    if (Object.keys(annotationsReferentialEqualitiesTree).length > 0) {
+      annotations.referentialEqualities = annotationsReferentialEqualitiesTree;
     }
 
     return annotations;
@@ -122,22 +130,18 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   }
 
   if (annotations.referentialEqualities) {
-    for (const [objectPath, identicalObjectsPaths] of Object.entries(
-      annotations.referentialEqualities
-    )) {
-      const object = getDeep(plain, parsePath(objectPath));
+    const referentialEqualitiesAnnotations = detreeify(
+      TreeCompressor.uncompress(annotations.referentialEqualities)
+    );
+    for (const { path, value } of referentialEqualitiesAnnotations) {
+      const object = getDeep(plain, path);
 
-      for (const identicalObjectPath of identicalObjectsPaths.map(parsePath)) {
+      const identicalObjectPaths = detreeifyPaths(
+        TreeCompressor.uncompress(value)
+      );
+      for (const identicalObjectPath of identicalObjectPaths) {
         setDeep(plain, identicalObjectPath, () => object);
       }
-    }
-  }
-
-  if (annotations.referentialEqualitiesRoot) {
-    for (const identicalObjectPath of annotations.referentialEqualitiesRoot.map(
-      parsePath
-    )) {
-      setDeep(plain, identicalObjectPath, () => plain);
     }
   }
 
