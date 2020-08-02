@@ -1,5 +1,5 @@
 export type StringifiedPath = string;
-type Path = (number | string)[];
+type Path = string[];
 
 export const escapeKey = (key: string) => key.replace(/\./g, '\\.');
 export const unescapeKey = (k: string) => k.replace(/\\\./g, '.');
