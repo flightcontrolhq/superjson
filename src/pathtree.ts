@@ -1,5 +1,5 @@
 import { stringifyPath, parsePath } from './pathstringifier';
-import { isUndefined } from './is';
+import { isUndefined, isNull, isArray } from './is';
 
 function isPrefix<T>(to: T[], prefixCandidate: T[]) {
   return prefixCandidate.every((value, index) => {
@@ -101,5 +101,36 @@ export module PathTree {
         traverse(children, walker, [...origin, ...parsePath(key)]);
       });
     }
+  }
+
+  /**
+   * @description Minimizes trees that start with a `null`-root
+   */
+  export function minimize<T>(
+    tree: Tree<T | null>
+  ): Tree<T> | Record<string, Tree<T>> | undefined {
+    if (isNull(tree[0])) {
+      if (tree.length === 1) {
+        return undefined;
+      } else {
+        return tree[1] as Record<string, Tree<T>>;
+      }
+    }
+
+    return tree as Tree<T>;
+  }
+
+  export function unminimize<T>(
+    tree: Tree<T> | Record<string, Tree<T>> | undefined
+  ): Tree<T | null> {
+    if (isArray(tree)) {
+      return tree;
+    }
+
+    if (isUndefined(tree)) {
+      return [null];
+    }
+
+    return [null, tree];
   }
 }
