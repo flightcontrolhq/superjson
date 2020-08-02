@@ -6,11 +6,11 @@ export interface TreeEntry {
   value: string;
 }
 
-type TreeValueNode = [string, TreeInnerNode];
+export type TreeValueNode = [string, TreeInnerNode];
 
-interface TreeInnerNode extends Record<string, string | Tree> {}
+export interface TreeInnerNode extends Record<string, string | Tree> {}
 
-type Tree = TreeValueNode | TreeInnerNode;
+export type Tree = TreeValueNode | TreeInnerNode;
 
 export const treeify = (entries: TreeEntry[]): Tree => {
   let result: Tree = {};
