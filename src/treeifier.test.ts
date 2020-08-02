@@ -43,6 +43,26 @@ describe('treeify & detreeify', () => {
         },
       ],
     },
+    anotherTestCase: {
+      input: [
+        { path: ['a'], value: 'set' },
+        { path: ['a', '1'], value: 'undefined' },
+      ],
+      expectedOutput: {
+        a: [
+          'set',
+          {
+            1: 'undefined',
+          },
+        ],
+      },
+    },
+    aa: {
+      input: [{ path: ['a'], value: 'map:number' }],
+      expectedOutput: {
+        a: 'map:number',
+      },
+    },
   };
 
   Object.entries(cases).forEach(([name, testcase]) => {

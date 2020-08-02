@@ -10,20 +10,22 @@ import {
 import { Walker } from './plainer';
 import {
   TypeAnnotation,
-  isTypeAnnotation,
+  //  isTypeAnnotation,
   transformValue,
   untransformValue,
 } from './transformer';
+import { TreeEntry, treeify, detreeify, Tree } from './treeifier';
+import * as TreeCompressor from './treecompressor';
 
 export interface Annotations {
-  root?: TypeAnnotation;
-  values?: Record<StringifiedPath, TypeAnnotation>;
+  values?: Tree<TypeAnnotation>;
   referentialEqualities?: Record<StringifiedPath, StringifiedPath[]>;
   referentialEqualitiesRoot?: StringifiedPath[];
 }
 
 export function isAnnotations(object: any): object is Annotations {
   try {
+    /*
     if (!!object.root && !isTypeAnnotation(object.root)) {
       return false;
     }
@@ -33,6 +35,7 @@ export function isAnnotations(object: any): object is Annotations {
         ([key, value]) => isStringifiedPath(key) && isTypeAnnotation(value)
       );
     }
+    */
 
     if (!!object.referentialEqualities) {
       return Object.entries(object.referentialEqualities).every(
@@ -48,6 +51,7 @@ export function isAnnotations(object: any): object is Annotations {
 }
 
 export const makeAnnotator = () => {
+  const valueAnnotations: TreeEntry<TypeAnnotation>[] = [];
   const annotations: Annotations = {};
 
   const objectIdentities = new Map<any, any[][]>();
@@ -65,15 +69,10 @@ export const makeAnnotator = () => {
     const transformed = transformValue(node);
 
     if (transformed) {
-      if (path.length === 0) {
-        annotations.root = transformed.type;
-      } else {
-        if (!annotations.values) {
-          annotations.values = {};
-        }
-
-        annotations.values[stringifyPath(path)] = transformed.type;
-      }
+      valueAnnotations.push({
+        path: path.map(String),
+        value: transformed.type,
+      });
 
       return transformed.value;
     } else {
@@ -101,6 +100,10 @@ export const makeAnnotator = () => {
       }
     });
 
+    if (valueAnnotations.length > 0) {
+      annotations.values = TreeCompressor.compress(treeify(valueAnnotations));
+    }
+
     return annotations;
   }
 
@@ -109,23 +112,13 @@ export const makeAnnotator = () => {
 
 export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   if (annotations.values) {
-    const annotationsWithPaths = Object.entries(annotations.values).map(
-      ([key, type]) => [parsePath(key), type] as [string[], TypeAnnotation]
+    const valueAnnotations = detreeify(
+      TreeCompressor.uncompress(annotations.values)
     );
 
-    const annotationsWithPathsLeavesToRoot = annotationsWithPaths.sort(
-      ([pathA], [pathB]) => pathB.length - pathA.length
-    );
-
-    for (const [path, type] of annotationsWithPathsLeavesToRoot) {
-      plain = setDeep(plain, path, v =>
-        untransformValue(v, type as TypeAnnotation)
-      );
-    }
-  }
-
-  if (annotations.root) {
-    plain = untransformValue(plain, annotations.root);
+    valueAnnotations.forEach(({ path, value: type }) => {
+      plain = setDeep(plain, path, v => untransformValue(v, type));
+    });
   }
 
   if (annotations.referentialEqualities) {

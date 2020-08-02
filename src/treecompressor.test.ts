@@ -24,6 +24,14 @@ describe('compress & uncompress', () => {
         'this\\.needs.to\\.be': 'escaped',
       },
     },
+    'a: map:number': {
+      input: {
+        a: 'map:number',
+      },
+      expectedOutput: {
+        a: 'map:number',
+      },
+    },
   };
 
   Object.entries(cases).forEach(([name, testcase]) => {

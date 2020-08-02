@@ -1,24 +1,29 @@
 import { isArray, isString } from './is';
 
-export type Path = (string | number)[];
-export interface TreeEntry {
+export type Path = string[];
+export interface TreeEntry<T extends string = string> {
   path: Path;
-  value: string;
+  value: T;
 }
 
-export type TreeValueNode = [string, TreeInnerNode];
+export type TreeValueNode<T extends string = string> = [T, TreeInnerNode<T>];
 
-export interface TreeInnerNode extends Record<string, string | Tree> {}
+export interface TreeInnerNode<T extends string = string>
+  extends Record<string, string | Tree<T>> {}
 
-export type Tree = TreeValueNode | TreeInnerNode;
+export type Tree<T extends string = string> =
+  | TreeValueNode<T>
+  | TreeInnerNode<T>;
 
-export const treeify = (entries: TreeEntry[]): Tree => {
-  let result: Tree = {};
+export const treeify = <T extends string = string>(
+  entries: TreeEntry<T>[]
+): Tree<T> => {
+  let result: Tree<T> = {};
 
   entries.forEach(entry => {
     const { path } = entry;
     if (path.length === 0) {
-      result = [entry.value, result as TreeInnerNode];
+      result = [entry.value, result as TreeInnerNode<T>];
       return;
     }
 
@@ -37,9 +42,11 @@ export const treeify = (entries: TreeEntry[]): Tree => {
       }
 
       if (isString(parent[segment])) {
-        parent[segment] = [parent[segment] as string, {}];
+        const newNode: TreeValueNode<T> = [parent[segment] as T, {}];
+        parent[segment] = newNode;
+        parent = newNode;
       } else {
-        parent = parent[segment] as TreeInnerNode;
+        parent = parent[segment] as TreeInnerNode<T>;
       }
     }
 
@@ -48,17 +55,19 @@ export const treeify = (entries: TreeEntry[]): Tree => {
       parent = realParent;
     }
 
-    (parent as TreeInnerNode)[end] = entry.value;
+    (parent as TreeInnerNode<T>)[end] = entry.value;
   });
 
   return result;
 };
 
-export const detreeify = (tree: Tree): TreeEntry[] => {
+export const detreeify = <T extends string = string>(
+  tree: Tree<T>
+): TreeEntry<T>[] => {
   if (isArray(tree)) {
     const [value, children] = tree;
 
-    const rootEntry: TreeEntry = {
+    const rootEntry = {
       path: [],
       value,
     };
@@ -71,7 +80,7 @@ export const detreeify = (tree: Tree): TreeEntry[] => {
       return {
         path: [segment],
         value: child,
-      };
+      } as TreeEntry<T>;
     }
 
     return detreeify(child).map(entry => ({

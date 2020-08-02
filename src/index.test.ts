@@ -58,8 +58,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'set',
-          'a.1': 'undefined',
+          a: ['set', { 1: 'undefined' }],
         },
       },
     },
@@ -68,10 +67,7 @@ describe('stringify & parse', () => {
       input: new Set([1, undefined, 2]),
       output: [1, undefined, 2],
       outputAnnotations: {
-        root: 'set',
-        values: {
-          '1': 'undefined',
-        },
+        values: ['set', { 1: 'undefined' }],
       },
     },
 

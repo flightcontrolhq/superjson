@@ -2,7 +2,7 @@ import { Tree, TreeInnerNode } from './treeifier';
 import { isArray, isString, isPlainObject } from './is';
 import { escapeKey, parsePath } from './pathstringifier';
 
-export const compress = (tree: Tree): Tree => {
+export const compress = <T extends string = string>(tree: Tree<T>): Tree<T> => {
   if (isArray(tree)) {
     return tree;
   }
@@ -17,7 +17,7 @@ export const compress = (tree: Tree): Tree => {
         child = Object.fromEntries(
           Object.entries(child).map(([key, value]) => [escapeKey(key), value])
         );
-        child = compress(child) as TreeInnerNode;
+        child = compress(child) as TreeInnerNode<T>;
       }
 
       const keysOfChild = Object.keys(child);
@@ -34,7 +34,9 @@ export const compress = (tree: Tree): Tree => {
   );
 };
 
-export const uncompress = (tree: Tree): Tree => {
+export const uncompress = <T extends string = string>(
+  tree: Tree<T>
+): Tree<T> => {
   if (isArray(tree)) {
     return tree;
   }
@@ -46,6 +48,10 @@ export const uncompress = (tree: Tree): Tree => {
       }
 
       const path = parsePath(segment);
+      if (path.length === 1) {
+        return [segment, child];
+      }
+
       const firstKey = path[0];
       const innerKeys = path.slice(1, path.length - 1);
       const lastKey = path[path.length - 1];
