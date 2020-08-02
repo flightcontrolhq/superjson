@@ -162,7 +162,7 @@ Parses and then deserializes the JSON string returned by `stringify`.
 ```js
 const jsonString = stringify(object);
 
-parse(jsonString);s
+parse(jsonString);
 ```
 
 Returns **`string`**.
