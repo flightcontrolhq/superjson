@@ -132,19 +132,41 @@ export module PathTree {
     }
   }
 
+  export function traverseWhileIgnoringNullRoot<T>(
+    tree: Tree<T | null>,
+    walker: (v: T, path: string[]) => void
+  ): void {
+    traverse(tree, (v, path) => {
+      if (isNull(v)) {
+        if (path.length === 0) {
+          return;
+        }
+
+        throw new Error('Illegal State');
+      }
+
+      walker(v, path);
+    });
+  }
+
   export function traversePaths(
     tree: Tree<string | null>,
     walker: (path: string[]) => void
   ) {
-    traverse(tree, (last, front) => !isNull(last) && walker([...front, last]));
+    traverseWhileIgnoringNullRoot(tree, (last, front) =>
+      walker([...front, last])
+    );
   }
 
-  export type MinimizedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
+  export type CollapsedRootTree<T> =
+    | Tree<T>
+    | Record<string, Tree<T>>
+    | undefined;
 
   export function isMinimizedTree<T>(
     v: any,
     valueChecker: (v: T) => boolean
-  ): v is MinimizedTree<T> {
+  ): v is CollapsedRootTree<T> {
     if (isUndefined(v)) {
       return true;
     }
@@ -159,7 +181,7 @@ export module PathTree {
   /**
    * @description Minimizes trees that start with a `null`-root
    */
-  export function minimize<T>(tree: Tree<T | null>): MinimizedTree<T> {
+  export function collapseRoot<T>(tree: Tree<T | null>): CollapsedRootTree<T> {
     if (isNull(tree[0])) {
       if (tree.length === 1) {
         return undefined;
@@ -171,7 +193,7 @@ export module PathTree {
     return tree as Tree<T>;
   }
 
-  export function unminimize<T>(tree: MinimizedTree<T>): Tree<T | null> {
+  export function expandRoot<T>(tree: CollapsedRootTree<T>): Tree<T | null> {
     if (isArray(tree)) {
       return tree;
     }
