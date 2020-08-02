@@ -34,7 +34,7 @@
 - 🔐 Type safety with autocompletion
 - 🐾 Negligible runtime footprint
 - 💫 Framework agnostic
-
+- 🛠 Prefect fix for the Next.js serialization limitatons of `getServerSideProps` and `getInitialProps`
 
 ## Backstory
 
@@ -50,7 +50,7 @@ Install the library with your package manager of choice, e.g.:
 yarn add superjson
 ```
 
-## Usage
+## Basic Usage
 
 The easiest way to use Superjson is with its `stringify` and `parse` functions. If you know how to use `JSON.stringify`, you already know Superjson!
 
@@ -59,7 +59,9 @@ Easily stringify any expression you’d like:
 ```js
 import superjson from 'superjson';
 
-const jsonString = superjson.stringify({date: new Date(0)});
+const jsonString = superjson.stringify({ date: new Date(0) });
+
+// jsonString === '{"json":{"data":"1970-01-01T00:00:00.000Z"}}'
 ```
 
 And parse your JSON like so:
@@ -67,6 +69,10 @@ And parse your JSON like so:
 ```js
 const object = superjson.parse(jsonString);
 ```
+
+## Advanced Usage
+
+For cases where you want to both transmit plain JSON data and be able to
 
 Alternatively, transform any JavaScript value into a JSON-compatible one by using our lower-level `serialize` and `deserialize` functions.
 
@@ -79,7 +85,7 @@ const object = {
   test: /superjson/,
 };
 
-const {json, meta} = superjson.serialize(object);
+const { json, meta } = superjson.serialize(object);
 
 /*
 json = {
@@ -111,7 +117,7 @@ const object = {
   test: /superjson/,
 };
 
-const {json, meta} = serialize(object);
+const { json, meta } = serialize(object);
 ```
 
 Returns **`json` and `meta`, both JSON-compatible values.**
@@ -123,9 +129,9 @@ Deserializes the output of Superjson back into your original value.
 #### Examples
 
 ```js
-const {json, meta} = serialize(object);
+const { json, meta } = serialize(object);
 
-deserialize({json, meta});
+deserialize({ json, meta });
 ```
 
 Returns **`your original value`**.
@@ -162,24 +168,24 @@ parse(jsonString);
 
 Returns **`string`**.
 
-***
+---
 
 Superjson supports many extra types which JSON does not. You can serialize all these:
 
 | type        | supported by standard JSON? | supported by Superjson? |
-|-------------|-----------------------------|-------------------------|
-| `string`    | ✅                           | ✅                       |
-| `number`    | ✅                           | ✅                       |
-| `boolean`   | ✅                           | ✅                       |
-| `null`      | ✅                           | ✅                       |
-| `Array`     | ✅                           | ✅                       |
-| `Object`    | ✅                           | ✅                       |
-| `undefined` | ❌                           | ✅                       |
-| `bigint`    | ❌                           | ✅                       |
-| `Date`      | ❌                           | ✅                       |
-| `RegExp`    | ❌                           | ✅                       |
-| `Set`       | ❌                           | ✅                       |
-| `Map`       | ❌                           | ✅                       |
+| ----------- | --------------------------- | ----------------------- |
+| `string`    | ✅                          | ✅                      |
+| `number`    | ✅                          | ✅                      |
+| `boolean`   | ✅                          | ✅                      |
+| `null`      | ✅                          | ✅                      |
+| `Array`     | ✅                          | ✅                      |
+| `Object`    | ✅                          | ✅                      |
+| `undefined` | ❌                          | ✅                      |
+| `bigint`    | ❌                          | ✅                      |
+| `Date`      | ❌                          | ✅                      |
+| `RegExp`    | ❌                          | ✅                      |
+| `Set`       | ❌                          | ✅                      |
+| `Map`       | ❌                          | ✅                      |
 
 ## Contributors ✨
 
@@ -199,6 +205,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
