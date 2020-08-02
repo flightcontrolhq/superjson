@@ -2,8 +2,9 @@ import { applyAnnotations, makeAnnotator } from './annotator';
 import { isEmptyObject } from './is';
 import { plainer } from './plainer';
 import { SuperJSONResult, SuperJSONValue, isSuperJSONResult } from './types';
+import { clear, registerClass, unregisterClass } from './class-registry';
 
-export const serialize = (object: SuperJSONValue): SuperJSONResult => {
+const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { getAnnotations, annotator } = makeAnnotator();
   const output = plainer(object, annotator);
 
@@ -15,7 +16,7 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   };
 };
 
-export const deserialize = (payload: SuperJSONResult): SuperJSONValue => {
+const deserialize = (payload: SuperJSONResult): SuperJSONValue => {
   if (!isSuperJSONResult(payload)) {
     throw new Error('Not a valid SuperJSON payload.');
   }
@@ -29,10 +30,18 @@ export const deserialize = (payload: SuperJSONResult): SuperJSONValue => {
   return json;
 };
 
-export const stringify = (object: SuperJSONValue): string =>
+const stringify = (object: SuperJSONValue): string =>
   JSON.stringify(serialize(object));
 
-export const parse = (string: string): SuperJSONValue =>
+const parse = (string: string): SuperJSONValue =>
   deserialize(JSON.parse(string));
 
-export default { stringify, parse, serialize, deserialize };
+export default {
+  stringify,
+  parse,
+  serialize,
+  deserialize,
+  clear,
+  registerClass,
+  unregisterClass,
+};

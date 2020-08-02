@@ -1,4 +1,4 @@
-import * as SuperJSON from './';
+import SuperJSON from './';
 import { Annotations } from './annotator';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 import { JSONValue, SuperJSONValue } from './types';
@@ -96,9 +96,9 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: ['map:number'],
-          b: ['map:string'],
-          d: ['map:boolean'],
+          a: [['map', 'number']],
+          b: [['map', 'string']],
+          d: [['map', 'boolean']],
         },
       },
     },
@@ -329,6 +329,78 @@ describe('stringify & parse', () => {
       customExpectations?.(untransformed);
     });
   }
+
+  describe('when serializing custom class instances', () => {
+    it('revives them to their original class', () => {
+      class Train {
+        constructor(
+          private topSpeed: number,
+          private color: 'red' | 'blue' | 'yellow',
+          private brand: string
+        ) {}
+
+        public brag() {
+          return `I'm a ${this.brand} in freakin' ${this.color} and I go ${this.topSpeed} km/h, isn't that bonkers?`;
+        }
+      }
+
+      SuperJSON.registerClass(Train);
+
+      const { json, meta } = SuperJSON.serialize({
+        s7: new Train(100, 'yellow', 'Bombardier') as any,
+      });
+
+      expect(json).toEqual({
+        s7: {
+          topSpeed: 100,
+          color: 'yellow',
+          brand: 'Bombardier',
+        },
+      });
+
+      expect(meta).toEqual({
+        values: {
+          s7: [['class', 'Train']],
+        },
+      });
+
+      const deserialized: any = SuperJSON.deserialize(
+        JSON.parse(JSON.stringify({ json, meta }))
+      );
+      expect(deserialized.s7).toBeInstanceOf(Train);
+      expect(typeof deserialized.s7.brag()).toBe('string');
+    });
+
+    describe('with accessor attributes', () => {
+      it('works', () => {
+        class Currency {
+          constructor(private valueInUsd: number) {}
+
+          get inUSD() {
+            return this.valueInUsd;
+          }
+        }
+
+        SuperJSON.registerClass(Currency);
+
+        const { json, meta } = SuperJSON.serialize({
+          price: new Currency(100) as any,
+        });
+
+        expect(json).toEqual({
+          price: {
+            valueInUsd: 100,
+          },
+        });
+
+        const result: any = SuperJSON.parse(JSON.stringify({ json, meta }));
+
+        const price: Currency = result.price;
+
+        expect(price.inUSD).toBe(100);
+      });
+    });
+  });
 
   describe('when given a non-SuperJSON object', () => {
     it('throws', () => {

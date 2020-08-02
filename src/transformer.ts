@@ -11,6 +11,7 @@ import {
   isString,
   isUndefined,
 } from './is';
+import * as ClassRegistry from './class-registry';
 
 export type PrimitiveTypeAnnotation =
   | 'NaN'
@@ -21,13 +22,11 @@ export type PrimitiveTypeAnnotation =
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
-type MapTypeAnnotation =
-  | 'map:number'
-  | 'map:string'
-  | 'map:bigint'
-  | 'map:boolean';
+type MapTypeAnnotation = ['map', 'number' | 'string' | 'bigint' | 'boolean'];
 
-type ContainerTypeAnnotation = MapTypeAnnotation | 'set';
+type ClassTypeAnnotation = ['class', string];
+
+type ContainerTypeAnnotation = MapTypeAnnotation | ClassTypeAnnotation | 'set';
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
@@ -46,18 +45,19 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  [
-    'map:number',
-    'map:string',
-    'map:bigint',
-    'map:boolean',
-    'regexp',
-    'set',
-    'Date',
-  ]
+  ['regexp', 'set', 'Date']
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
+  if (Array.isArray(value)) {
+    switch (value[0]) {
+      case 'map':
+        return ['number', 'string', 'bigint', 'boolean'].includes(value[1]);
+      case 'class':
+        return typeof value[1] === 'string';
+    }
+  }
+
   return ALL_TYPE_ANNOTATIONS.includes(value);
 };
 
@@ -103,37 +103,80 @@ export const transformValue = (
     const { done: valueIsEmpty, value: firstKey } = value.keys().next();
     const returnValueDoesntMatter = valueIsEmpty;
     if (returnValueDoesntMatter || isString(firstKey)) {
-      return { value, type: 'map:string' };
+      return { value, type: ['map', 'string'] };
     }
 
     if (isNumber(firstKey)) {
       return {
         value: value,
-        type: 'map:number',
+        type: ['map', 'number'],
       };
     }
 
     if (isBigint(firstKey)) {
       return {
         value: value,
-        type: 'map:bigint',
+        type: ['map', 'bigint'],
       };
     }
 
     if (isBoolean(firstKey)) {
       return {
         value: value,
-        type: 'map:boolean',
+        type: ['map', 'boolean'],
       };
     }
 
     throw new Error('Key type not supported.');
   }
 
+  if (value?.constructor) {
+    const identifier = ClassRegistry.getIdentifier(value.constructor);
+    if (identifier) {
+      return {
+        value: value,
+        type: ['class', identifier],
+      };
+    }
+  }
+
   return undefined;
 };
 
 export const untransformValue = (json: any, type: TypeAnnotation) => {
+  if (Array.isArray(type)) {
+    switch (type[0]) {
+      case 'map': {
+        switch (type[1]) {
+          case 'number':
+            return new Map(
+              Object.entries(json).map(([k, v]) => [Number(k), v])
+            );
+          case 'string':
+            return new Map(Object.entries(json));
+          case 'boolean':
+            return new Map(
+              Object.entries(json).map(([k, v]) => [Boolean(k), v])
+            );
+          case 'bigint':
+            return new Map(
+              Object.entries(json).map(([k, v]) => [BigInt(k), v])
+            );
+        }
+      }
+
+      case 'class': {
+        const clazz = ClassRegistry.getClass(type[1]);
+
+        if (!clazz) {
+          throw new Error('Trying to deserialize unknown class');
+        }
+
+        return Object.assign(Object.create(clazz.prototype), json);
+      }
+    }
+  }
+
   switch (type) {
     case 'bigint':
       return BigInt(json);
@@ -147,14 +190,6 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return Number.POSITIVE_INFINITY;
     case '-Infinity':
       return Number.NEGATIVE_INFINITY;
-    case 'map:number':
-      return new Map(Object.entries(json).map(([k, v]) => [Number(k), v]));
-    case 'map:string':
-      return new Map(Object.entries(json));
-    case 'map:boolean':
-      return new Map(Object.entries(json).map(([k, v]) => [Boolean(k), v]));
-    case 'map:bigint':
-      return new Map(Object.entries(json).map(([k, v]) => [BigInt(k), v]));
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {

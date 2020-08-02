@@ -1,6 +1,8 @@
 import { Annotations, isAnnotations } from './annotator';
 import { isUndefined } from './is';
 
+export type Class = { new (...args: any[]): any };
+
 export type PrimitveJSONValue = string | number | boolean | undefined | null;
 
 export type JSONValue = PrimitveJSONValue | JSONArray | JSONObject;
