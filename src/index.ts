@@ -1,8 +1,13 @@
 import { applyAnnotations, makeAnnotator } from './annotator';
 import { isEmptyObject } from './is';
 import { plainer } from './plainer';
-import { SuperJSONResult, SuperJSONValue, isSuperJSONResult } from './types';
-import { clear, registerClass, unregisterClass } from './class-registry';
+import {
+  SuperJSONResult,
+  SuperJSONValue,
+  isSuperJSONResult,
+  Class,
+} from './types';
+import { ClassRegistry } from './class-registry';
 
 const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { getAnnotations, annotator } = makeAnnotator();
@@ -36,12 +41,15 @@ const stringify = (object: SuperJSONValue): string =>
 const parse = (string: string): SuperJSONValue =>
   deserialize(JSON.parse(string));
 
+const registerClass = (v: Class, identifier?: string) =>
+  ClassRegistry.register(v, identifier);
+const unregisterClass = (v: Class) => ClassRegistry.unregister(v);
+
 export default {
   stringify,
   parse,
   serialize,
   deserialize,
-  clear,
   registerClass,
   unregisterClass,
 };

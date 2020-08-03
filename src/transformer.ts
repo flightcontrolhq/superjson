@@ -11,7 +11,7 @@ import {
   isString,
   isUndefined,
 } from './is';
-import * as ClassRegistry from './class-registry';
+import { ClassRegistry } from './class-registry';
 
 export type PrimitiveTypeAnnotation =
   | 'NaN'
@@ -166,7 +166,7 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       }
 
       case 'class': {
-        const clazz = ClassRegistry.getClass(type[1]);
+        const clazz = ClassRegistry.getValue(type[1]);
 
         if (!clazz) {
           throw new Error('Trying to deserialize unknown class');
