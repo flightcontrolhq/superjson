@@ -15,24 +15,26 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   };
 };
 
-export const deserialize = (payload: SuperJSONResult): SuperJSONValue => {
+export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
   if (!isSuperJSONResult(payload)) {
     throw new Error('Not a valid SuperJSON payload.');
   }
 
-  const { json, meta } = payload as SuperJSONResult;
+  const { json, meta } = payload;
+
+  const result: T = json as any;
 
   if (!!meta) {
-    return applyAnnotations(json, meta);
+    return applyAnnotations(result, meta);
   }
 
-  return json;
+  return result;
 };
 
 export const stringify = (object: SuperJSONValue): string =>
   JSON.stringify(serialize(object));
 
-export const parse = (string: string): SuperJSONValue =>
+export const parse = <T = unknown>(string: string): T =>
   deserialize(JSON.parse(string));
 
 export default { stringify, parse, serialize, deserialize };
