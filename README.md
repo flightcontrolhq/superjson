@@ -90,8 +90,8 @@ json = {
 
 // note that `normal` is not included here; `meta` only has special cases
 meta = {
-  timestamp: 'date',
-  test: 'regexp',
+  timestamp: ['date'],
+  test: ['regexp'],
 };
 */
 ```
