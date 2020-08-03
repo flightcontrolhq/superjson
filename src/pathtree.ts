@@ -1,13 +1,6 @@
 import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
 
-function isPrefix<T>(to: T[], prefixCandidate: T[]) {
-  return prefixCandidate.every((value, index) => {
-    const isPresentInArr = to[index] === value;
-    return isPresentInArr;
-  });
-}
-
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
 type InnerNode<T> = [T, Record<string, Tree<T>>];
@@ -74,27 +67,23 @@ export module PathTree {
       const [nodeValue, children] = tree;
       const availablePaths = Object.keys(children);
 
+      const stringifiedPath = stringifyPath(path);
       // due to the constraints mentioned in the functions description,
       // there may be prefixes of `path` already set, but no extensions of it.
       // If there's such a prefix, we'll find it.
-      const prefix = availablePaths
-        .map(parsePath)
-        .find(candidate => isPrefix(path, candidate));
+      const prefix = availablePaths.find(candidate =>
+        stringifiedPath.startsWith(candidate)
+      );
 
       if (isUndefined(prefix)) {
         return [nodeValue, { ...children, [stringifyPath(path)]: [value] }];
       } else {
-        const pathWithoutPrefix = path.slice(prefix.length);
-        const stringPrefix = stringifyPath(prefix);
+        const pathWithoutPrefix = path.slice(parsePath(prefix).length);
         return [
           nodeValue,
           {
             ...children,
-            [stringPrefix]: append(
-              children[stringPrefix],
-              pathWithoutPrefix,
-              value
-            ),
+            [prefix]: append(children[prefix], pathWithoutPrefix, value),
           },
         ];
       }
