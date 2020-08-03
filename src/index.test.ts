@@ -274,6 +274,30 @@ describe('stringify & parse', () => {
         referentialEqualitiesRoot: ['children.0.parents.0'],
       },
     },
+
+    'works for symbols': {
+      input: () => {
+        const parent = Symbol('Parent');
+        const child = Symbol('Child');
+        SuperJSON.registerSymbol(parent, '1');
+        SuperJSON.registerSymbol(child, '2');
+
+        const a = { role: parent };
+        const b = { role: child };
+
+        return { a, b };
+      },
+      output: {
+        a: { role: 'Parent' },
+        b: { role: 'Child' },
+      },
+      outputAnnotations: {
+        values: {
+          'a.role': ['symbol', '1'],
+          'b.role': ['symbol', '2'],
+        },
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {

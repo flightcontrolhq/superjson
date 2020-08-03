@@ -10,8 +10,10 @@ import {
   isSet,
   isString,
   isUndefined,
+  isSymbol,
 } from './is';
 import { ClassRegistry } from './class-registry';
+import { SymbolRegistry } from './symbol-registry';
 
 export type PrimitiveTypeAnnotation =
   | 'NaN'
@@ -25,8 +27,13 @@ type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 type MapTypeAnnotation = ['map', 'number' | 'string' | 'bigint' | 'boolean'];
 
 type ClassTypeAnnotation = ['class', string];
+type SymbolTypeAnnotation = ['symbol', string];
 
-type ContainerTypeAnnotation = MapTypeAnnotation | ClassTypeAnnotation | 'set';
+type ContainerTypeAnnotation =
+  | MapTypeAnnotation
+  | ClassTypeAnnotation
+  | SymbolTypeAnnotation
+  | 'set';
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
@@ -53,6 +60,7 @@ export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
     switch (value[0]) {
       case 'map':
         return ['number', 'string', 'bigint', 'boolean'].includes(value[1]);
+      case 'symbol':
       case 'class':
         return typeof value[1] === 'string';
     }
@@ -69,6 +77,14 @@ export const transformValue = (
       value: undefined,
       type: 'undefined',
     };
+  } else if (isSymbol(value)) {
+    const identifier = SymbolRegistry.getIdentifier(value);
+    if (identifier) {
+      return {
+        value: value.description,
+        type: ['symbol', identifier],
+      };
+    }
   } else if (isBigint(value)) {
     return {
       value: value.toString(),
@@ -173,6 +189,16 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
         }
 
         return Object.assign(Object.create(clazz.prototype), json);
+      }
+
+      case 'symbol': {
+        const symbol = SymbolRegistry.getValue(type[1]);
+
+        if (!symbol) {
+          throw new Error('Trying to deserialize unknown symbol');
+        }
+
+        return symbol;
       }
     }
   }

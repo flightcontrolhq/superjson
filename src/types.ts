@@ -23,6 +23,7 @@ type MapWithUniformKeys =
 export type SerializableJSONValue =
   | Set<any>
   | MapWithUniformKeys
+  | Symbol
   | undefined
   | bigint
   | Date
