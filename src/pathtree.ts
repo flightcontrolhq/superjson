@@ -111,8 +111,7 @@ export module PathTree {
   }
 
   /**
-   * Depth-first traversal,
-   * root is traversed before its children.
+   * Depth-first post-order traversal.
    */
   export function traverse<T>(
     tree: Tree<T>,
@@ -124,11 +123,12 @@ export module PathTree {
       walker(nodeValue, origin);
     } else {
       const [nodeValue, children] = tree;
-      walker(nodeValue, origin);
 
       Object.entries(children).forEach(([key, children]) => {
         traverse(children, walker, [...origin, ...parsePath(key)]);
       });
+
+      walker(nodeValue, origin);
     }
   }
 

@@ -24,10 +24,10 @@ describe('plainer', () => {
     });
 
     expect(output).toEqual({
-      a: {
-        2: 'hallo',
-        undefined: null,
-      },
+      a: [
+        [2, 'hallo'],
+        [undefined, null],
+      ],
       b: {
         c: [1, 2, /hallo/g],
       },
@@ -60,8 +60,10 @@ describe('plainer', () => {
           2 => "hallo",
           undefined => null,
         },
-        "a.": null,
-        "a.2": "hallo",
+        "a.0.0": 2,
+        "a.0.1": "hallo",
+        "a.1.0": undefined,
+        "a.1.1": null,
         "b": Object {
           "c": Set {
             1,

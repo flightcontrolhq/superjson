@@ -25,10 +25,10 @@ test('pathtree', () => {
   const traversalResults: [string[], string | null][] = [];
   PathTree.traverse(tree, (v, path) => traversalResults.push([path, v]));
   expect(traversalResults).toEqual([
-    [[], null],
-    [['abc'], '1'],
     [['abc', 'd'], '2'],
-    [['foo', 'bar'], '3'],
+    [['abc'], '1'],
     [['foo', 'bar', 'lel', 'lol'], '4'],
+    [['foo', 'bar'], '3'],
+    [[], null],
   ]);
 });
