@@ -8,6 +8,7 @@ import {
   Class,
 } from './types';
 import { ClassRegistry } from './class-registry';
+import { SymbolRegistry } from './symbol-registry';
 
 const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { getAnnotations, annotator } = makeAnnotator();
@@ -45,6 +46,10 @@ const registerClass = (v: Class, identifier?: string) =>
   ClassRegistry.register(v, identifier);
 const unregisterClass = (v: Class) => ClassRegistry.unregister(v);
 
+const registerSymbol = (v: Symbol, identifier?: string) =>
+  SymbolRegistry.register(v, identifier);
+const unregisterSymbol = (v: Symbol) => SymbolRegistry.unregister(v);
+
 export default {
   stringify,
   parse,
@@ -52,4 +57,6 @@ export default {
   deserialize,
   registerClass,
   unregisterClass,
+  registerSymbol,
+  unregisterSymbol,
 };
