@@ -50,9 +50,16 @@ export const plainer = (
     );
   }
 
-  if (isPlainObject(object) || isMap(object)) {
+  if (isMap(object)) {
+    return IteratorUtils.map(entries(object), ([key, value], index) => [
+      plainer(key, walker, [...path, index, 0], alreadySeenObjects),
+      plainer(value, walker, [...path, index, 1], alreadySeenObjects),
+    ]);
+  }
+
+  if (isPlainObject(object)) {
     return Object.fromEntries(
-      IteratorUtils.map(entries(object), ([key, value]) => [
+      Object.entries(object).map(([key, value]) => [
         key,
         plainer(value, walker, [...path, key], alreadySeenObjects),
       ])
