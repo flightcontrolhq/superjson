@@ -11,16 +11,9 @@ export interface JSONObject {
   [key: string]: JSONValue;
 }
 
-type MapWithUniformKeys =
-  | Map<string, SuperJSONValue>
-  | Map<number, SuperJSONValue>
-  | Map<undefined, SuperJSONValue>
-  | Map<null, SuperJSONValue>
-  | Map<boolean, SuperJSONValue>;
-
 export type SerializableJSONValue =
-  | Set<any>
-  | MapWithUniformKeys
+  | Set<SuperJSONValue>
+  | Map<SuperJSONValue, SuperJSONValue>
   | undefined
   | bigint
   | Date
