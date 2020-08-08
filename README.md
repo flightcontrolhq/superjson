@@ -34,7 +34,7 @@
 - 🔐 Type safety with autocompletion
 - 🐾 Negligible runtime footprint
 - 💫 Framework agnostic
-- 🛠 Prefect fix for the Next.js serialization limitatons of `getServerSideProps` and `getInitialProps`
+- 🛠 Perfect fix for Next.js's serialisation limitations in `getServerSideProps` and `getInitialProps`
 
 ## Backstory
 
