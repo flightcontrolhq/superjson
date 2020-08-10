@@ -17,7 +17,7 @@ type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
 type ClassTypeAnnotation = ['class', string];
 
-type ContainerTypeAnnotation = 'map' | ClassTypeAnnotation | 'set';
+type ContainerTypeAnnotation = 'map' | 'set' | ClassTypeAnnotation;
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
