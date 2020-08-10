@@ -8,13 +8,16 @@ import {
   isSet,
   isUndefined,
 } from './is';
+import * as ClassRegistry from './class-registry';
 import * as IteratorUtils from './iteratorutils';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
-type ContainerTypeAnnotation = 'map' | 'set';
+type ClassTypeAnnotation = ['class', string];
+
+type ContainerTypeAnnotation = 'map' | 'set' | ClassTypeAnnotation;
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
@@ -35,6 +38,15 @@ const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.co
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
+  if (Array.isArray(value)) {
+    switch (value[0]) {
+      case 'map':
+        return ['number', 'string', 'bigint', 'boolean'].includes(value[1]);
+      case 'class':
+        return typeof value[1] === 'string';
+    }
+  }
+
   return ALL_TYPE_ANNOTATIONS.includes(value);
 };
 
@@ -84,10 +96,34 @@ export const transformValue = (
     };
   }
 
+  if (value?.constructor) {
+    const identifier = ClassRegistry.getIdentifier(value.constructor);
+    if (identifier) {
+      return {
+        value: value,
+        type: ['class', identifier],
+      };
+    }
+  }
+
   return undefined;
 };
 
 export const untransformValue = (json: any, type: TypeAnnotation) => {
+  if (Array.isArray(type)) {
+    switch (type[0]) {
+      case 'class': {
+        const clazz = ClassRegistry.getClass(type[1]);
+
+        if (!clazz) {
+          throw new Error('Trying to deserialize unknown class');
+        }
+
+        return Object.assign(Object.create(clazz.prototype), json);
+      }
+    }
+  }
+
   switch (type) {
     case 'bigint':
       return BigInt(json);
