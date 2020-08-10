@@ -1,47 +1,36 @@
 import {
   isBigint,
-  isBoolean,
   isDate,
   isInfinite,
   isMap,
   isNaNValue,
-  isNumber,
   isRegExp,
   isSet,
-  isString,
   isUndefined,
   isSymbol,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
+import * as IteratorUtils from './iteratorutils';
 
-export type PrimitiveTypeAnnotation =
-  | 'NaN'
-  | '-Infinity'
-  | 'Infinity'
-  | 'undefined'
-  | 'bigint';
+export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
-
-type MapTypeAnnotation = ['map', 'number' | 'string' | 'bigint' | 'boolean'];
 
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 
 type ContainerTypeAnnotation =
-  | MapTypeAnnotation
+  | 'map'
+  | 'set'
   | ClassTypeAnnotation
-  | SymbolTypeAnnotation
-  | 'set';
+  | SymbolTypeAnnotation;
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
 const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
-  '-Infinity',
-  'Infinity',
   'undefined',
-  'NaN',
+  'number',
   'bigint',
 ];
 
@@ -52,7 +41,7 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  ['regexp', 'set', 'Date']
+  ['map', 'regexp', 'set', 'Date']
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
@@ -97,13 +86,13 @@ export const transformValue = (
     };
   } else if (isNaNValue(value)) {
     return {
-      value: undefined,
-      type: 'NaN',
+      value: 'NaN',
+      type: 'number',
     };
   } else if (isInfinite(value)) {
     return {
-      value: undefined,
-      type: value > 0 ? 'Infinity' : '-Infinity',
+      value: value > 0 ? 'Infinity' : '-Infinity',
+      type: 'number',
     };
   } else if (isSet(value)) {
     return {
@@ -116,34 +105,11 @@ export const transformValue = (
       type: 'regexp',
     };
   } else if (isMap(value)) {
-    const { done: valueIsEmpty, value: firstKey } = value.keys().next();
-    const returnValueDoesntMatter = valueIsEmpty;
-    if (returnValueDoesntMatter || isString(firstKey)) {
-      return { value, type: ['map', 'string'] };
-    }
-
-    if (isNumber(firstKey)) {
-      return {
-        value: value,
-        type: ['map', 'number'],
-      };
-    }
-
-    if (isBigint(firstKey)) {
-      return {
-        value: value,
-        type: ['map', 'bigint'],
-      };
-    }
-
-    if (isBoolean(firstKey)) {
-      return {
-        value: value,
-        type: ['map', 'boolean'],
-      };
-    }
-
-    throw new Error('Key type not supported.');
+    const entries = IteratorUtils.map(value.entries(), pair => pair);
+    return {
+      value: entries,
+      type: 'map',
+    };
   }
 
   if (value?.constructor) {
@@ -162,25 +128,6 @@ export const transformValue = (
 export const untransformValue = (json: any, type: TypeAnnotation) => {
   if (Array.isArray(type)) {
     switch (type[0]) {
-      case 'map': {
-        switch (type[1]) {
-          case 'number':
-            return new Map(
-              Object.entries(json).map(([k, v]) => [Number(k), v])
-            );
-          case 'string':
-            return new Map(Object.entries(json));
-          case 'boolean':
-            return new Map(
-              Object.entries(json).map(([k, v]) => [Boolean(k), v])
-            );
-          case 'bigint':
-            return new Map(
-              Object.entries(json).map(([k, v]) => [BigInt(k), v])
-            );
-        }
-      }
-
       case 'class': {
         const clazz = ClassRegistry.getValue(type[1]);
 
@@ -210,12 +157,10 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       return undefined;
     case 'Date':
       return new Date(json as string);
-    case 'NaN':
-      return Number.NaN;
-    case 'Infinity':
-      return Number.POSITIVE_INFINITY;
-    case '-Infinity':
-      return Number.NEGATIVE_INFINITY;
+    case 'number':
+      return Number(json);
+    case 'map':
+      return new Map(json);
     case 'set':
       return new Set(json as unknown[]);
     case 'regexp': {

@@ -1,7 +1,7 @@
 import SuperJSON from './';
+import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
-import { JSONValue, SuperJSONValue } from './types';
 
 describe('stringify & parse', () => {
   const cases: Record<
@@ -44,7 +44,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a.1': 'undefined',
+          'a.1': ['undefined'],
         },
       },
     },
@@ -58,8 +58,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'set',
-          'a.1': 'undefined',
+          a: ['set', { 1: ['undefined'] }],
         },
       },
     },
@@ -68,10 +67,7 @@ describe('stringify & parse', () => {
       input: new Set([1, undefined, 2]),
       output: [1, undefined, 2],
       outputAnnotations: {
-        root: 'set',
-        values: {
-          '1': 'undefined',
-        },
+        values: ['set', { 1: ['undefined'] }],
       },
     },
 
@@ -86,23 +82,19 @@ describe('stringify & parse', () => {
       },
 
       output: {
-        a: {
-          1: 'a',
-          NaN: 'b',
-        },
-        b: {
-          2: 'b',
-        },
-        d: {
-          true: 'true key',
-        },
+        a: [
+          [1, 'a'],
+          ['NaN', 'b'],
+        ],
+        b: [['2', 'b']],
+        d: [[true, 'true key']],
       },
 
       outputAnnotations: {
         values: {
-          a: ['map', 'number'],
-          b: ['map', 'string'],
-          d: ['map', 'boolean'],
+          a: ['map', { '1.0': ['number'] }],
+          b: ['map'],
+          d: ['map'],
         },
       },
     },
@@ -122,7 +114,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: ['options.0'],
+          selected: [{ options: ['0'] }],
         },
       },
       customExpectations: output => {
@@ -143,7 +135,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\.1.b': 'set',
+          'a\\.1.b': ['set'],
         },
       },
     },
@@ -161,7 +153,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\\\.1.b': 'set',
+          'a\\\\.1.b': ['set'],
         },
       },
     },
@@ -179,7 +171,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'meeting.date': 'Date',
+          'meeting.date': ['Date'],
         },
       },
     },
@@ -193,7 +185,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'regexp',
+          a: ['regexp'],
         },
       },
     },
@@ -203,11 +195,11 @@ describe('stringify & parse', () => {
         a: Number.POSITIVE_INFINITY,
       },
       output: {
-        a: undefined,
+        a: 'Infinity',
       },
       outputAnnotations: {
         values: {
-          a: 'Infinity',
+          a: ['number'],
         },
       },
     },
@@ -217,11 +209,11 @@ describe('stringify & parse', () => {
         a: Number.NEGATIVE_INFINITY,
       },
       output: {
-        a: undefined,
+        a: '-Infinity',
       },
       outputAnnotations: {
         values: {
-          a: '-Infinity',
+          a: ['number'],
         },
       },
     },
@@ -231,11 +223,11 @@ describe('stringify & parse', () => {
         a: NaN,
       },
       output: {
-        a: undefined,
+        a: 'NaN',
       },
       outputAnnotations: {
         values: {
-          a: 'NaN',
+          a: ['number'],
         },
       },
     },
@@ -249,7 +241,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'bigint',
+          a: ['bigint'],
         },
       },
     },
@@ -271,7 +263,121 @@ describe('stringify & parse', () => {
         ],
       },
       outputAnnotations: {
-        referentialEqualitiesRoot: ['children.0.parents.0'],
+        referentialEqualities: [{ 'children.0.parents': ['0'] }],
+      },
+    },
+
+    'works for Maps with two keys that serialize to the same string but have a different reference': {
+      input: new Map([
+        [/a/g, 'foo'],
+        [/a/g, 'bar'],
+      ]),
+      output: [
+        ['/a/g', 'foo'],
+        ['/a/g', 'bar'],
+      ],
+      outputAnnotations: {
+        values: [
+          'map',
+          {
+            '0.0': ['regexp'],
+            '1.0': ['regexp'],
+          },
+        ],
+      },
+    },
+
+    "works for Maps with a key that's referentially equal to another field": {
+      input: () => {
+        const robbyBubble = { id: 5 };
+        const highscores = new Map([[robbyBubble, 5000]]);
+        return {
+          highscores,
+          topScorer: robbyBubble,
+        } as any;
+      },
+      output: {
+        highscores: [[{ id: 5 }, 5000]],
+        topScorer: { id: 5 },
+      },
+      outputAnnotations: {
+        values: {
+          highscores: ['map'],
+        },
+        referentialEqualities: {
+          topScorer: [{ 'highscores.0': ['0'] }] as any,
+        },
+      },
+    },
+
+    'works for referentially equal maps': {
+      input: () => {
+        const map = new Map([[1, 1]]);
+        return {
+          a: map,
+          b: map,
+        };
+      },
+      output: {
+        a: [[1, 1]],
+        b: [[1, 1]],
+      },
+      outputAnnotations: {
+        values: {
+          a: ['map'],
+          b: ['map'],
+        },
+        referentialEqualities: {
+          a: [['b']],
+        },
+      },
+      customExpectations: value => {
+        expect(value.a).toBe(value.b);
+      },
+    },
+
+    'works for maps with non-uniform keys': {
+      input: {
+        map: new Map<string | number, number>([
+          [1, 1],
+          ['1', 1],
+        ]),
+      },
+      output: {
+        map: [
+          [1, 1],
+          ['1', 1],
+        ],
+      },
+      outputAnnotations: {
+        values: {
+          map: ['map'],
+        },
+      },
+    },
+
+    'works for referentially equal values inside a set': {
+      input: () => {
+        const user = { id: 2 };
+        return {
+          users: new Set([user]),
+          userOfTheMonth: user,
+        };
+      },
+      output: {
+        users: [{ id: 2 }],
+        userOfTheMonth: { id: 2 },
+      },
+      outputAnnotations: {
+        values: {
+          users: ['set'],
+        },
+        referentialEqualities: {
+          userOfTheMonth: [{ users: ['0'] }],
+        },
+      },
+      customExpectations: value => {
+        expect(value.users.values().next().value).toBe(value.userOfTheMonth);
       },
     },
 
@@ -293,8 +399,8 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a.role': ['symbol', '1'],
-          'b.role': ['symbol', '2'],
+          'a.role': [['symbol', '1']],
+          'b.role': [['symbol', '2']],
         },
       },
     },
@@ -388,7 +494,7 @@ describe('stringify & parse', () => {
 
       expect(meta).toEqual({
         values: {
-          s7: ['class', 'Train'],
+          s7: [['class', 'Train']],
         },
       });
 

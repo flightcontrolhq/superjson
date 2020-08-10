@@ -9,7 +9,7 @@
       "login": "merelinguist",
       "name": "Dylan Brookes",
       "avatar_url": "https://avatars3.githubusercontent.com/u/24858006?v=4",
-      "profile": "https://merelinguist.me",
+      "profile": "https://github.com/merelinguist",
       "contributions": [
         "code",
         "doc",
@@ -25,7 +25,8 @@
       "contributions": [
         "code",
         "ideas",
-        "test"
+        "test",
+        "doc"
       ]
     },
     {
@@ -48,6 +49,7 @@
       ]
     }
   ],
+  "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
   "contributorsPerLine": 7,
   "projectName": "superjson",
   "projectOwner": "blitz-js",
