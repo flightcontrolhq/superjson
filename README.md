@@ -34,7 +34,7 @@
 - 🔐 Type safety with autocompletion
 - 🐾 Negligible runtime footprint
 - 💫 Framework agnostic
-
+- 🛠 Perfect fix for Next.js's serialisation limitations in `getServerSideProps` and `getInitialProps`
 
 ## Backstory
 
@@ -50,7 +50,7 @@ Install the library with your package manager of choice, e.g.:
 yarn add superjson
 ```
 
-## Usage
+## Basic Usage
 
 The easiest way to use Superjson is with its `stringify` and `parse` functions. If you know how to use `JSON.stringify`, you already know Superjson!
 
@@ -59,16 +59,24 @@ Easily stringify any expression you’d like:
 ```js
 import superjson from 'superjson';
 
-const jsonString = superjson.stringify({date: new Date(0)});
+const jsonString = superjson.stringify({ date: new Date(0) });
+
+// jsonString === '{"json":{"date":"1970-01-01T00:00:00.000Z"},"meta":{"values":{date:"Date"}}}'
 ```
 
 And parse your JSON like so:
 
 ```js
 const object = superjson.parse<{ date: Date }>(jsonString);
+
+// object === { date: new Date(0) }
 ```
 
-Alternatively, transform any JavaScript value into a JSON-compatible one by using our lower-level `serialize` and `deserialize` functions.
+## Advanced Usage
+
+For cases where you want lower level access to the `json` and `meta` data in the output, you can use the `serialize` and `deserialize` functions.
+
+One great use case for this is where you have an API that you want to be JSON compatible for all clients, but you still also want to transmit the meta data so clients can use superjson to fully deserialize it.
 
 For example:
 
@@ -79,7 +87,7 @@ const object = {
   test: /superjson/,
 };
 
-const {json, meta} = superjson.serialize(object);
+const { json, meta } = superjson.serialize(object);
 
 /*
 json = {
@@ -94,6 +102,46 @@ meta = {
   test: 'regexp',
 };
 */
+```
+
+## Using with Next.js `getServerSideProps`, `getInitialProps`, and `getStaticProps`
+
+The `getServerSideProps`, `getInitialProps`, and `getStaticProps` data hooks provided by Next.js do not allow you to transmit Javascript objects like Dates. It will error unless you convert Dates to strings, etc.
+
+Thankfully, Superjson is a perfect tool to bypass that limitation!
+
+```js
+import { useMemo } from 'react';
+import superjson from 'superjson';
+
+export const getServerSideProps = async () => {
+  const products = [{ name: 'Hat', publishedAt: new Date(0) }];
+
+  const dataString = superjson.stringify(products);
+
+  return {
+    props: {
+      dataString,
+    },
+  };
+};
+
+export default function Page({ dataString }) {
+  const products = useMemo(() => superjson.parse(dataString), [dataString]);
+
+  return (
+    <div>
+      <h1>Products</h1>
+      {products.map(product => (
+        <p key={product.id}>
+          <span>Name: {product.name}</span>
+          {/* Note: publishedAt is an actual Date object! */}
+          <span>Published at: {product.publishedAt.toISOString()}</span>
+        </p>
+      ))}
+    </div>
+  );
+}
 ```
 
 ## API
@@ -111,7 +159,7 @@ const object = {
   test: /superjson/,
 };
 
-const {json, meta} = serialize(object);
+const { json, meta } = serialize(object);
 ```
 
 Returns **`json` and `meta`, both JSON-compatible values.**
@@ -123,9 +171,9 @@ Deserializes the output of Superjson back into your original value.
 #### Examples
 
 ```js
-const {json, meta} = serialize(object);
+const { json, meta } = serialize(object);
 
-deserialize({json, meta});
+deserialize({ json, meta });
 ```
 
 Returns **`your original value`**.
@@ -160,24 +208,26 @@ const jsonString = stringify(object);
 parse(jsonString);
 ```
 
-***
+Returns **`string`**.
+
+---
 
 Superjson supports many extra types which JSON does not. You can serialize all these:
 
 | type        | supported by standard JSON? | supported by Superjson? |
 | ----------- | --------------------------- | ----------------------- |
-| `string`    | ✅                           | ✅                       |
-| `number`    | ✅                           | ✅                       |
-| `boolean`   | ✅                           | ✅                       |
-| `null`      | ✅                           | ✅                       |
-| `Array`     | ✅                           | ✅                       |
-| `Object`    | ✅                           | ✅                       |
-| `undefined` | ❌                           | ✅                       |
-| `bigint`    | ❌                           | ✅                       |
-| `Date`      | ❌                           | ✅                       |
-| `RegExp`    | ❌                           | ✅                       |
-| `Set`       | ❌                           | ✅                       |
-| `Map`       | ❌                           | ✅                       |
+| `string`    | ✅                          | ✅                      |
+| `number`    | ✅                          | ✅                      |
+| `boolean`   | ✅                          | ✅                      |
+| `null`      | ✅                          | ✅                      |
+| `Array`     | ✅                          | ✅                      |
+| `Object`    | ✅                          | ✅                      |
+| `undefined` | ❌                          | ✅                      |
+| `bigint`    | ❌                          | ✅                      |
+| `Date`      | ❌                          | ✅                      |
+| `RegExp`    | ❌                          | ✅                      |
+| `Set`       | ❌                          | ✅                      |
+| `Map`       | ❌                          | ✅                      |
 
 ## Contributors ✨
 
@@ -197,6 +247,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
