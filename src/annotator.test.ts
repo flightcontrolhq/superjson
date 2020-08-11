@@ -14,7 +14,7 @@ describe('annotator', () => {
 
     expect(getAnnotations()).toEqual({
       values: {
-        'a.1.b': 'undefined',
+        'a.1.b': ['undefined'],
       },
     });
   });

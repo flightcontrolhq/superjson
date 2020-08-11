@@ -44,7 +44,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a.1': 'undefined',
+          'a.1': ['undefined'],
         },
       },
     },
@@ -58,8 +58,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'set',
-          'a.1': 'undefined',
+          a: ['set', { 1: ['undefined'] }],
         },
       },
     },
@@ -68,10 +67,7 @@ describe('stringify & parse', () => {
       input: new Set([1, undefined, 2]),
       output: [1, undefined, 2],
       outputAnnotations: {
-        root: 'set',
-        values: {
-          '1': 'undefined',
-        },
+        values: ['set', { 1: ['undefined'] }],
       },
     },
 
@@ -96,10 +92,9 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: 'map',
-          'a.1.0': 'number',
-          b: 'map',
-          d: 'map',
+          a: ['map', { '1.0': ['number'] }],
+          b: ['map'],
+          d: ['map'],
         },
       },
     },
@@ -119,7 +114,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: ['options.0'],
+          selected: [{ options: ['0'] }],
         },
       },
       customExpectations: output => {
@@ -140,7 +135,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\.1.b': 'set',
+          'a\\.1.b': ['set'],
         },
       },
     },
@@ -158,7 +153,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\\\.1.b': 'set',
+          'a\\\\.1.b': ['set'],
         },
       },
     },
@@ -176,7 +171,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'meeting.date': 'Date',
+          'meeting.date': ['Date'],
         },
       },
     },
@@ -190,7 +185,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'regexp',
+          a: ['regexp'],
         },
       },
     },
@@ -204,7 +199,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'number',
+          a: ['number'],
         },
       },
     },
@@ -218,7 +213,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'number',
+          a: ['number'],
         },
       },
     },
@@ -232,7 +227,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'number',
+          a: ['number'],
         },
       },
     },
@@ -246,7 +241,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'bigint',
+          a: ['bigint'],
         },
       },
     },
@@ -268,7 +263,7 @@ describe('stringify & parse', () => {
         ],
       },
       outputAnnotations: {
-        referentialEqualitiesRoot: ['children.0.parents.0'],
+        referentialEqualities: [{ 'children.0.parents': ['0'] }],
       },
     },
 
@@ -282,11 +277,13 @@ describe('stringify & parse', () => {
         ['/a/g', 'bar'],
       ],
       outputAnnotations: {
-        root: 'map',
-        values: {
-          '0.0': 'regexp',
-          '1.0': 'regexp',
-        },
+        values: [
+          'map',
+          {
+            '0.0': ['regexp'],
+            '1.0': ['regexp'],
+          },
+        ],
       },
     },
 
@@ -305,10 +302,10 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          highscores: 'map',
+          highscores: ['map'],
         },
         referentialEqualities: {
-          topScorer: ['highscores.0.0'],
+          topScorer: [{ 'highscores.0': ['0'] }] as any,
         },
       },
     },
@@ -327,11 +324,11 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: 'map',
-          b: 'map',
+          a: ['map'],
+          b: ['map'],
         },
         referentialEqualities: {
-          a: ['b'],
+          a: [['b']],
         },
       },
       customExpectations: value => {
@@ -354,7 +351,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          map: 'map',
+          map: ['map'],
         },
       },
     },
@@ -373,10 +370,10 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          users: 'set',
+          users: ['set'],
         },
         referentialEqualities: {
-          userOfTheMonth: ['users.0'],
+          userOfTheMonth: [{ users: ['0'] }],
         },
       },
       customExpectations: value => {
@@ -473,7 +470,7 @@ describe('stringify & parse', () => {
 
       expect(meta).toEqual({
         values: {
-          s7: ['class', 'Train'],
+          s7: [['class', 'Train']],
         },
       });
 
