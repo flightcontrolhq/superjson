@@ -1,5 +1,5 @@
 const Benchmark = require("benchmark")
-const SuperJSON = require("./dist/")
+const SuperJSON = require("./dist/").default
 
 const instances = {
     "toy example": {

@@ -1,6 +1,8 @@
 import { Annotations, isAnnotations } from './annotator';
 import { isUndefined } from './is';
 
+export type Class = { new (...args: any[]): any };
+
 export type PrimitveJSONValue = string | number | boolean | undefined | null;
 
 export type JSONValue = PrimitveJSONValue | JSONArray | JSONObject;
@@ -11,12 +13,15 @@ export interface JSONObject {
   [key: string]: JSONValue;
 }
 
+type ClassInstance = any;
+
 export type SerializableJSONValue =
   | Set<SuperJSONValue>
   | Map<SuperJSONValue, SuperJSONValue>
   | undefined
   | bigint
   | Date
+  | ClassInstance
   | RegExp;
 
 export type SuperJSONValue =
