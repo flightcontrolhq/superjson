@@ -1,12 +1,12 @@
 export type StringifiedPath = string;
-type Path = (number | string)[];
+type Path = string[];
 
-const escape = (key: string) => key.replace(/\./g, '\\.');
+export const escapeKey = (key: string) => key.replace(/\./g, '\\.');
 
 export const stringifyPath = (path: Path): StringifiedPath =>
   path
     .map(String)
-    .map(escape)
+    .map(escapeKey)
     .join('.');
 
 export const parsePath = (string: StringifiedPath) => {
