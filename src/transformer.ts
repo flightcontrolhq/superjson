@@ -7,8 +7,10 @@ import {
   isRegExp,
   isSet,
   isUndefined,
+  isSymbol,
 } from './is';
-import * as ClassRegistry from './class-registry';
+import { ClassRegistry } from './class-registry';
+import { SymbolRegistry } from './symbol-registry';
 import * as IteratorUtils from './iteratorutils';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
@@ -16,8 +18,13 @@ export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
 type ClassTypeAnnotation = ['class', string];
+type SymbolTypeAnnotation = ['symbol', string];
 
-type ContainerTypeAnnotation = 'map' | 'set' | ClassTypeAnnotation;
+type ContainerTypeAnnotation =
+  | 'map'
+  | 'set'
+  | ClassTypeAnnotation
+  | SymbolTypeAnnotation;
 
 export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
 
@@ -42,6 +49,7 @@ export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
     switch (value[0]) {
       case 'map':
         return ['number', 'string', 'bigint', 'boolean'].includes(value[1]);
+      case 'symbol':
       case 'class':
         return typeof value[1] === 'string';
     }
@@ -58,6 +66,14 @@ export const transformValue = (
       value: undefined,
       type: 'undefined',
     };
+  } else if (isSymbol(value)) {
+    const identifier = SymbolRegistry.getIdentifier(value);
+    if (identifier) {
+      return {
+        value: value.description,
+        type: ['symbol', identifier],
+      };
+    }
   } else if (isBigint(value)) {
     return {
       value: value.toString(),
@@ -113,13 +129,23 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
   if (Array.isArray(type)) {
     switch (type[0]) {
       case 'class': {
-        const clazz = ClassRegistry.getClass(type[1]);
+        const clazz = ClassRegistry.getValue(type[1]);
 
         if (!clazz) {
           throw new Error('Trying to deserialize unknown class');
         }
 
         return Object.assign(Object.create(clazz.prototype), json);
+      }
+
+      case 'symbol': {
+        const symbol = SymbolRegistry.getValue(type[1]);
+
+        if (!symbol) {
+          throw new Error('Trying to deserialize unknown symbol');
+        }
+
+        return symbol;
       }
     }
   }
