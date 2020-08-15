@@ -380,6 +380,30 @@ describe('stringify & parse', () => {
         expect(value.users.values().next().value).toBe(value.userOfTheMonth);
       },
     },
+
+    'works for symbols': {
+      input: () => {
+        const parent = Symbol('Parent');
+        const child = Symbol('Child');
+        SuperJSON.registerSymbol(parent, '1');
+        SuperJSON.registerSymbol(child, '2');
+
+        const a = { role: parent };
+        const b = { role: child };
+
+        return { a, b };
+      },
+      output: {
+        a: { role: 'Parent' },
+        b: { role: 'Child' },
+      },
+      outputAnnotations: {
+        values: {
+          'a.role': [['symbol', '1']],
+          'b.role': [['symbol', '2']],
+        },
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -457,7 +481,7 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier'),
+        s7: new Train(100, 'yellow', 'Bombardier') as any,
       });
 
       expect(json).toEqual({
@@ -494,7 +518,7 @@ describe('stringify & parse', () => {
         SuperJSON.registerClass(Currency);
 
         const { json, meta } = SuperJSON.serialize({
-          price: new Currency(100),
+          price: new Currency(100) as any,
         });
 
         expect(json).toEqual({
