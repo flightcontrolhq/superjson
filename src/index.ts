@@ -10,7 +10,7 @@ import {
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 
-const serialize = (object: SuperJSONValue): SuperJSONResult => {
+export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { getAnnotations, annotator } = makeAnnotator();
   const output = plainer(object, annotator);
 
