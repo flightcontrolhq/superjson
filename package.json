@@ -35,7 +35,23 @@
     "trailingComma": "es5"
   },
   "name": "superjson",
-  "author": "merelinguist",
+  "author": {
+    "name": "Simon Knott",
+    "email": "info@simonknott.de",
+    "url": "https://simonknott.de"
+  },
+  "contributors": [
+    {
+      "name": "Dylan Brookes",
+      "email": "dylan@brookes.net",
+      "url": "https://github.com/merelinguist"
+    },
+    {
+      "name": "Brandon Bayer",
+      "email": "b@bayer.w",
+      "url": "https://twitter.com/flybayer"
+    }
+  ],
   "module": "dist/superjson.esm.js",
   "repository": {
     "type": "git",
