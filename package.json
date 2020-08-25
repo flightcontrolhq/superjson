@@ -50,7 +50,7 @@
       "name": "Brandon Bayer",
       "email": "b@bayer.w",
       "url": "https://twitter.com/flybayer"
-    },
+    }
   ],
   "module": "dist/superjson.esm.js",
   "repository": {
