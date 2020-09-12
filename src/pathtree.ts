@@ -25,6 +25,14 @@ export function isTree<T>(
   return false;
 }
 
+function isPrefixOf<T>(potentialPrefix: T[], of: T[]): boolean {
+  if (potentialPrefix.length > of.length) {
+    return false;
+  }
+
+  return potentialPrefix.every((value, index) => value === of[index]);
+}
+
 export module PathTree {
   export function create<T>(value: T): Tree<T> {
     return [value];
@@ -67,12 +75,11 @@ export module PathTree {
       const [nodeValue, children] = tree;
       const availablePaths = Object.keys(children);
 
-      const stringifiedPath = stringifyPath(path);
       // due to the constraints mentioned in the functions description,
       // there may be prefixes of `path` already set, but no extensions of it.
       // If there's such a prefix, we'll find it.
       const prefix = availablePaths.find(candidate =>
-        stringifiedPath.startsWith(candidate)
+        isPrefixOf(parsePath(candidate), path)
       );
 
       if (isUndefined(prefix)) {
