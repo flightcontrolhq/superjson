@@ -8,6 +8,7 @@ import {
   isSet,
   isUndefined,
   isSymbol,
+  isArray,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
@@ -20,13 +21,11 @@ type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 
-type ContainerTypeAnnotation =
-  | 'map'
-  | 'set'
-  | ClassTypeAnnotation
-  | SymbolTypeAnnotation;
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
 
-export type TypeAnnotation = LeafTypeAnnotation | ContainerTypeAnnotation;
+type CompositeTypeAnnotation = ClassTypeAnnotation | SymbolTypeAnnotation;
+
+export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
 
 const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
   'undefined',
@@ -46,78 +45,164 @@ const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.co
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
   if (Array.isArray(value)) {
-    switch (value[0]) {
-      case 'map':
-        return ['number', 'string', 'bigint', 'boolean'].includes(value[1]);
-      case 'symbol':
-      case 'class':
-        return typeof value[1] === 'string';
-    }
+    return typeof value[1] === 'string';
   }
 
   return ALL_TYPE_ANNOTATIONS.includes(value);
 };
 
+function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
+  isApplicable: (v: any) => v is I,
+  annotation: A,
+  transform: (v: I) => O,
+  untransform: (v: O) => I
+) {
+  return {
+    isApplicable,
+    annotation,
+    transform,
+    untransform,
+  };
+}
+
+const simpleRules = [
+  simpleTransformation(
+    isUndefined,
+    'undefined',
+    () => undefined,
+    () => undefined
+  ),
+  simpleTransformation(isBigint, 'bigint', v => v.toString(), BigInt),
+  simpleTransformation(
+    isDate,
+    'Date',
+    v => v.toISOString(),
+    v => new Date(v)
+  ),
+
+  simpleTransformation(
+    isRegExp,
+    'regexp',
+    v => '' + v,
+    regex => {
+      const body = regex.slice(1, regex.lastIndexOf('/'));
+      const flags = regex.slice(regex.lastIndexOf('/') + 1);
+      return new RegExp(body, flags);
+    }
+  ),
+
+  simpleTransformation(
+    isSet,
+    'set',
+    v => IteratorUtils.map(v.values(), v => v),
+    v => new Set(v)
+  ),
+  simpleTransformation(
+    isMap,
+    'map',
+    v => IteratorUtils.map(v.entries(), v => v),
+    v => new Map(v)
+  ),
+
+  simpleTransformation<number, 'NaN' | 'Infinity' | '-Infinity', 'number'>(
+    (v): v is number => isNaNValue(v) || isInfinite(v),
+    'number',
+    v => {
+      if (isNaNValue(v)) {
+        return 'NaN';
+      }
+
+      if (v > 0) {
+        return 'Infinity';
+      } else {
+        return '-Infinity';
+      }
+    },
+    Number
+  ),
+];
+
+function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(
+  isApplicable: (v: any) => v is I,
+  annotation: (v: I) => A,
+  transform: (v: I) => O,
+  untransform: (v: O, a: A) => I
+) {
+  return {
+    isApplicable,
+    annotation,
+    transform,
+    untransform,
+  };
+}
+
+const symbolRule = compositeTransformation(
+  (s): s is Symbol => {
+    if (isSymbol(s)) {
+      const isRegistered = !!SymbolRegistry.getIdentifier(s);
+      return isRegistered;
+    }
+    return false;
+  },
+  s => {
+    const identifier = SymbolRegistry.getIdentifier(s);
+    return ['symbol', identifier!];
+  },
+  v => v.description,
+  (_, a) => {
+    const value = SymbolRegistry.getValue(a[1]);
+    if (!value) {
+      throw new Error('Trying to deserialize unknown symbol');
+    }
+    return value;
+  }
+);
+
+const classRule = compositeTransformation(
+  (potentialClass): potentialClass is any => {
+    if (potentialClass?.constructor) {
+      const isRegistered = !!ClassRegistry.getIdentifier(
+        potentialClass.constructor
+      );
+      return isRegistered;
+    }
+    return false;
+  },
+  clazz => {
+    const identifier = ClassRegistry.getIdentifier(clazz.constructor);
+    return ['class', identifier!];
+  },
+  v => v,
+  (v, a) => {
+    const clazz = ClassRegistry.getValue(a[1]);
+
+    if (!clazz) {
+      throw new Error('Trying to deserialize unknown class');
+    }
+
+    return Object.assign(Object.create(clazz.prototype), v);
+  }
+);
+
+const compositeRules = [classRule, symbolRule];
+
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  if (isUndefined(value)) {
-    return {
-      value: undefined,
-      type: 'undefined',
-    };
-  } else if (isSymbol(value)) {
-    const identifier = SymbolRegistry.getIdentifier(value);
-    if (identifier) {
+  for (const rule of simpleRules) {
+    if (rule.isApplicable(value)) {
       return {
-        value: value.description,
-        type: ['symbol', identifier],
+        value: rule.transform(value as never),
+        type: rule.annotation,
       };
     }
-  } else if (isBigint(value)) {
-    return {
-      value: value.toString(),
-      type: 'bigint',
-    };
-  } else if (isDate(value)) {
-    return {
-      value: value.toISOString(),
-      type: 'Date',
-    };
-  } else if (isNaNValue(value)) {
-    return {
-      value: 'NaN',
-      type: 'number',
-    };
-  } else if (isInfinite(value)) {
-    return {
-      value: value > 0 ? 'Infinity' : '-Infinity',
-      type: 'number',
-    };
-  } else if (isSet(value)) {
-    return {
-      value: Array.from(value) as any[],
-      type: 'set',
-    };
-  } else if (isRegExp(value)) {
-    return {
-      value: '' + value,
-      type: 'regexp',
-    };
-  } else if (isMap(value)) {
-    const entries = IteratorUtils.map(value.entries(), pair => pair);
-    return {
-      value: entries,
-      type: 'map',
-    };
   }
 
-  if (value?.constructor) {
-    const identifier = ClassRegistry.getIdentifier(value.constructor);
-    if (identifier) {
+  for (const rule of compositeRules) {
+    if (rule.isApplicable(value)) {
       return {
-        value: value,
-        type: ['class', identifier],
+        value: rule.transform(value),
+        type: rule.annotation(value),
       };
     }
   }
@@ -125,51 +210,26 @@ export const transformValue = (
   return undefined;
 };
 
+const simpleRulesByAnnotation = Object.fromEntries(
+  simpleRules.map(r => [r.annotation, r])
+);
+
 export const untransformValue = (json: any, type: TypeAnnotation) => {
-  if (Array.isArray(type)) {
+  if (isArray(type)) {
     switch (type[0]) {
-      case 'class': {
-        const clazz = ClassRegistry.getValue(type[1]);
-
-        if (!clazz) {
-          throw new Error('Trying to deserialize unknown class');
-        }
-
-        return Object.assign(Object.create(clazz.prototype), json);
-      }
-
-      case 'symbol': {
-        const symbol = SymbolRegistry.getValue(type[1]);
-
-        if (!symbol) {
-          throw new Error('Trying to deserialize unknown symbol');
-        }
-
-        return symbol;
-      }
+      case 'symbol':
+        return symbolRule.untransform(json, type);
+      case 'class':
+        return classRule.untransform(json, type);
+      default:
+        throw new Error('Unknown transformation: ' + type);
     }
-  }
-
-  switch (type) {
-    case 'bigint':
-      return BigInt(json);
-    case 'undefined':
-      return undefined;
-    case 'Date':
-      return new Date(json as string);
-    case 'number':
-      return Number(json);
-    case 'map':
-      return new Map(json);
-    case 'set':
-      return new Set(json as unknown[]);
-    case 'regexp': {
-      const regex = json as string;
-      const body = regex.slice(1, regex.lastIndexOf('/'));
-      const flags = regex.slice(regex.lastIndexOf('/') + 1);
-      return new RegExp(body, flags);
+  } else {
+    const transformation = simpleRulesByAnnotation[type];
+    if (!transformation) {
+      throw new Error('Unknown transformation: ' + type);
     }
-    default:
-      return json;
+
+    return transformation.untransform(json as never);
   }
 };
