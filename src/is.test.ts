@@ -59,7 +59,7 @@ test('Primitive tests', () => {
   expect(isPrimitive([])).toBe(false);
   expect(isPrimitive([])).toBe(false);
   expect(isPrimitive({})).toBe(false);
-  expect(isPrimitive(new Object())).toBe(false);
+  expect(isPrimitive(new Object())).toBe(false); // eslint-disable-line no-new-object
   expect(isPrimitive(new Date())).toBe(false);
   expect(isPrimitive(() => {})).toBe(false);
 });
