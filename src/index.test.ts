@@ -404,6 +404,46 @@ describe('stringify & parse', () => {
         },
       },
     },
+
+    'issue #58': {
+      input: () => {
+        const cool = Symbol('cool');
+        SuperJSON.registerSymbol(cool);
+        return {
+          q: [
+            9,
+            {
+              henlo: undefined,
+              yee: new Date(2020, 1, 1),
+              yee2: new Date(2020, 1, 1),
+              foo1: new Date(2020, 1, 1),
+              z: cool,
+            },
+          ],
+        };
+      },
+      output: {
+        q: [
+          9,
+          {
+            henlo: undefined,
+            yee: new Date(2020, 1, 1).toISOString(),
+            yee2: new Date(2020, 1, 1).toISOString(),
+            foo1: new Date(2020, 1, 1).toISOString(),
+            z: 'cool',
+          },
+        ],
+      },
+      outputAnnotations: {
+        values: {
+          'q.1.henlo': ['undefined'],
+          'q.1.yee': ['Date'],
+          'q.1.yee2': ['Date'],
+          'q.1.foo1': ['Date'],
+          'q.1.z': [['symbol', 'cool']],
+        },
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
