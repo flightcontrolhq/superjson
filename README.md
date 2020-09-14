@@ -104,45 +104,31 @@ meta = {
 */
 ```
 
-## Using with Next.js `getServerSideProps`, `getInitialProps`, and `getStaticProps`
+## Using with Next.js
 
 The `getServerSideProps`, `getInitialProps`, and `getStaticProps` data hooks provided by Next.js do not allow you to transmit Javascript objects like Dates. It will error unless you convert Dates to strings, etc.
 
 Thankfully, Superjson is a perfect tool to bypass that limitation!
 
-```js
-import { useMemo } from 'react';
-import superjson from 'superjson';
+Install the library with your package manager of choice, e.g.:
 
-export const getServerSideProps = async () => {
-  const products = [{ name: 'Hat', publishedAt: new Date(0) }];
+```sh
+yarn add -D babel-plugin-superjson-next
+```
 
-  const dataString = superjson.stringify(products);
+Add the plugin to your .babelrc. If you don't have one, create it.
 
-  return {
-    props: {
-      dataString,
-    },
-  };
-};
-
-export default function Page({ dataString }) {
-  const products = useMemo(() => superjson.parse(dataString), [dataString]);
-
-  return (
-    <div>
-      <h1>Products</h1>
-      {products.map(product => (
-        <p key={product.id}>
-          <span>Name: {product.name}</span>
-          {/* Note: publishedAt is an actual Date object! */}
-          <span>Published at: {product.publishedAt.toISOString()}</span>
-        </p>
-      ))}
-    </div>
-  );
+```
+{
+  "presets": ["next/babel"],
+  "plugins": [
+    ...
+    "superjson-next" // 👈
+  ]
 }
 ```
+
+Done! Now you can safely use all JS datatypes in your `getServerSideProps` / etc. .
 
 ## API
 
