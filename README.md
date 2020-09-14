@@ -118,7 +118,7 @@ yarn add -D babel-plugin-superjson-next
 
 Add the plugin to your .babelrc. If you don't have one, create it.
 
-```
+```json
 {
   "presets": ["next/babel"],
   "plugins": [
