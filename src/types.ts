@@ -43,7 +43,7 @@ export interface SuperJSONResult {
 }
 
 export function isSuperJSONResult(object: any): object is SuperJSONResult {
-  if (isUndefined(object.json)) {
+  if (!('json' in object)) {
     return false;
   }
 
