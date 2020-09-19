@@ -444,6 +444,12 @@ describe('stringify & parse', () => {
         },
       },
     },
+
+    'works for undefined, issue #48': {
+      input: undefined,
+      output: undefined,
+      outputAnnotations: { values: ['undefined'] },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
