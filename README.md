@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/otion">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -224,16 +224,16 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="https://github.com/merelinguist"><img src="https://avatars3.githubusercontent.com/u/24858006?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dylan Brookes</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=merelinguist" title="Code">💻</a> <a href="https://github.com/blitz-js/superjson/commits?author=merelinguist" title="Documentation">📖</a> <a href="#design-merelinguist" title="Design">🎨</a> <a href="https://github.com/blitz-js/superjson/commits?author=merelinguist" title="Tests">⚠️</a></td>
-    <td align="center"><a href="http://simonknott.de"><img src="https://avatars1.githubusercontent.com/u/14912729?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simon Knott</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=Skn0tt" title="Code">💻</a> <a href="#ideas-Skn0tt" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/blitz-js/superjson/commits?author=Skn0tt" title="Tests">⚠️</a> <a href="https://github.com/blitz-js/superjson/commits?author=Skn0tt" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://twitter.com/flybayer"><img src="https://avatars3.githubusercontent.com/u/8813276?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Brandon Bayer</b></sub></a><br /><a href="#ideas-flybayer" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="http://jeremyliberman.com/"><img src="https://avatars3.githubusercontent.com/u/2754163?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jeremy Liberman</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=mrleebo" title="Tests">⚠️</a> <a href="https://github.com/blitz-js/superjson/commits?author=mrleebo" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/merelinguist"><img src="https://avatars3.githubusercontent.com/u/24858006?v=4" width="100px;" alt=""/><br /><sub><b>Dylan Brookes</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=merelinguist" title="Code">💻</a> <a href="https://github.com/blitz-js/superjson/commits?author=merelinguist" title="Documentation">📖</a> <a href="#design-merelinguist" title="Design">🎨</a> <a href="https://github.com/blitz-js/superjson/commits?author=merelinguist" title="Tests">⚠️</a></td>
+    <td align="center"><a href="http://simonknott.de"><img src="https://avatars1.githubusercontent.com/u/14912729?v=4" width="100px;" alt=""/><br /><sub><b>Simon Knott</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=Skn0tt" title="Code">💻</a> <a href="#ideas-Skn0tt" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/blitz-js/superjson/commits?author=Skn0tt" title="Tests">⚠️</a> <a href="https://github.com/blitz-js/superjson/commits?author=Skn0tt" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://twitter.com/flybayer"><img src="https://avatars3.githubusercontent.com/u/8813276?v=4" width="100px;" alt=""/><br /><sub><b>Brandon Bayer</b></sub></a><br /><a href="#ideas-flybayer" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="http://jeremyliberman.com/"><img src="https://avatars3.githubusercontent.com/u/2754163?v=4" width="100px;" alt=""/><br /><sub><b>Jeremy Liberman</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=mrleebo" title="Tests">⚠️</a> <a href="https://github.com/blitz-js/superjson/commits?author=mrleebo" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/jorisre"><img src="https://avatars1.githubusercontent.com/u/7545547?v=4" width="100px;" alt=""/><br /><sub><b>Joris</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=jorisre" title="Code">💻</a></td>
   </tr>
 </table>
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
-
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
