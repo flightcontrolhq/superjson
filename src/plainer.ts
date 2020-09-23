@@ -1,5 +1,6 @@
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 import * as IteratorUtils from './iteratorutils';
+import { mapValues, values } from 'lodash';
 
 interface WalkerValue {
   isLeaf: boolean;
@@ -18,7 +19,7 @@ const entries = (object: object | Map<any, any>): Iterator<[any, any]> => {
   }
 
   if (isPlainObject(object)) {
-    return Object.entries(object).values();
+    return IteratorUtils.toIterator(values(object));
   }
 
   throw new Error('Illegal Argument: ' + typeof object);
@@ -58,11 +59,8 @@ export const plainer = (
   }
 
   if (isPlainObject(object)) {
-    return Object.fromEntries(
-      Object.entries(object).map(([key, value]) => [
-        key,
-        plainer(value, walker, [...path, key], alreadySeenObjects),
-      ])
+    return mapValues(object, (value, key) =>
+      plainer(value, walker, [...path, key], alreadySeenObjects)
     );
   }
 };

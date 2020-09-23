@@ -1,5 +1,6 @@
 import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
+import { forEach } from 'lodash';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
@@ -120,8 +121,8 @@ export module PathTree {
     } else {
       const [nodeValue, children] = tree;
 
-      Object.entries(children).forEach(([key, children]) => {
-        traverse(children, walker, [...origin, ...parsePath(key)]);
+      forEach(children, (child, key) => {
+        traverse(child, walker, [...origin, ...parsePath(key)]);
       });
 
       walker(nodeValue, origin);

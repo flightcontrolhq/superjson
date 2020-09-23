@@ -21,3 +21,15 @@ export const map = <A, B>(
 
   return result;
 };
+
+export function toIterator<T>(arr: T[]): Iterator<T> {
+  let i = 0;
+  return {
+    next() {
+      const value = arr[i];
+      i++;
+      const done = i === arr.length;
+      return { value, done };
+    },
+  };
+}

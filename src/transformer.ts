@@ -13,6 +13,7 @@ import {
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import * as IteratorUtils from './iteratorutils';
+import { fromPairs } from 'lodash';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -210,7 +211,7 @@ export const transformValue = (
   return undefined;
 };
 
-const simpleRulesByAnnotation = Object.fromEntries(
+const simpleRulesByAnnotation = fromPairs(
   simpleRules.map(r => [r.annotation, r])
 );
 
