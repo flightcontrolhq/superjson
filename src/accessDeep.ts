@@ -1,4 +1,5 @@
 import { isMap, isArray, isPlainObject, isSet } from './is';
+import { get } from 'lodash';
 
 export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   const keys = value.keys();
@@ -10,13 +11,7 @@ export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   return keys.next().value;
 };
 
-export const getDeep = (object: object, path: (string | number)[]): object => {
-  for (const key of path) {
-    object = (object as any)[key];
-  }
-
-  return object;
-};
+export const getDeep = get;
 
 export const setDeep = (
   object: any,

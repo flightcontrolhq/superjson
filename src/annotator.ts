@@ -1,6 +1,5 @@
 import { getDeep, setDeep } from './accessDeep';
 import { isPrimitive, isString } from './is';
-import * as IteratorUtils from './iteratorutils';
 import { Walker } from './plainer';
 import {
   TypeAnnotation,
@@ -65,7 +64,7 @@ class ReferentialEqualityAnnotationFactory {
   create() {
     let tree = PathTree.create<PathTree.CollapsedRootTree<string> | null>(null);
 
-    IteratorUtils.forEach(this.objectIdentities.values(), paths => {
+    this.objectIdentities.forEach(paths => {
       if (paths.length <= 1) {
         return;
       }
@@ -75,9 +74,9 @@ class ReferentialEqualityAnnotationFactory {
         .sort((a, b) => a.length - b.length);
 
       let identities = PathTree.create<string | null>(null);
-      for (const identicalPath of identicalPaths) {
+      identicalPaths.forEach(identicalPath => {
         identities = PathTree.appendPath(identities, identicalPath);
-      }
+      });
 
       const minimizedIdentities = PathTree.collapseRoot(identities);
       if (!minimizedIdentities) {

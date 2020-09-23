@@ -1,3 +1,6 @@
+/* eslint-disable es5/no-for-of */
+/* eslint-disable es5/no-es6-methods */
+
 import SuperJSON from './';
 import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';

@@ -12,8 +12,7 @@ import {
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import * as IteratorUtils from './iteratorutils';
-import { fromPairs } from 'lodash';
+import { fromPairs, includes, values, entries } from 'lodash';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -37,7 +36,7 @@ const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
 export const isPrimitiveTypeAnnotation = (
   value: any
 ): value is PrimitiveTypeAnnotation => {
-  return ALL_PRIMITIVE_TYPE_ANNOTATIONS.includes(value);
+  return includes(ALL_PRIMITIVE_TYPE_ANNOTATIONS, value);
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
@@ -49,7 +48,7 @@ export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
     return typeof value[1] === 'string';
   }
 
-  return ALL_TYPE_ANNOTATIONS.includes(value);
+  return includes(ALL_TYPE_ANNOTATIONS, value);
 };
 
 function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
@@ -95,13 +94,13 @@ const simpleRules = [
   simpleTransformation(
     isSet,
     'set',
-    v => IteratorUtils.map(v.values(), v => v),
+    v => values(v),
     v => new Set(v)
   ),
   simpleTransformation(
     isMap,
     'map',
-    v => IteratorUtils.map(v.entries(), v => v),
+    v => entries(v),
     v => new Map(v)
   ),
 
@@ -190,7 +189,8 @@ const compositeRules = [classRule, symbolRule];
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  for (const rule of simpleRules) {
+  for (const i in simpleRules) {
+    const rule = simpleRules[i];
     if (rule.isApplicable(value)) {
       return {
         value: rule.transform(value as never),
@@ -199,7 +199,8 @@ export const transformValue = (
     }
   }
 
-  for (const rule of compositeRules) {
+  for (const i in compositeRules) {
+    const rule = compositeRules[i];
     if (rule.isApplicable(value)) {
       return {
         value: rule.transform(value),
