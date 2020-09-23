@@ -69,7 +69,7 @@ const simpleRules = [
   simpleTransformation(
     isUndefined,
     'undefined',
-    () => undefined,
+    () => null,
     () => undefined
   ),
   simpleTransformation(isBigint, 'bigint', v => v.toString(), BigInt),
