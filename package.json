@@ -58,10 +58,16 @@
     "url": "https://github.com/blitz-js/superjson"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.161",
     "benchmark": "^2.1.4",
+    "eslint-plugin-es5": "^1.5.0",
     "husky": "^4.2.5",
     "tsdx": "^0.13.2",
     "tslib": "^2.0.0",
     "typescript": "^3.9.6"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20",
+    "lodash-es": "^4.17.15"
   }
 }

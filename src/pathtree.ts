@@ -1,5 +1,6 @@
 import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
+import { forEach, every, find } from 'lodash';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
@@ -16,10 +17,7 @@ export function isTree<T>(
   if (v.length === 1) {
     return valueChecker(v[0]);
   } else if (v.length === 2) {
-    return (
-      valueChecker(v[0]) &&
-      Object.values(v[1]).every(v => isTree(v, valueChecker))
-    );
+    return valueChecker(v[0]) && every(v[1], v => isTree(v, valueChecker));
   }
 
   return false;
@@ -78,7 +76,7 @@ export module PathTree {
       // due to the constraints mentioned in the functions description,
       // there may be prefixes of `path` already set, but no extensions of it.
       // If there's such a prefix, we'll find it.
-      const prefix = availablePaths.find(candidate =>
+      const prefix = find(availablePaths, candidate =>
         isPrefixOf(parsePath(candidate), path)
       );
 
@@ -120,8 +118,8 @@ export module PathTree {
     } else {
       const [nodeValue, children] = tree;
 
-      Object.entries(children).forEach(([key, children]) => {
-        traverse(children, walker, [...origin, ...parsePath(key)]);
+      forEach(children, (child, key) => {
+        traverse(child, walker, [...origin, ...parsePath(key)]);
       });
 
       walker(nodeValue, origin);
@@ -168,7 +166,7 @@ export module PathTree {
     }
 
     if (isPlainObject(v)) {
-      return Object.values(v).every(v => isTree(v, valueChecker));
+      return every(v, v => isTree(v, valueChecker));
     }
 
     return isTree(v, valueChecker);
