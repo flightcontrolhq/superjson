@@ -10,7 +10,7 @@ describe('annotator', () => {
         path: ['a', 1, 'b'],
         node: undefined,
       })
-    ).toBe(undefined);
+    ).toBe(null);
 
     expect(getAnnotations()).toEqual({
       values: {

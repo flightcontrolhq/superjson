@@ -43,7 +43,7 @@ describe('stringify & parse', () => {
         a: [1, undefined, 2],
       },
       output: {
-        a: [1, undefined, 2],
+        a: [1, null, 2],
       },
       outputAnnotations: {
         values: {
@@ -57,7 +57,7 @@ describe('stringify & parse', () => {
         a: new Set([1, undefined, 2]),
       },
       output: {
-        a: [1, undefined, 2],
+        a: [1, null, 2],
       },
       outputAnnotations: {
         values: {
@@ -68,7 +68,7 @@ describe('stringify & parse', () => {
 
     'works for top-level Sets': {
       input: new Set([1, undefined, 2]),
-      output: [1, undefined, 2],
+      output: [1, null, 2],
       outputAnnotations: {
         values: ['set', { 1: ['undefined'] }],
       },
@@ -429,7 +429,7 @@ describe('stringify & parse', () => {
         q: [
           9,
           {
-            henlo: undefined,
+            henlo: null,
             yee: new Date(2020, 1, 1).toISOString(),
             yee2: new Date(2020, 1, 1).toISOString(),
             foo1: new Date(2020, 1, 1).toISOString(),
@@ -450,7 +450,7 @@ describe('stringify & parse', () => {
 
     'works for undefined, issue #48': {
       input: undefined,
-      output: undefined,
+      output: null,
       outputAnnotations: { values: ['undefined'] },
     },
   };
