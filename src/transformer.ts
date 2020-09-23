@@ -12,7 +12,7 @@ import {
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { fromPairs, includes, values, entries } from 'lodash';
+import { fromPairs, includes, entries } from 'lodash';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -94,7 +94,7 @@ const simpleRules = [
   simpleTransformation(
     isSet,
     'set',
-    v => values(v),
+    v => entries(v).map(([value]) => value),
     v => new Set(v)
   ),
   simpleTransformation(

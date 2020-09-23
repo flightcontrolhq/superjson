@@ -32,8 +32,14 @@ export const plainer = (
     alreadySeenObjects = [...alreadySeenObjects, object];
   }
 
-  if (isArray(object) || isSet(object)) {
+  if (isArray(object)) {
     return values(object).map((value, index) =>
+      plainer(value, walker, [...path, index], alreadySeenObjects)
+    );
+  }
+
+  if (isSet(object)) {
+    return entries(object).map(([value], index) =>
       plainer(value, walker, [...path, index], alreadySeenObjects)
     );
   }
