@@ -189,22 +189,25 @@ const compositeRules = [classRule, symbolRule];
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  for (const rule of simpleRules) {
-    if (rule.isApplicable(value)) {
-      return {
-        value: rule.transform(value as never),
-        type: rule.annotation,
-      };
-    }
+  const applicableSimpleRule = simpleRules.find(rule =>
+    rule.isApplicable(value)
+  );
+
+  if (applicableSimpleRule) {
+    return {
+      value: applicableSimpleRule.transform(value as never),
+      type: applicableSimpleRule.annotation,
+    };
   }
 
-  for (const rule of compositeRules) {
-    if (rule.isApplicable(value)) {
-      return {
-        value: rule.transform(value),
-        type: rule.annotation(value),
-      };
-    }
+  const applicableCompositeRule = compositeRules.find(rule =>
+    rule.isApplicable(value)
+  );
+  if (applicableCompositeRule) {
+    return {
+      value: applicableCompositeRule.transform(value as never),
+      type: applicableCompositeRule.annotation(value),
+    };
   }
 
   return undefined;
