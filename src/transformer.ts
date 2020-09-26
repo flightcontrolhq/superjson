@@ -72,7 +72,20 @@ const simpleRules = [
     () => null,
     () => undefined
   ),
-  simpleTransformation(isBigint, 'bigint', v => v.toString(), BigInt),
+  simpleTransformation(
+    isBigint,
+    'bigint',
+    v => v.toString(),
+    v => {
+      if (typeof BigInt !== 'undefined') {
+        return BigInt(v);
+      }
+
+      console.error('Please add a BigInt polyfill.');
+
+      return v as any;
+    }
+  ),
   simpleTransformation(
     isDate,
     'Date',
