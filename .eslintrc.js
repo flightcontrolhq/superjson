@@ -11,5 +11,9 @@ module.exports = {
         exceptMethods: ['Object.assign'],
       },
     ],
+    "no-restricted-syntax": [
+      "error",
+      "ForInStatement"
+    ]
   },
 };
