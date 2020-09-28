@@ -12,7 +12,7 @@ import {
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { fromPairs, includes, entries } from 'lodash';
+import { fromPairs, includes, entries, find } from 'lodash';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -189,7 +189,7 @@ const compositeRules = [classRule, symbolRule];
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  const applicableSimpleRule = simpleRules.find(rule =>
+  const applicableSimpleRule = find(simpleRules, rule =>
     rule.isApplicable(value)
   );
 
@@ -200,7 +200,7 @@ export const transformValue = (
     };
   }
 
-  const applicableCompositeRule = compositeRules.find(rule =>
+  const applicableCompositeRule = find(compositeRules, rule =>
     rule.isApplicable(value)
   );
   if (applicableCompositeRule) {
