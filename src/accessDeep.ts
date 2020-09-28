@@ -11,9 +11,9 @@ export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
 };
 
 export const getDeep = (object: object, path: (string | number)[]): object => {
-  for (const key of path) {
+  path.forEach(key => {
     object = (object as any)[key];
-  }
+  });
 
   return object;
 };
