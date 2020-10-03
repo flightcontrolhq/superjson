@@ -643,4 +643,34 @@ describe('stringify & parse', () => {
       }).toThrow();
     });
   });
+
+  test('regression #65: BigInt on Safari v13', () => {
+    const oldBigInt = global.BigInt;
+    delete global.BigInt;
+
+    const input = {
+      a: oldBigInt('1000'),
+    };
+
+    const superJSONed = SuperJSON.serialize(input);
+    expect(superJSONed).toEqual({
+      json: {
+        a: '1000',
+      },
+      meta: {
+        values: {
+          a: ['bigint'],
+        },
+      },
+    });
+
+    const deserialised = SuperJSON.deserialize(
+      JSON.parse(JSON.stringify(superJSONed))
+    );
+    expect(deserialised).toEqual({
+      a: '1000',
+    });
+
+    global.BigInt = oldBigInt;
+  });
 });

@@ -2,10 +2,9 @@ const getType = (payload: any): string =>
   Object.prototype.toString.call(payload).slice(8, -1);
 
 export const isUndefined = (payload: any): payload is undefined =>
-  getType(payload) === 'Undefined';
+  typeof payload === 'undefined';
 
-export const isNull = (payload: any): payload is null =>
-  getType(payload) === 'Null';
+export const isNull = (payload: any): payload is null => payload === null;
 
 export const isPlainObject = (
   payload: any
@@ -21,34 +20,34 @@ export const isEmptyObject = (payload: any): payload is {} =>
   isPlainObject(payload) && Object.keys(payload).length === 0;
 
 export const isArray = (payload: any): payload is any[] =>
-  getType(payload) === 'Array';
+  Array.isArray(payload);
 
 export const isString = (payload: any): payload is string =>
-  getType(payload) === 'String';
+  typeof payload === 'string';
 
 export const isNumber = (payload: any): payload is number =>
-  getType(payload) === 'Number' && !isNaN(payload);
+  typeof payload === 'number' && !isNaN(payload);
 
 export const isBoolean = (payload: any): payload is boolean =>
-  getType(payload) === 'Boolean';
+  typeof payload === 'boolean';
 
 export const isRegExp = (payload: any): payload is RegExp =>
-  getType(payload) === 'RegExp';
+  payload instanceof RegExp;
 
 export const isMap = (payload: any): payload is Map<any, any> =>
-  getType(payload) === 'Map';
+  payload instanceof Map;
 
 export const isSet = (payload: any): payload is Set<any> =>
-  getType(payload) === 'Set';
+  payload instanceof Set;
 
 export const isSymbol = (payload: any): payload is symbol =>
   getType(payload) === 'Symbol';
 
 export const isDate = (payload: any): payload is Date =>
-  getType(payload) === 'Date' && !isNaN(payload);
+  payload instanceof Date && !isNaN(payload.valueOf());
 
 export const isNaNValue = (payload: any): payload is typeof NaN =>
-  getType(payload) === 'Number' && isNaN(payload);
+  typeof payload === 'number' && isNaN(payload);
 
 export const isPrimitive = (
   payload: any
@@ -61,7 +60,7 @@ export const isPrimitive = (
   isSymbol(payload);
 
 export const isBigint = (payload: any): payload is bigint =>
-  getType(payload) === 'BigInt';
+  typeof payload === 'bigint';
 
 export const isInfinite = (payload: any): payload is number =>
   payload === Infinity || payload === -Infinity;

@@ -12,7 +12,7 @@ import {
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { fromPairs, includes, entries } from 'lodash';
+import { fromPairs, includes, entries, find } from 'lodash';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
@@ -77,7 +77,20 @@ const simpleRules = [
     () => null,
     () => undefined
   ),
-  simpleTransformation(isBigint, 'bigint', v => v.toString(), BigInt),
+  simpleTransformation(
+    isBigint,
+    'bigint',
+    v => v.toString(),
+    v => {
+      if (typeof BigInt !== 'undefined') {
+        return BigInt(v);
+      }
+
+      console.error('Please add a BigInt polyfill.');
+
+      return v as any;
+    }
+  ),
   simpleTransformation(
     isDate,
     'Date',
@@ -215,24 +228,25 @@ const compositeRules = [classRule, symbolRule, customRule];
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  for (const i in simpleRules) {
-    const rule = simpleRules[i];
-    if (rule.isApplicable(value)) {
-      return {
-        value: rule.transform(value as never),
-        type: rule.annotation,
-      };
-    }
+  const applicableSimpleRule = find(simpleRules, rule =>
+    rule.isApplicable(value)
+  );
+
+  if (applicableSimpleRule) {
+    return {
+      value: applicableSimpleRule.transform(value as never),
+      type: applicableSimpleRule.annotation,
+    };
   }
 
-  for (const i in compositeRules) {
-    const rule = compositeRules[i];
-    if (rule.isApplicable(value)) {
-      return {
-        value: rule.transform(value),
-        type: rule.annotation(value),
-      };
-    }
+  const applicableCompositeRule = find(compositeRules, rule =>
+    rule.isApplicable(value)
+  );
+  if (applicableCompositeRule) {
+    return {
+      value: applicableCompositeRule.transform(value as never),
+      type: applicableCompositeRule.annotation(value),
+    };
   }
 
   return undefined;
