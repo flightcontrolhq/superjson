@@ -6,6 +6,8 @@ import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
+import { ObjectID } from 'mongodb';
+
 describe('stringify & parse', () => {
   const cases: Record<
     string,
@@ -404,6 +406,31 @@ describe('stringify & parse', () => {
         values: {
           'a.role': [['symbol', '1']],
           'b.role': [['symbol', '2']],
+        },
+      },
+    },
+
+    'works for custom transformers': {
+      input: () => {
+        SuperJSON.registerCustom<ObjectID, string>(
+          {
+            isApplicable: (v): v is ObjectID => v instanceof ObjectID,
+            serialize: v => v.toHexString(),
+            deserialize: v => new ObjectID(v),
+          },
+          'objectid'
+        );
+
+        return {
+          a: new ObjectID('5f7887f4f0b172093e89f126'),
+        };
+      },
+      output: {
+        a: '5f7887f4f0b172093e89f126',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['custom', 'objectid']],
         },
       },
     },

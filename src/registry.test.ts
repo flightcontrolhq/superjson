@@ -20,15 +20,7 @@ test('class registry', () => {
     'Ambiguous class, provide a unique identifier.'
   );
 
-  registry.unregister(Car);
-
-  expect(registry.getValue('Car')).toBeUndefined();
-
-  registry.register(Car, 'car1');
-
   registry.register(class Car {}, 'car2');
-
-  expect(registry.getValue('car1')).toBe(Car);
 
   expect(registry.getValue('car2')).not.toBeUndefined();
 

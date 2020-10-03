@@ -148,7 +148,6 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
       PathTree.expandRoot(annotations.referentialEqualities),
       (identicalObjects, path) => {
         const object = getDeep(plain, path);
-        console.log(object);
 
         PathTree.traversePaths(
           PathTree.expandRoot(identicalObjects),

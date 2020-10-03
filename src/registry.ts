@@ -21,10 +21,6 @@ export class Registry<T> {
     this.kv.set(identifier, value);
   }
 
-  unregister(v: T): void {
-    this.kv.deleteByValue(v);
-  }
-
   clear(): void {
     this.kv.clear();
   }

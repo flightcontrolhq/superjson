@@ -6,9 +6,14 @@ import {
   SuperJSONValue,
   isSuperJSONResult,
   Class,
+  JSONValue,
 } from './types';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
+import {
+  CustomTransfomer,
+  CustomTransformerRegistry,
+} from './custom-transformer-registry';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { getAnnotations, annotator } = makeAnnotator();
@@ -46,11 +51,18 @@ export const parse = <T = unknown>(string: string): T =>
 
 const registerClass = (v: Class, identifier?: string) =>
   ClassRegistry.register(v, identifier);
-const unregisterClass = (v: Class) => ClassRegistry.unregister(v);
 
 const registerSymbol = (v: Symbol, identifier?: string) =>
   SymbolRegistry.register(v, identifier);
-const unregisterSymbol = (v: Symbol) => SymbolRegistry.unregister(v);
+
+const registerCustom = <I, O extends JSONValue>(
+  transformer: Omit<CustomTransfomer<I, O>, 'name'>,
+  name: string
+) =>
+  CustomTransformerRegistry.register({
+    name,
+    ...transformer,
+  });
 
 export default {
   stringify,
@@ -58,7 +70,6 @@ export default {
   serialize,
   deserialize,
   registerClass,
-  unregisterClass,
   registerSymbol,
-  unregisterSymbol,
+  registerCustom,
 };
