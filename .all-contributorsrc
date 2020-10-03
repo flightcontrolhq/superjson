@@ -56,6 +56,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tomhooijenga",
+      "name": "tomhooijenga",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/1853235?v=4",
+      "profile": "https://github.com/tomhooijenga",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
