@@ -7,15 +7,6 @@ export class DoubleIndexedKV<K, V> {
     this.valueToKey.set(value, key);
   }
 
-  deleteByValue(value: V) {
-    this.valueToKey.delete(value);
-    this.keyToValue.forEach((otherValue, otherKey) => {
-      if (value === otherValue) {
-        this.keyToValue.delete(otherKey);
-      }
-    });
-  }
-
   getByKey(key: K): V | undefined {
     return this.keyToValue.get(key);
   }

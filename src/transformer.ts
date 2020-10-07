@@ -13,6 +13,7 @@ import {
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import { fromPairs, includes, entries, find } from 'lodash';
+import { CustomTransformerRegistry } from './custom-transformer-registry';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -20,10 +21,14 @@ type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
 
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
+type CustomTypeAnnotation = ['custom', string];
 
 type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
 
-type CompositeTypeAnnotation = ClassTypeAnnotation | SymbolTypeAnnotation;
+type CompositeTypeAnnotation =
+  | ClassTypeAnnotation
+  | SymbolTypeAnnotation
+  | CustomTypeAnnotation;
 
 export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
 
@@ -197,7 +202,28 @@ const classRule = compositeTransformation(
   }
 );
 
-const compositeRules = [classRule, symbolRule];
+const customRule = compositeTransformation(
+  (value): value is any => {
+    return !!CustomTransformerRegistry.findApplicable(value);
+  },
+  value => {
+    const transformer = CustomTransformerRegistry.findApplicable(value)!;
+    return ['custom', transformer.name];
+  },
+  value => {
+    const transformer = CustomTransformerRegistry.findApplicable(value)!;
+    return transformer.serialize(value);
+  },
+  (v, a) => {
+    const transformer = CustomTransformerRegistry.findByName(a[1]);
+    if (!transformer) {
+      throw new Error('Trying to deserialize unknown custom value');
+    }
+    return transformer.deserialize(v);
+  }
+);
+
+const compositeRules = [classRule, symbolRule, customRule];
 
 export const transformValue = (
   value: any
@@ -237,6 +263,8 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
         return symbolRule.untransform(json, type);
       case 'class':
         return classRule.untransform(json, type);
+      case 'custom':
+        return customRule.untransform(json, type);
       default:
         throw new Error('Unknown transformation: ' + type);
     }
