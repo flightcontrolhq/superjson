@@ -251,6 +251,27 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works for unknown': {
+      input: () => {
+        type Freak = {
+          name: string;
+          age: unknown;
+        };
+
+        const person: Freak = {
+          name: '@ftonato',
+          age: 1,
+        };
+
+        return person;
+      },
+      output: {
+        name: '@ftonato',
+        age: 1,
+      },
+      outputAnnotations: undefined,
+    },
+
     'works for self-referencing objects': {
       input: () => {
         const a = { role: 'parent', children: [] as any[] };
