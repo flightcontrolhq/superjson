@@ -61,15 +61,18 @@ import superjson from 'superjson';
 
 const jsonString = superjson.stringify({ date: new Date(0) });
 
-// jsonString === '{"json":{"date":"1970-01-01T00:00:00.000Z"},"meta":{"values":{date:"Date"}}}'
+// jsonString === '{"json":{"date":"1970-01-01T00:00:00.000Z"},"meta":{"values":{date:["Date"]}}}'
 ```
 
 And parse your JSON like so:
 
 ```js
+import superjson from 'superjson';
+
+const jsonString = '{"json":{"date":"1970-01-01T00:00:00.000Z"}}';
 const object = superjson.parse<{ date: Date }>(jsonString);
 
-// object === { date: new Date(0) }
+// object === { date: "1970-01-01T00:00:00.000Z" }
 ```
 
 ## Advanced Usage
@@ -81,6 +84,8 @@ One great use case for this is where you have an API that you want to be JSON co
 For example:
 
 ```js
+import superjson from 'superjson';
+
 const object = {
   normal: 'string',
   timestamp: new Date(),
@@ -91,15 +96,15 @@ const { json, meta } = superjson.serialize(object);
 
 /*
 json = {
-  normal: 'string',
+  normal: "string",
   timestamp: "2020-06-20T04:56:50.293Z",
-  test: "/blitz/",
+  test: "/superjson/",
 };
 
 // note that `normal` is not included here; `meta` only has special cases
 meta = {
-  timestamp: ['date'],
-  test: ['regexp'],
+  timestamp: ["Date"],
+  test: ["regexp"],
 };
 */
 ```
@@ -139,13 +144,15 @@ Serializes any JavaScript value into a JSON-compatible object.
 #### Examples
 
 ```js
+import superjson from 'superjson';
+
 const object = {
   normal: 'string',
   timestamp: new Date(),
   test: /superjson/,
 };
 
-const { json, meta } = serialize(object);
+const { json, meta } = superjson.serialize(object);
 ```
 
 Returns **`json` and `meta`, both JSON-compatible values.**
@@ -157,9 +164,11 @@ Deserializes the output of Superjson back into your original value.
 #### Examples
 
 ```js
-const { json, meta } = serialize(object);
+import superjson from 'superjson';
 
-deserialize({ json, meta });
+const { json, meta } = superjson.serialize(object);
+
+superjson.deserialize({ json, meta });
 ```
 
 Returns **`your original value`**.
@@ -171,13 +180,15 @@ Serializes and then stringifies your JavaScript value.
 #### Examples
 
 ```js
+import superjson from 'superjson';
+
 const object = {
   normal: 'string',
   timestamp: new Date(),
   test: /superjson/,
 };
 
-const jsonString = stringify(object);
+const jsonString = superjson.stringify(object);
 ```
 
 Returns **`string`**.
@@ -189,9 +200,11 @@ Parses and then deserializes the JSON string returned by `stringify`.
 #### Examples
 
 ```js
-const jsonString = stringify(object);
+import superjson from 'superjson';
 
-parse(jsonString);
+const jsonString = superjson.stringify(object);
+
+superjson.parse(jsonString);
 ```
 
 Returns **`string`**.
