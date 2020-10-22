@@ -183,18 +183,18 @@ describe('stringify & parse', () => {
 
     'works for Errors': {
       input: {
-        e: new Error("epic fail")
+        e: new Error('epic fail'),
       },
       output: {
         e: {
-          name: "Error",
-          message: "epic fail",
-          stacktrace: ""
-        }
+          name: 'Error',
+          message: 'epic fail',
+          stacktrace: '',
+        },
       },
       outputAnnotations: {
         values: {
-          e: ["Error"]
+          e: ['Error'],
         },
       },
     },
