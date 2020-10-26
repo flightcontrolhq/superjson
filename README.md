@@ -62,14 +62,10 @@ import superjson from 'superjson';
 const jsonString = superjson.stringify({ date: new Date(0) });
 
 // jsonString === '{"json":{"date":"1970-01-01T00:00:00.000Z"},"meta":{"values":{date:["Date"]}}}'
-```
 
-And parse your JSON like so:
-
-```js
-import superjson from 'superjson';
-
-const jsonString = '{"json":{"date":"1970-01-01T00:00:00.000Z"}}';
+// 
+// And parse your JSON like so:
+// 
 const object = superjson.parse<{ date: Date }>(jsonString);
 
 // object === { date: "1970-01-01T00:00:00.000Z" }
@@ -84,15 +80,13 @@ One great use case for this is where you have an API that you want to be JSON co
 For example:
 
 ```js
-import superjson from 'superjson';
-
 const object = {
   normal: 'string',
   timestamp: new Date(),
   test: /superjson/,
 };
 
-const { json, meta } = superjson.serialize(object);
+const { json, meta } = serialize(object);
 
 /*
 json = {
