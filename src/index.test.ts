@@ -13,7 +13,7 @@ describe('stringify & parse', () => {
     string,
     {
       input: (() => SuperJSONValue) | SuperJSONValue;
-      output: JSONValue;
+      output: JSONValue | ((v: JSONValue) => void);
       outputAnnotations?: Annotations;
       customExpectations?: (value: any) => void;
     }
@@ -177,6 +177,24 @@ describe('stringify & parse', () => {
       outputAnnotations: {
         values: {
           'meeting.date': ['Date'],
+        },
+      },
+    },
+
+    'works for Errors': {
+      input: {
+        e: new Error('epic fail'),
+      },
+      output: ({ e }: any) => {
+        expect(e.name).toBe('Error');
+        expect(e.message).toBe('epic fail');
+        expect(e.stack.startsWith('Error: epic fail\n    at Suite.')).toBe(
+          true
+        );
+      },
+      outputAnnotations: {
+        values: {
+          e: ['Error'],
         },
       },
     },
@@ -552,7 +570,11 @@ describe('stringify & parse', () => {
       deepFreeze(inputValue);
       const { json, meta } = SuperJSON.serialize(inputValue);
 
-      expect(json).toEqual(expectedOutput);
+      if (typeof expectedOutput === 'function') {
+        expectedOutput(json);
+      } else {
+        expect(json).toEqual(expectedOutput);
+      }
       expect(meta).toEqual(expectedOutputAnnotations);
 
       const untransformed = SuperJSON.deserialize({ json, meta });

@@ -202,18 +202,19 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 
 | type        | supported by standard JSON? | supported by Superjson? |
 | ----------- | --------------------------- | ----------------------- |
-| `string`    | ✅                          | ✅                      |
-| `number`    | ✅                          | ✅                      |
-| `boolean`   | ✅                          | ✅                      |
-| `null`      | ✅                          | ✅                      |
-| `Array`     | ✅                          | ✅                      |
-| `Object`    | ✅                          | ✅                      |
-| `undefined` | ❌                          | ✅                      |
-| `bigint`    | ❌                          | ✅                      |
-| `Date`      | ❌                          | ✅                      |
-| `RegExp`    | ❌                          | ✅                      |
-| `Set`       | ❌                          | ✅                      |
-| `Map`       | ❌                          | ✅                      |
+| `string`    | ✅                           | ✅                       |
+| `number`    | ✅                           | ✅                       |
+| `boolean`   | ✅                           | ✅                       |
+| `null`      | ✅                           | ✅                       |
+| `Array`     | ✅                           | ✅                       |
+| `Object`    | ✅                           | ✅                       |
+| `undefined` | ❌                           | ✅                       |
+| `bigint`    | ❌                           | ✅                       |
+| `Date`      | ❌                           | ✅                       |
+| `RegExp`    | ❌                           | ✅                       |
+| `Set`       | ❌                           | ✅                       |
+| `Map`       | ❌                           | ✅                       |
+| `Error`     | ❌                           | ✅                       |
 
 ## Contributors ✨
 

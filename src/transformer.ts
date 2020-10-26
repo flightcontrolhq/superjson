@@ -12,12 +12,12 @@ import {
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { fromPairs, includes, entries, find } from 'lodash';
+import { fromPairs, includes, entries, find, isError } from 'lodash';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
-type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date';
+type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'Error';
 
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
@@ -45,7 +45,7 @@ export const isPrimitiveTypeAnnotation = (
 };
 
 const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  ['map', 'regexp', 'set', 'Date']
+  ['map', 'regexp', 'set', 'Date', 'Error']
 );
 
 export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
@@ -96,6 +96,18 @@ const simpleRules = [
     'Date',
     v => v.toISOString(),
     v => new Date(v)
+  ),
+
+  simpleTransformation(
+    isError,
+    'Error',
+    v => ({ name: v.name, message: v.message, stack: v.stack }),
+    ({ name, message, stack }) => {
+      const e = new Error(message);
+      e.name = name;
+      e.stack = stack;
+      return e;
+    }
   ),
 
   simpleTransformation(

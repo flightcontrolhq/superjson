@@ -46,6 +46,9 @@ export const isSymbol = (payload: any): payload is symbol =>
 export const isDate = (payload: any): payload is Date =>
   payload instanceof Date && !isNaN(payload.valueOf());
 
+export const isError = (payload: any): payload is Error =>
+  payload instanceof Error;
+
 export const isNaNValue = (payload: any): payload is typeof NaN =>
   typeof payload === 'number' && isNaN(payload);
 
