@@ -68,7 +68,7 @@ const jsonString = superjson.stringify({ date: new Date(0) });
 // 
 const object = superjson.parse<{ date: Date }>(jsonString);
 
-// object === { date: "1970-01-01T00:00:00.000Z" }
+// object === { date: new Date(0) }
 ```
 
 ## Advanced Usage
