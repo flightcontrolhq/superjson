@@ -74,6 +74,15 @@
       "contributions": [
         "test"
       ]
+    },
+    {
+      "login": "hasparus",
+      "name": "Piotr Monwid-Olechnowicz",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/15332326?v=4",
+      "profile": "https://haspar.us",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
