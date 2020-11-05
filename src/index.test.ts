@@ -724,6 +724,8 @@ describe('stringify & parse', () => {
       }
     }
 
+    expect(new CustomError(10)).toBeInstanceOf(CustomError);
+
     SuperJSON.registerClass(CustomError);
 
     const { error } = SuperJSON.deserialize(
