@@ -1,7 +1,6 @@
 {
   "include": ["src"],
   "compilerOptions": {
-    "target": "es2015",
     "module": "esnext",
     "lib": ["esnext"],
     "importHelpers": true,
