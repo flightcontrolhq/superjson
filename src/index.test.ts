@@ -716,4 +716,27 @@ describe('stringify & parse', () => {
 
     global.BigInt = oldBigInt;
   });
+
+  test('regression #80: Custom error serialisation isnt overriden', () => {
+    class CustomError extends Error {
+      constructor(public readonly customProperty: number) {
+        super("I'm a custom error");
+        // eslint-disable-next-line es5/no-es6-static-methods
+        Object.setPrototypeOf(this, CustomError.prototype);
+      }
+    }
+
+    expect(new CustomError(10)).toBeInstanceOf(CustomError);
+
+    SuperJSON.registerClass(CustomError);
+
+    const { error } = SuperJSON.deserialize(
+      SuperJSON.serialize({
+        error: new CustomError(10),
+      })
+    ) as any;
+
+    expect(error).toBeInstanceOf(CustomError);
+    expect(error.customProperty).toEqual(10);
+  });
 });
