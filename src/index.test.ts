@@ -1,6 +1,3 @@
-/* eslint-disable es5/no-for-of */
-/* eslint-disable es5/no-es6-methods */
-
 import SuperJSON from './';
 import { JSONValue, SuperJSONValue } from './types';
 import { Annotations } from './annotator';
@@ -721,7 +718,6 @@ describe('stringify & parse', () => {
     class CustomError extends Error {
       constructor(public readonly customProperty: number) {
         super("I'm a custom error");
-        // eslint-disable-next-line es5/no-es6-static-methods
         Object.setPrototypeOf(this, CustomError.prototype);
       }
     }
