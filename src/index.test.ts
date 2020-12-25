@@ -590,7 +590,7 @@ describe('stringify & parse', () => {
           private topSpeed: number,
           private color: 'red' | 'blue' | 'yellow',
           private brand: string
-        ) {}
+        ) { }
 
         public brag() {
           return `I'm a ${this.brand} in freakin' ${this.color} and I go ${this.topSpeed} km/h, isn't that bonkers?`;
@@ -627,7 +627,7 @@ describe('stringify & parse', () => {
     describe('with accessor attributes', () => {
       it('works', () => {
         class Currency {
-          constructor(private valueInUsd: number) {}
+          constructor(private valueInUsd: number) { }
 
           get inUSD() {
             return this.valueInUsd;
@@ -739,4 +739,31 @@ describe('stringify & parse', () => {
     expect(error).toBeInstanceOf(CustomError);
     expect(error.customProperty).toEqual(10);
   });
+});
+
+test('regression #83: negative zero', () => {
+  const input = -0;
+
+  const serialized = SuperJSON.serialize(input);
+  expect(serialized).toMatchInlineSnapshot(`
+    Object {
+      "json": "-0",
+      "meta": Object {
+        "values": Array [
+          "number",
+        ],
+      },
+    }
+  `);
+  expect(serialized).toEqual({
+    "json": "-0",
+    "meta": {
+      "values": [
+        "number",
+      ],
+    },
+  })
+  const deserialize: number = SuperJSON.deserialize(serialized);
+
+  expect(1 / deserialize).toBe(-Infinity);
 });
