@@ -744,24 +744,12 @@ describe('stringify & parse', () => {
 test('regression #83: negative zero', () => {
   const input = -0;
 
-  const serialized = SuperJSON.serialize(input);
-  expect(serialized).toMatchInlineSnapshot(`
-    Object {
-      "json": "-0",
-      "meta": Object {
-        "values": Array [
-          "number",
-        ],
-      },
-    }
-  `);
-  expect(serialized).toEqual({
-    json: '-0',
-    meta: {
-      values: ['number'],
-    },
-  });
-  const deserialize: number = SuperJSON.deserialize(serialized);
+  const stringified = SuperJSON.stringify(input);
+  expect(stringified).toMatchInlineSnapshot(
+    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"]}}"`
+  );
 
-  expect(1 / deserialize).toBe(-Infinity);
+  const parsed: number = SuperJSON.parse(stringified);
+
+  expect(1 / parsed).toBe(-Infinity);
 });
