@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -235,6 +235,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://haspar.us"><img src="https://avatars0.githubusercontent.com/u/15332326?v=4" width="100px;" alt=""/><br /><sub><b>Piotr Monwid-Olechnowicz</b></sub></a><br /><a href="#ideas-hasparus" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="http://kattcorp.com"><img src="https://avatars1.githubusercontent.com/u/459267?v=4" width="100px;" alt=""/><br /><sub><b>Alex Johansson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=KATT" title="Code">💻</a> <a href="https://github.com/blitz-js/superjson/commits?author=KATT" title="Tests">⚠️</a></td>
   </tr>
 </table>
 
