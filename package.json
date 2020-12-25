@@ -68,8 +68,5 @@
     "tslib": "^2.0.0",
     "typescript": "^3.9.6"
   },
-  "dependencies": {
-    "lodash": "^4.17.20",
-    "lodash-es": "^4.17.15"
-  }
+  "dependencies": {}
 }
