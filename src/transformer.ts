@@ -150,6 +150,15 @@ const simpleRules = [
     },
     Number
   ),
+
+  simpleTransformation<number, '-0', 'number'>(
+    (v): v is number => v === 0 && 1 / v === -Infinity,
+    'number',
+    () => {
+      return '-0';
+    },
+    Number
+  ),
 ];
 
 function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(

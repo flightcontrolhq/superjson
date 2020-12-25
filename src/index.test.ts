@@ -736,3 +736,16 @@ describe('stringify & parse', () => {
     expect(error.customProperty).toEqual(10);
   });
 });
+
+test('regression #83: negative zero', () => {
+  const input = -0;
+
+  const stringified = SuperJSON.stringify(input);
+  expect(stringified).toMatchInlineSnapshot(
+    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"]}}"`
+  );
+
+  const parsed: number = SuperJSON.parse(stringified);
+
+  expect(1 / parsed).toBe(-Infinity);
+});
