@@ -14,6 +14,7 @@ import {
   CustomTransfomer,
   CustomTransformerRegistry,
 } from './custom-transformer-registry';
+import { allowErrorProps } from './error-props';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const { getAnnotations, annotator } = makeAnnotator();
@@ -64,8 +65,6 @@ const registerCustom = <I, O extends JSONValue>(
     ...transformer,
   });
 
-const allowErrorProps = (..._props: string[]) => {};
-
 export default {
   stringify,
   parse,
@@ -74,5 +73,5 @@ export default {
   registerClass,
   registerSymbol,
   registerCustom,
-  allowErrorProps
+  allowErrorProps,
 };
