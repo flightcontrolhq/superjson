@@ -64,6 +64,8 @@ const registerCustom = <I, O extends JSONValue>(
     ...transformer,
   });
 
+const allowErrorProps = (..._props: string[]) => {};
+
 export default {
   stringify,
   parse,
@@ -72,4 +74,5 @@ export default {
   registerClass,
   registerSymbol,
   registerCustom,
+  allowErrorProps
 };

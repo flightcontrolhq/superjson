@@ -741,6 +741,27 @@ describe('stringify & parse', () => {
   });
 });
 
+test('allowErrorProps(...) (#91)', () => {
+  const errorWithAdditionalProps: Error & any = new Error(
+    'I have additional props 😄'
+  );
+  errorWithAdditionalProps.code = 'P2002';
+  errorWithAdditionalProps.meta = '👾';
+
+  // same as allowErrorProps("code", "meta")
+  SuperJSON.allowErrorProps('code');
+  SuperJSON.allowErrorProps('meta');
+
+  const errorAfterTransition: any = SuperJSON.parse(
+    SuperJSON.stringify(errorWithAdditionalProps)
+  );
+
+  expect(errorAfterTransition).toBeInstanceOf(Error);
+  expect(errorAfterTransition.message).toEqual('I have additional props 😄');
+  expect(errorAfterTransition.code).toEqual('P2002');
+  expect(errorAfterTransition.meta).toEqual('👾');
+});
+
 test('regression #83: negative zero', () => {
   const input = -0;
 
