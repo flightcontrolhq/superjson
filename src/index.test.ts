@@ -741,25 +741,42 @@ describe('stringify & parse', () => {
   });
 });
 
-test('allowErrorProps(...) (#91)', () => {
-  const errorWithAdditionalProps: Error & any = new Error(
-    'I have additional props 😄'
-  );
-  errorWithAdditionalProps.code = 'P2002';
-  errorWithAdditionalProps.meta = '👾';
+describe('allowErrorProps(...) (#91)', () => {
+  it('works with simple prop values', () => {
+    const errorWithAdditionalProps: Error & any = new Error(
+      'I have additional props 😄'
+    );
+    errorWithAdditionalProps.code = 'P2002';
+    errorWithAdditionalProps.meta = '👾';
 
-  // same as allowErrorProps("code", "meta")
-  SuperJSON.allowErrorProps('code');
-  SuperJSON.allowErrorProps('meta');
+    // same as allowErrorProps("code", "meta")
+    SuperJSON.allowErrorProps('code');
+    SuperJSON.allowErrorProps('meta');
 
-  const errorAfterTransition: any = SuperJSON.parse(
-    SuperJSON.stringify(errorWithAdditionalProps)
-  );
+    const errorAfterTransition: any = SuperJSON.parse(
+      SuperJSON.stringify(errorWithAdditionalProps)
+    );
 
-  expect(errorAfterTransition).toBeInstanceOf(Error);
-  expect(errorAfterTransition.message).toEqual('I have additional props 😄');
-  expect(errorAfterTransition.code).toEqual('P2002');
-  expect(errorAfterTransition.meta).toEqual('👾');
+    expect(errorAfterTransition).toBeInstanceOf(Error);
+    expect(errorAfterTransition.message).toEqual('I have additional props 😄');
+    expect(errorAfterTransition.code).toEqual('P2002');
+    expect(errorAfterTransition.meta).toEqual('👾');
+  });
+
+  it.skip('works with complex prop values', () => {
+    const errorWithAdditionalProps: any = new Error();
+    errorWithAdditionalProps.map = new Map();
+
+    SuperJSON.allowErrorProps('map');
+
+    const errorAfterTransition: any = SuperJSON.parse(
+      SuperJSON.stringify(errorWithAdditionalProps)
+    );
+
+    expect(errorAfterTransition.map).toEqual(undefined);
+
+    expect(errorAfterTransition.map).toBeInstanceOf(Map);
+  });
 });
 
 test('regression #83: negative zero', () => {
