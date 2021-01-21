@@ -791,3 +791,41 @@ test('regression #83: negative zero', () => {
 
   expect(1 / parsed).toBe(-Infinity);
 });
+
+test('performance regression', () => {
+  const data: any[] = [];
+  for (let i = 0; i < 100; i++) {
+    const object = {
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nested1: Array(10).map(_ => {
+        return {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          innerNested: {
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        };
+      }),
+      nested2: Array(10).map(_ => {
+        return {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          innerNested: {
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        };
+      }),
+    };
+
+    data.push(object);
+  }
+
+  const t1 = Date.now();
+  SuperJSON.serialize(data);
+  const t2 = Date.now();
+  const duration = t2 - t1;
+  expect(duration).toBeLessThan(300);
+});
