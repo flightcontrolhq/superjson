@@ -55,8 +55,8 @@ export function isSuperJSONResult(object: any): object is SuperJSONResult {
 }
 
 interface AddtionalPropsToError {
-  code?: string;
-  meta?: string;
+  code?: any;
+  meta?: any;
   map?: Map<any, any>;
 }
 
