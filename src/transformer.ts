@@ -14,6 +14,7 @@ import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import { fromPairs, includes, entries, find, isError } from 'lodash';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
+import { allowedErrorProps } from './error-props';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -101,11 +102,28 @@ const simpleRules = [
   simpleTransformation(
     isError,
     'Error',
-    v => ({ name: v.name, message: v.message, stack: v.stack }),
-    ({ name, message, stack }) => {
-      const e = new Error(message);
-      e.name = name;
-      e.stack = stack;
+    v => {
+      const baseError: any = {
+        name: v.name,
+        message: v.message,
+        stack: v.stack,
+      };
+
+      allowedErrorProps.forEach(prop => {
+        baseError[prop] = (v as any)[prop];
+      });
+
+      return baseError;
+    },
+    v => {
+      const e = new Error(v.message);
+      e.name = v.name;
+      e.stack = v.stack;
+
+      allowedErrorProps.forEach(prop => {
+        (e as any)[prop] = v[prop];
+      });
+
       return e;
     }
   ),
