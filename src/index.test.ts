@@ -2,7 +2,7 @@
 /* eslint-disable es5/no-es6-methods */
 
 import SuperJSON from './';
-import { JSONValue, SuperJSONValue } from './types';
+import { JSONValue, SuperJSONValue, ErrorWithAdditionalProps } from './types';
 import { Annotations } from './annotator';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
@@ -743,7 +743,7 @@ describe('stringify & parse', () => {
 
 describe('allowErrorProps(...) (#91)', () => {
   it('works with simple prop values', () => {
-    const errorWithAdditionalProps: Error & any = new Error(
+    const errorWithAdditionalProps: ErrorWithAdditionalProps = new Error(
       'I have additional props 😄'
     );
     errorWithAdditionalProps.code = 'P2002';
@@ -764,7 +764,7 @@ describe('allowErrorProps(...) (#91)', () => {
   });
 
   it.skip('works with complex prop values', () => {
-    const errorWithAdditionalProps: any = new Error();
+    const errorWithAdditionalProps: ErrorWithAdditionalProps = new Error();
     errorWithAdditionalProps.map = new Map();
 
     SuperJSON.allowErrorProps('map');

@@ -53,3 +53,11 @@ export function isSuperJSONResult(object: any): object is SuperJSONResult {
 
   return isAnnotations(object.meta);
 }
+
+interface AddtionalPropsToError {
+  code?: string;
+  meta?: string;
+  map?: Map<any, any>;
+}
+
+export type ErrorWithAdditionalProps = Error & AddtionalPropsToError;
