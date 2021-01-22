@@ -2,6 +2,20 @@ import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
 import { forEach, every, find } from 'lodash';
 
+function startsWith(prefix: string, v: string) {
+  if (prefix.length > v.length) {
+    return false;
+  }
+
+  for (let i = 0; i < prefix.length; i++) {
+    if (v[i] !== prefix[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
 type InnerNode<T> = [T, Record<string, Tree<T>>];
@@ -21,14 +35,6 @@ export function isTree<T>(
   }
 
   return false;
-}
-
-function isPrefixOf<T>(potentialPrefix: T[], of: T[]): boolean {
-  if (potentialPrefix.length > of.length) {
-    return false;
-  }
-
-  return potentialPrefix.every((value, index) => value === of[index]);
 }
 
 export module PathTree {
@@ -56,52 +62,40 @@ export module PathTree {
   /**
    * @description Optimised for adding new leaves. Does not support adding inner nodes.
    */
-  export function append<T>(tree: Tree<T>, path: string[], value: T): Tree<T> {
+  export function append<T>(tree: Tree<T>, path: string[], value: T) {
     if (path.length === 0) {
-      if (tree.length === 1) {
-        return [value];
-      } else {
-        const [, children] = tree;
-        return [value, children];
-      }
+      tree[0] = value;
+      return;
     }
 
     if (tree.length === 1) {
-      const [nodeValue] = tree;
-      return [nodeValue, { [stringifyPath(path)]: [value] }];
+      ((tree as any) as InnerNode<T>)[1] = { [stringifyPath(path)]: [value] };
     } else {
-      const [nodeValue, children] = tree;
+      const [, children] = tree;
       const availablePaths = Object.keys(children);
+
+      const stringifiedPath = stringifyPath(path);
 
       // due to the constraints mentioned in the functions description,
       // there may be prefixes of `path` already set, but no extensions of it.
       // If there's such a prefix, we'll find it.
       const prefix = find(availablePaths, candidate =>
-        isPrefixOf(parsePath(candidate), path)
+        startsWith(candidate + '.', stringifiedPath)
       );
 
       if (isUndefined(prefix)) {
-        return [nodeValue, { ...children, [stringifyPath(path)]: [value] }];
+        tree[1][stringifyPath(path)] = [value];
       } else {
         const pathWithoutPrefix = path.slice(parsePath(prefix).length);
-        return [
-          nodeValue,
-          {
-            ...children,
-            [prefix]: append(children[prefix], pathWithoutPrefix, value),
-          },
-        ];
+        append(children[prefix], pathWithoutPrefix, value);
       }
     }
   }
 
-  export function appendPath(
-    tree: Tree<string | null>,
-    path: string[]
-  ): Tree<string | null> {
+  export function appendPath(tree: Tree<string | null>, path: string[]) {
     const front = path.slice(0, path.length - 1);
     const last = path[path.length - 1];
-    return append(tree, front, last);
+    append(tree, front, last);
   }
 
   /**

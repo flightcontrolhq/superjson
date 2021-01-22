@@ -1,3 +1,6 @@
 node_modules
 dist
 coverage
+dist2
+.clinic
+*.log
