@@ -1,20 +1,6 @@
 import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
-import { forEach, every, find } from 'lodash';
-
-function startsWith(prefix: string, v: string) {
-  if (prefix.length > v.length) {
-    return false;
-  }
-
-  for (let i = 0; i < prefix.length; i++) {
-    if (v[i] !== prefix[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
+import { forEach, every } from 'lodash';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
@@ -71,24 +57,7 @@ export module PathTree {
     if (tree.length === 1) {
       ((tree as any) as InnerNode<T>)[1] = { [stringifyPath(path)]: [value] };
     } else {
-      const [, children] = tree;
-      const availablePaths = Object.keys(children);
-
-      const stringifiedPath = stringifyPath(path);
-
-      // due to the constraints mentioned in the functions description,
-      // there may be prefixes of `path` already set, but no extensions of it.
-      // If there's such a prefix, we'll find it.
-      const prefix = find(availablePaths, candidate =>
-        startsWith(candidate + '.', stringifiedPath)
-      );
-
-      if (isUndefined(prefix)) {
-        tree[1][stringifyPath(path)] = [value];
-      } else {
-        const pathWithoutPrefix = path.slice(parsePath(prefix).length);
-        append(children[prefix], pathWithoutPrefix, value);
-      }
+      tree[1][stringifyPath(path)] = [value];
     }
   }
 

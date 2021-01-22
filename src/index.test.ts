@@ -63,7 +63,8 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          a: ['set', { 1: ['undefined'] }],
+          a: ['set'],
+          'a.1': ['undefined'],
         },
       },
     },
@@ -97,7 +98,8 @@ describe('stringify & parse', () => {
 
       outputAnnotations: {
         values: {
-          a: ['map', { '1.0': ['number'] }],
+          a: ['map'],
+          'a.1.0': ['number'],
           b: ['map'],
           d: ['map'],
         },
