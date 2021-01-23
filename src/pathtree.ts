@@ -175,7 +175,7 @@ export module PathTree {
 
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
-      if (tree[1][key] === undefined) break;
+      if (tree[1][key] === undefined) continue;
       const children = keys.filter(
         t => t !== key && t.substring(0, key.length + 1) === key + '.'
       );
