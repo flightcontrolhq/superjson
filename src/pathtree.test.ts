@@ -8,14 +8,17 @@ test('pathtree', () => {
   expect(tree).toEqual([null, { abc: ['1'] }]);
 
   PathTree.append(tree, ['abc', 'd'], '2');
+  PathTree.compress(tree);
 
   expect(tree).toEqual([null, { abc: ['1', { d: ['2'] }] }]);
 
   PathTree.append(tree, ['foo', 'bar'], '3');
+  PathTree.compress(tree);
 
   expect(tree).toEqual([null, { abc: ['1', { d: ['2'] }], 'foo.bar': ['3'] }]);
 
   PathTree.append(tree, ['foo', 'bar', 'lel', 'lol'], '4');
+  PathTree.compress(tree);
 
   expect(tree).toEqual([
     null,

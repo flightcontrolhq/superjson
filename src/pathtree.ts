@@ -165,30 +165,42 @@ export module PathTree {
   /**
    * @description Compress nested trees for smaller output
    */
-  export function compress<T>(tree: Tree<T | null>): Tree<T> {
+  export function compress<T>(tree: Tree<T | null>) {
     if (tree.length === 1) {
       // tree root is Leaf
-      return tree as Tree<T>;
+      return;
     }
 
-    const keys = Object.keys(tree[1]).sort((a, b) => b.length - a.length);
+    const origin = tree[1];
+    const keys = Object.keys(origin).sort((a, b) => a.length - b.length);
+    const transformed: Record<string, Tree<T | null>> = {};
 
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
-      if (tree[1][key] === undefined) continue;
-      const children = keys.filter(
-        t => t !== key && t.substring(0, key.length + 1) === key + '.'
-      );
-      for (let j = 0; j < children.length; j++) {
-        tree[1][key][1] = Object.assign(tree[1][key][1] || {}, {
-          [children[j].substring(key.length + 1)]: compress(
-            tree[1][children[j]]
-          ),
-        });
-        delete tree[1][children[j]];
+
+      let parentKey = undefined;
+      let splittedKey = key.split('.');
+      while (splittedKey.length > 0) {
+        splittedKey.pop();
+        const possibleParentKey = splittedKey.join('.');
+        if (transformed.hasOwnProperty(possibleParentKey)) {
+          parentKey = possibleParentKey;
+          break;
+        }
+      }
+      if (parentKey && transformed[parentKey]) {
+        transformed[parentKey][1] = Object.assign(
+          transformed[parentKey][1] || {},
+          {
+            [key.substring(parentKey.length + 1)]: origin[key],
+          }
+        );
+        continue;
+      } else {
+        transformed[key] = origin[key];
       }
     }
 
-    return tree as Tree<T>;
+    tree[1] = transformed;
   }
 }
