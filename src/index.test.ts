@@ -792,7 +792,7 @@ test('regression #83: negative zero', () => {
   expect(1 / parsed).toBe(-Infinity);
 });
 
-test('regression #X: no undefined', () => {
+test('regression #95: no undefined', () => {
   const input: unknown[] = [];
 
   const out = SuperJSON.serialize(input);
