@@ -201,6 +201,12 @@ export module PathTree {
       }
     }
 
+    // Recursive optimization
+    const transformedKeys = Object.keys(transformed);
+    for (let i = 0; i < transformedKeys.length; i++) {
+      compress(transformed[transformedKeys[i]]);
+    }
+
     tree[1] = transformed;
   }
 }
