@@ -161,4 +161,34 @@ export module PathTree {
 
     return [null, tree];
   }
+
+  /**
+   * @description Compress nested trees for smaller output
+   */
+  export function compress<T>(tree: Tree<T | null>): Tree<T> {
+    if (tree.length === 1) {
+      // tree root is Leaf
+      return tree as Tree<T>;
+    }
+
+    const keys = Object.keys(tree[1]).sort((a, b) => b.length - a.length);
+
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (tree[1][key] === undefined) break;
+      const children = keys.filter(
+        t => t !== key && t.substring(0, key.length + 1) === key + '.'
+      );
+      for (let j = 0; j < children.length; j++) {
+        tree[1][key][1] = Object.assign(tree[1][key][1] || {}, {
+          [children[j].substring(key.length + 1)]: compress(
+            tree[1][children[j]]
+          ),
+        });
+        delete tree[1][children[j]];
+      }
+    }
+
+    return tree as Tree<T>;
+  }
 }
