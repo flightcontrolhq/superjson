@@ -830,3 +830,14 @@ test('performance regression', () => {
   const duration = t2 - t1;
   expect(duration).toBeLessThan(500);
 });
+
+test('regression #95: no undefined', () => {
+  const input: unknown[] = [];
+
+  const out = SuperJSON.serialize(input);
+  expect(out).not.toHaveProperty('meta');
+
+  const parsed: number = SuperJSON.deserialize(out);
+
+  expect(parsed).toEqual(input);
+});
