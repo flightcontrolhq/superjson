@@ -792,6 +792,45 @@ test('regression #83: negative zero', () => {
   expect(1 / parsed).toBe(-Infinity);
 });
 
+test('performance regression', () => {
+  const data: any[] = [];
+  for (let i = 0; i < 100; i++) {
+    let nested1 = [];
+    let nested2 = [];
+    for (let j = 0; j < 10; j++) {
+      nested1[j] = {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        innerNested: {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+      nested2[j] = {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        innerNested: {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+    }
+    const object = {
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nested1,
+      nested2,
+    };
+    data.push(object);
+  }
+
+  const t1 = Date.now();
+  SuperJSON.serialize(data);
+  const t2 = Date.now();
+  const duration = t2 - t1;
+  expect(duration).toBeLessThan(500);
+});
+
 test('regression #95: no undefined', () => {
   const input: unknown[] = [];
 
