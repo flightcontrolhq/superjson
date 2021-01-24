@@ -828,5 +828,5 @@ test('performance regression', () => {
   SuperJSON.serialize(data);
   const t2 = Date.now();
   const duration = t2 - t1;
-  expect(duration).toBeLessThan(300);
+  expect(duration).toBeLessThan(500);
 });
