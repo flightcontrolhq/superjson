@@ -44,10 +44,11 @@ class ValueAnnotationFactory {
   private tree = PathTree.create<TypeAnnotation | null>(null);
 
   add(path: any[], annotation: TypeAnnotation) {
-    this.tree = PathTree.append(this.tree, path.map(String), annotation);
+    PathTree.append(this.tree, path, annotation);
   }
 
   create() {
+    PathTree.compress(this.tree);
     return PathTree.collapseRoot(this.tree);
   }
 }
@@ -75,7 +76,7 @@ class ReferentialEqualityAnnotationFactory {
 
       let identities = PathTree.create<string | null>(null);
       identicalPaths.forEach(identicalPath => {
-        identities = PathTree.appendPath(identities, identicalPath);
+        PathTree.appendPath(identities, identicalPath);
       });
 
       const minimizedIdentities = PathTree.collapseRoot(identities);
@@ -83,7 +84,7 @@ class ReferentialEqualityAnnotationFactory {
         throw new Error('Illegal State');
       }
 
-      tree = PathTree.append(tree, shortestPath, minimizedIdentities);
+      PathTree.append(tree, shortestPath, minimizedIdentities);
     });
 
     return PathTree.collapseRoot(tree);

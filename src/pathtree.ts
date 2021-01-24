@@ -1,6 +1,6 @@
 import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
-import { forEach, every, find } from 'lodash';
+import { forEach, every } from 'lodash';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
@@ -21,14 +21,6 @@ export function isTree<T>(
   }
 
   return false;
-}
-
-function isPrefixOf<T>(potentialPrefix: T[], of: T[]): boolean {
-  if (potentialPrefix.length > of.length) {
-    return false;
-  }
-
-  return potentialPrefix.every((value, index) => value === of[index]);
 }
 
 export module PathTree {
@@ -56,52 +48,23 @@ export module PathTree {
   /**
    * @description Optimised for adding new leaves. Does not support adding inner nodes.
    */
-  export function append<T>(tree: Tree<T>, path: string[], value: T): Tree<T> {
+  export function append<T>(tree: Tree<T>, path: string[], value: T) {
     if (path.length === 0) {
-      if (tree.length === 1) {
-        return [value];
-      } else {
-        const [, children] = tree;
-        return [value, children];
-      }
+      tree[0] = value;
+      return;
     }
 
     if (tree.length === 1) {
-      const [nodeValue] = tree;
-      return [nodeValue, { [stringifyPath(path)]: [value] }];
+      ((tree as any) as InnerNode<T>)[1] = { [stringifyPath(path)]: [value] };
     } else {
-      const [nodeValue, children] = tree;
-      const availablePaths = Object.keys(children);
-
-      // due to the constraints mentioned in the functions description,
-      // there may be prefixes of `path` already set, but no extensions of it.
-      // If there's such a prefix, we'll find it.
-      const prefix = find(availablePaths, candidate =>
-        isPrefixOf(parsePath(candidate), path)
-      );
-
-      if (isUndefined(prefix)) {
-        return [nodeValue, { ...children, [stringifyPath(path)]: [value] }];
-      } else {
-        const pathWithoutPrefix = path.slice(parsePath(prefix).length);
-        return [
-          nodeValue,
-          {
-            ...children,
-            [prefix]: append(children[prefix], pathWithoutPrefix, value),
-          },
-        ];
-      }
+      tree[1][stringifyPath(path)] = [value];
     }
   }
 
-  export function appendPath(
-    tree: Tree<string | null>,
-    path: string[]
-  ): Tree<string | null> {
+  export function appendPath(tree: Tree<string | null>, path: string[]) {
     const front = path.slice(0, path.length - 1);
     const last = path[path.length - 1];
-    return append(tree, front, last);
+    append(tree, front, last);
   }
 
   /**
@@ -197,5 +160,53 @@ export module PathTree {
     }
 
     return [null, tree];
+  }
+
+  /**
+   * @description Compress nested trees for smaller output
+   */
+  export function compress<T>(tree: Tree<T | null>) {
+    if (tree.length === 1) {
+      // tree root is Leaf
+      return;
+    }
+
+    const origin = tree[1];
+    const keys = Object.keys(origin).sort((a, b) => a.length - b.length);
+    const transformed: Record<string, Tree<T | null>> = {};
+
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+
+      let parentKey = undefined;
+      let splittedKey = key.split('.');
+      while (splittedKey.length > 0) {
+        splittedKey.pop();
+        const possibleParentKey = splittedKey.join('.');
+        if (transformed.hasOwnProperty(possibleParentKey)) {
+          parentKey = possibleParentKey;
+          break;
+        }
+      }
+      if (parentKey && transformed[parentKey]) {
+        transformed[parentKey][1] = Object.assign(
+          transformed[parentKey][1] || {},
+          {
+            [key.substring(parentKey.length + 1)]: origin[key],
+          }
+        );
+        continue;
+      } else {
+        transformed[key] = origin[key];
+      }
+    }
+
+    // Recursive optimization
+    const transformedKeys = Object.keys(transformed);
+    for (let i = 0; i < transformedKeys.length; i++) {
+      compress(transformed[transformedKeys[i]]);
+    }
+
+    tree[1] = transformed;
   }
 }
