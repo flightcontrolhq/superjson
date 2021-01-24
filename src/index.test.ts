@@ -629,6 +629,7 @@ describe('stringify & parse', () => {
         class Currency {
           constructor(private valueInUsd: number) {}
 
+          // @ts-ignore
           get inUSD() {
             return this.valueInUsd;
           }

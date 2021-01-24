@@ -11,11 +11,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
+    "build": "tsc",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepack": "tsc"
   },
   "peerDependencies": {},
   "husky": {
@@ -65,7 +64,6 @@
     "husky": "^4.2.5",
     "mongodb": "^3.6.2",
     "tsdx": "^0.13.2",
-    "tslib": "^2.0.0",
     "typescript": "^3.9.6"
   },
   "dependencies": {
