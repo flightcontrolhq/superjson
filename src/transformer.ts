@@ -9,12 +9,13 @@ import {
   isUndefined,
   isSymbol,
   isArray,
+  isError,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { fromPairs, includes, entries, find, isError } from 'lodash';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 import { allowedErrorProps } from './error-props';
+import { includes, findArr } from './util';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -142,13 +143,15 @@ const simpleRules = [
   simpleTransformation(
     isSet,
     'set',
-    v => entries(v).map(([value]) => value),
+    // (sets only exist in es6+)
+    // eslint-disable-next-line es5/no-es6-methods
+    v => Object.values(v),
     v => new Set(v)
   ),
   simpleTransformation(
     isMap,
     'map',
-    v => entries(v),
+    v => Object.entries(v),
     v => new Map(v)
   ),
 
@@ -267,7 +270,7 @@ const compositeRules = [classRule, symbolRule, customRule];
 export const transformValue = (
   value: any
 ): { value: any; type: TypeAnnotation } | undefined => {
-  const applicableCompositeRule = find(compositeRules, rule =>
+  const applicableCompositeRule = findArr(compositeRules, rule =>
     rule.isApplicable(value)
   );
   if (applicableCompositeRule) {
@@ -277,7 +280,7 @@ export const transformValue = (
     };
   }
 
-  const applicableSimpleRule = find(simpleRules, rule =>
+  const applicableSimpleRule = findArr(simpleRules, rule =>
     rule.isApplicable(value)
   );
 
@@ -291,7 +294,7 @@ export const transformValue = (
   return undefined;
 };
 
-const simpleRulesByAnnotation = fromPairs(
+const simpleRulesByAnnotation = Object.fromEntries(
   simpleRules.map(r => [r.annotation, r])
 );
 

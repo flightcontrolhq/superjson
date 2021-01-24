@@ -1,5 +1,5 @@
 import { JSONValue } from './types';
-import _ from 'lodash';
+import { find } from './util';
 
 export interface CustomTransfomer<I, O extends JSONValue> {
   name: string;
@@ -16,7 +16,7 @@ export const CustomTransformerRegistry = {
   },
 
   findApplicable<T>(v: T) {
-    return _.find(transfomers, transformer => transformer.isApplicable(v)) as
+    return find(transfomers, transformer => transformer.isApplicable(v)) as
       | CustomTransfomer<T, JSONValue>
       | undefined;
   },

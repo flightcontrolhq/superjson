@@ -64,12 +64,9 @@
     "eslint-plugin-es5": "^1.5.0",
     "husky": "^4.2.5",
     "mongodb": "^3.6.2",
-    "tsdx": "^0.13.2",
+    "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.6"
   },
-  "dependencies": {
-    "lodash": "^4.17.20",
-    "lodash-es": "^4.17.15"
-  }
+  "dependencies": {}
 }
