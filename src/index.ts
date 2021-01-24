@@ -21,11 +21,13 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const output = plainer(object, annotator);
 
   const annotations = getAnnotations();
-
-  return {
+  const res: SuperJSONResult = {
     json: output,
-    meta: isEmptyObject(annotations) ? undefined : annotations,
   };
+  if (!isEmptyObject(annotations)) {
+    res.meta = annotations;
+  }
+  return res;
 };
 
 export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
