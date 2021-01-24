@@ -1,13 +1,12 @@
 {
   "include": ["src"],
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "esnext",
     "lib": ["esnext"],
-    "importHelpers": false,
+    "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
     "rootDir": "./src",
-    "outDir": "./dist2",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
