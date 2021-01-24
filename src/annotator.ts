@@ -48,6 +48,7 @@ class ValueAnnotationFactory {
   }
 
   create() {
+    PathTree.compress(this.tree);
     return PathTree.collapseRoot(this.tree);
   }
 }
