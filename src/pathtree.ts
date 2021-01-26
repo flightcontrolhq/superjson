@@ -1,6 +1,6 @@
 import { stringifyPath, parsePath } from './pathstringifier';
 import { isUndefined, isNull, isArray, isPlainObject } from './is';
-import { forEach, every } from 'lodash';
+import { forEach, every } from './util';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];

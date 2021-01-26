@@ -1,5 +1,5 @@
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
-import { mapValues, values, includes, entries } from 'lodash';
+import { includes, mapValues } from './util';
 
 interface WalkerValue {
   isLeaf: boolean;
@@ -33,19 +33,21 @@ export const plainer = (
   }
 
   if (isArray(object)) {
-    return values(object).map((value, index) =>
+    return object.map((value, index) =>
       plainer(value, walker, [...path, index], alreadySeenObjects)
     );
   }
 
   if (isSet(object)) {
-    return entries(object).map(([value], index) =>
+    // (sets only exist in es6+)
+    // eslint-disable-next-line es5/no-es6-methods
+    return [...object.values()].map((value, index) =>
       plainer(value, walker, [...path, index], alreadySeenObjects)
     );
   }
 
   if (isMap(object)) {
-    return entries(object).map(([key, value], index) => [
+    return [...object.entries()].map(([key, value], index) => [
       plainer(key, walker, [...path, index, 0], alreadySeenObjects),
       plainer(value, walker, [...path, index, 1], alreadySeenObjects),
     ]);
