@@ -58,11 +58,11 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.14.168",
-    "@types/mongodb": "^3.5.27",
+    "@types/mongodb": "^3.6.3",
     "benchmark": "^2.1.4",
     "eslint-plugin-es5": "^1.5.0",
     "husky": "^4.3.8",
-    "mongodb": "^3.6.2",
+    "mongodb": "^3.6.3",
     "tsdx": "^0.14.1",
     "typescript": "^4.1.3"
   },
