@@ -690,6 +690,7 @@ describe('stringify & parse', () => {
 
   test('regression #65: BigInt on Safari v13', () => {
     const oldBigInt = global.BigInt;
+    // @ts-ignore
     delete global.BigInt;
 
     const input = {
