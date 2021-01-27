@@ -93,6 +93,17 @@
         "code",
         "test"
       ]
+    },
+    {
+      "login": "simonedelmann",
+      "name": "Simon Edelmann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2821076?v=4",
+      "profile": "https://github.com/simonedelmann",
+      "contributions": [
+        "bug",
+        "code",
+        "ideas"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
