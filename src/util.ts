@@ -52,7 +52,7 @@ export function every<T>(
   const values = valuesOfObj(record);
 
   for (let i = 0; i < values.length; i++) {
-    const value = values[0];
+    const value = values[i];
     if (!predicate(value)) {
       return false;
     }
