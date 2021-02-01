@@ -14,8 +14,13 @@ export class Registry<T> {
       identifier = this.generateIdentifier(value);
     }
 
-    if (this.kv.getByKey(identifier)) {
-      throw new Error('Ambiguous class, provide a unique identifier.');
+    if (process.env.NODE_ENV !== 'production') {
+      const alreadyRegistered = this.kv.getByKey(identifier);
+      if (alreadyRegistered && alreadyRegistered !== value) {
+        console.warn(
+          `Ambiguous class "${identifier}", provide a unique identifier.`
+        );
+      }
     }
 
     this.kv.set(identifier, value);

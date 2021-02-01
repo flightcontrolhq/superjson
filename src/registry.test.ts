@@ -16,8 +16,11 @@ test('class registry', () => {
 
   expect(() => registry.register(Car)).not.toThrow();
 
-  expect(() => registry.register(class Car {})).toThrow(
-    'Ambiguous class, provide a unique identifier.'
+  const warnSpy = jest.spyOn(console, 'warn');
+
+  registry.register(class Car {});
+  expect(warnSpy).toHaveBeenCalledWith(
+    'Ambiguous class "Car", provide a unique identifier.'
   );
 
   registry.register(class Car {}, 'car2');
