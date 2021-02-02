@@ -569,11 +569,13 @@ describe('stringify & parse', () => {
       skipOnNode10,
     },
   ] of Object.entries(cases)) {
+    let testFunc = test;
+
     if (skipOnNode10 && isNode10) {
-      continue;
+      testFunc = test.skip;
     }
 
-    test(testName, () => {
+    testFunc(testName, () => {
       const inputValue = typeof input === 'function' ? input() : input;
 
       // let's make sure SuperJSON doesn't mutate our input!
