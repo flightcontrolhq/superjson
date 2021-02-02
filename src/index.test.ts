@@ -188,9 +188,6 @@ describe('stringify & parse', () => {
       output: ({ e }: any) => {
         expect(e.name).toBe('Error');
         expect(e.message).toBe('epic fail');
-        expect(e.stack.startsWith('Error: epic fail\n    at Suite.')).toBe(
-          true
-        );
       },
       outputAnnotations: {
         values: {
@@ -842,4 +839,20 @@ test('regression #95: no undefined', () => {
   const parsed: number = SuperJSON.deserialize(out);
 
   expect(parsed).toEqual(input);
+});
+
+test('regression #108: Error#stack should not be included by default', () => {
+  const input = new Error("Beep boop, you don't wanna see me. I'm an error!");
+  expect(input).toHaveProperty('stack');
+
+  const { stack: thatShouldBeUndefined } = SuperJSON.parse(
+    SuperJSON.stringify(input)
+  ) as any;
+  expect(thatShouldBeUndefined).toBeUndefined();
+
+  SuperJSON.allowErrorProps('stack');
+  const { stack: thatShouldExist } = SuperJSON.parse(
+    SuperJSON.stringify(input)
+  ) as any;
+  expect(thatShouldExist).toEqual(input.stack);
 });
