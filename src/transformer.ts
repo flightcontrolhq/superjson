@@ -294,9 +294,10 @@ export const transformValue = (
   return undefined;
 };
 
-const simpleRulesByAnnotation = Object.fromEntries(
-  simpleRules.map(r => [r.annotation, r])
-);
+const simpleRulesByAnnotation: Record<string, typeof simpleRules[0]> = {};
+simpleRules.forEach(rule => {
+  simpleRulesByAnnotation[rule.annotation] = rule;
+});
 
 export const untransformValue = (json: any, type: TypeAnnotation) => {
   if (isArray(type)) {
