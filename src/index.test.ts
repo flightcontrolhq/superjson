@@ -519,6 +519,46 @@ describe('stringify & parse', () => {
       output: null,
       outputAnnotations: { values: ['undefined'] },
     },
+
+    'regression #109: nested classes': {
+      input: () => {
+        class Pet {
+          constructor(private name: string) {}
+
+          woof() {
+            return this.name;
+          }
+        }
+
+        class User {
+          constructor(public pet: Pet) {}
+        }
+
+        SuperJSON.registerClass(Pet);
+        SuperJSON.registerClass(User);
+
+        const pet = new Pet('Rover');
+        const user = new User(pet);
+
+        return user;
+      },
+      output: {
+        pet: {
+          name: 'Rover',
+        },
+      },
+      outputAnnotations: {
+        values: [
+          ['class', 'User'],
+          {
+            pet: [['class', 'Pet']],
+          },
+        ],
+      },
+      customExpectations(value) {
+        expect(value.pet.woof()).toEqual('Rover');
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -577,7 +617,9 @@ describe('stringify & parse', () => {
       }
       expect(meta).toEqual(expectedOutputAnnotations);
 
-      const untransformed = SuperJSON.deserialize({ json, meta });
+      const untransformed = SuperJSON.deserialize(
+        JSON.parse(JSON.stringify({ json, meta }))
+      );
       expect(untransformed).toEqual(inputValue);
       customExpectations?.(untransformed);
     });
