@@ -218,16 +218,20 @@ const symbolRule = compositeTransformation(
   }
 );
 
+export function isInstanceOfRegisteredClass(
+  potentialClass: any
+): potentialClass is any {
+  if (potentialClass?.constructor) {
+    const isRegistered = !!ClassRegistry.getIdentifier(
+      potentialClass.constructor
+    );
+    return isRegistered;
+  }
+  return false;
+}
+
 const classRule = compositeTransformation(
-  (potentialClass): potentialClass is any => {
-    if (potentialClass?.constructor) {
-      const isRegistered = !!ClassRegistry.getIdentifier(
-        potentialClass.constructor
-      );
-      return isRegistered;
-    }
-    return false;
-  },
+  isInstanceOfRegisteredClass,
   clazz => {
     const identifier = ClassRegistry.getIdentifier(clazz.constructor);
     return ['class', identifier!];

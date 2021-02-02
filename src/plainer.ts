@@ -1,4 +1,5 @@
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import { isInstanceOfRegisteredClass } from './transformer';
 import { includes, mapValues } from './util';
 
 interface WalkerValue {
@@ -10,7 +11,11 @@ interface WalkerValue {
 export type Walker = (v: WalkerValue) => any;
 
 const isDeep = (object: any): boolean =>
-  isPlainObject(object) || isArray(object) || isMap(object) || isSet(object);
+  isPlainObject(object) ||
+  isArray(object) ||
+  isMap(object) ||
+  isSet(object) ||
+  isInstanceOfRegisteredClass(object);
 
 export const plainer = (
   object: any,
@@ -53,7 +58,7 @@ export const plainer = (
     ]);
   }
 
-  if (isPlainObject(object)) {
+  if (isPlainObject(object) || isInstanceOfRegisteredClass(object)) {
     return mapValues(object, (value, key) =>
       plainer(value, walker, [...path, key], alreadySeenObjects)
     );
