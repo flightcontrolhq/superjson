@@ -104,6 +104,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "samtgarson",
+      "name": "Sam Garson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6242344?v=4",
+      "profile": "https://www.samgarson.com",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
