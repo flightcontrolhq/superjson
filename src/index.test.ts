@@ -872,7 +872,7 @@ test('performance regression', () => {
   SuperJSON.serialize(data);
   const t2 = Date.now();
   const duration = t2 - t1;
-  expect(duration).toBeLessThan(500);
+  expect(duration).toBeLessThan(700);
 });
 
 test('regression #95: no undefined', () => {
