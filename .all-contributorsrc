@@ -113,6 +113,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "markhughes",
+      "name": "Mark Hughes",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1357323?v=4",
+      "profile": "http://twitter.com/_markeh",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
