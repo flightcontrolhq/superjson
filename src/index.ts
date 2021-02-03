@@ -52,7 +52,7 @@ const stringify = (object: SuperJSONValue): string =>
 export const parse = <T = unknown>(string: string): T =>
   deserialize(JSON.parse(string));
 
-const registerClass = (v: Class, options?: RegisterOptions) =>
+const registerClass = (v: Class, options?: RegisterOptions | string) =>
   ClassRegistry.register(v, options);
 
 const registerSymbol = (v: Symbol, identifier?: string) =>
