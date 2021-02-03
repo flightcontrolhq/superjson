@@ -27,7 +27,7 @@ export const plainer = (
     return walker({ isLeaf: true, node: object, path });
   }
 
-  walker({ isLeaf: false, path, node: object });
+  object = walker({ isLeaf: false, path, node: object });
 
   if (includes(alreadySeenObjects, object)) {
     return null;
@@ -43,22 +43,7 @@ export const plainer = (
     );
   }
 
-  if (isSet(object)) {
-    // (sets only exist in es6+)
-    // eslint-disable-next-line es5/no-es6-methods
-    return [...object.values()].map((value, index) =>
-      plainer(value, walker, [...path, index], alreadySeenObjects)
-    );
-  }
-
-  if (isMap(object)) {
-    return [...object.entries()].map(([key, value], index) => [
-      plainer(key, walker, [...path, index, 0], alreadySeenObjects),
-      plainer(value, walker, [...path, index, 1], alreadySeenObjects),
-    ]);
-  }
-
-  if (isPlainObject(object) || isInstanceOfRegisteredClass(object)) {
+  if (isPlainObject(object)) {
     return mapValues(object, (value, key) =>
       plainer(value, walker, [...path, key], alreadySeenObjects)
     );

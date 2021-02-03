@@ -144,13 +144,13 @@ const simpleRules = [
     'set',
     // (sets only exist in es6+)
     // eslint-disable-next-line es5/no-es6-methods
-    v => Object.values(v),
+    v => [...v.values()],
     v => new Set(v)
   ),
   simpleTransformation(
     isMap,
     'map',
-    v => Object.entries(v),
+    v => [...v.entries()],
     v => new Map(v)
   ),
 
@@ -238,7 +238,7 @@ const classRule = compositeTransformation(
   clazz => {
     const allowedProps = ClassRegistry.getAllowedProps(clazz.constructor);
     if (!allowedProps) {
-      return clazz;
+      return { ...clazz };
     }
 
     const result: any = {};
