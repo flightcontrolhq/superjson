@@ -543,6 +543,46 @@ describe('stringify & parse', () => {
       output: null,
       outputAnnotations: { values: ['undefined'] },
     },
+
+    'regression #109: nested classes': {
+      input: () => {
+        class Pet {
+          constructor(private name: string) {}
+
+          woof() {
+            return this.name;
+          }
+        }
+
+        class User {
+          constructor(public pet: Pet) {}
+        }
+
+        SuperJSON.registerClass(Pet);
+        SuperJSON.registerClass(User);
+
+        const pet = new Pet('Rover');
+        const user = new User(pet);
+
+        return user;
+      },
+      output: {
+        pet: {
+          name: 'Rover',
+        },
+      },
+      outputAnnotations: {
+        values: [
+          ['class', 'User'],
+          {
+            pet: [['class', 'Pet']],
+          },
+        ],
+      },
+      customExpectations(value) {
+        expect(value.pet.woof()).toEqual('Rover');
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -609,7 +649,9 @@ describe('stringify & parse', () => {
       }
       expect(meta).toEqual(expectedOutputAnnotations);
 
-      const untransformed = SuperJSON.deserialize({ json, meta });
+      const untransformed = SuperJSON.deserialize(
+        JSON.parse(JSON.stringify({ json, meta }))
+      );
       if (!dontExpectEquality) {
         expect(untransformed).toEqual(inputValue);
       }
@@ -864,7 +906,7 @@ test('performance regression', () => {
   SuperJSON.serialize(data);
   const t2 = Date.now();
   const duration = t2 - t1;
-  expect(duration).toBeLessThan(500);
+  expect(duration).toBeLessThan(700);
 });
 
 test('regression #95: no undefined', () => {

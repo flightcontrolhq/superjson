@@ -1,4 +1,5 @@
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import { isInstanceOfRegisteredClass } from './transformer';
 import { includes, mapValues } from './util';
 
 interface WalkerValue {
@@ -10,7 +11,11 @@ interface WalkerValue {
 export type Walker = (v: WalkerValue) => any;
 
 const isDeep = (object: any): boolean =>
-  isPlainObject(object) || isArray(object) || isMap(object) || isSet(object);
+  isPlainObject(object) ||
+  isArray(object) ||
+  isMap(object) ||
+  isSet(object) ||
+  isInstanceOfRegisteredClass(object);
 
 export const plainer = (
   object: any,
@@ -22,7 +27,7 @@ export const plainer = (
     return walker({ isLeaf: true, node: object, path });
   }
 
-  walker({ isLeaf: false, path, node: object });
+  object = walker({ isLeaf: false, path, node: object });
 
   if (includes(alreadySeenObjects, object)) {
     return null;
@@ -36,21 +41,6 @@ export const plainer = (
     return object.map((value, index) =>
       plainer(value, walker, [...path, index], alreadySeenObjects)
     );
-  }
-
-  if (isSet(object)) {
-    // (sets only exist in es6+)
-    // eslint-disable-next-line es5/no-es6-methods
-    return [...object.values()].map((value, index) =>
-      plainer(value, walker, [...path, index], alreadySeenObjects)
-    );
-  }
-
-  if (isMap(object)) {
-    return [...object.entries()].map(([key, value], index) => [
-      plainer(key, walker, [...path, index, 0], alreadySeenObjects),
-      plainer(value, walker, [...path, index, 1], alreadySeenObjects),
-    ]);
   }
 
   if (isPlainObject(object)) {

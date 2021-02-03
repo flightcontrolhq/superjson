@@ -20,6 +20,13 @@ describe('plainer', () => {
 
     const output = plainer(input, ({ path, node }) => {
       annotations[path.join('.')] = node;
+      if (node instanceof Map) {
+        return [...node.entries()];
+      }
+      if (node instanceof Set) {
+        // eslint-disable-next-line es5/no-es6-methods
+        return [...node.values()];
+      }
       return node;
     });
 
@@ -60,8 +67,16 @@ describe('plainer', () => {
           2 => "hallo",
           undefined => null,
         },
+        "a.0": Array [
+          2,
+          "hallo",
+        ],
         "a.0.0": 2,
         "a.0.1": "hallo",
+        "a.1": Array [
+          undefined,
+          null,
+        ],
         "a.1.0": undefined,
         "a.1.1": null,
         "b": Object {
