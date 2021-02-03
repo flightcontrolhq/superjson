@@ -232,7 +232,18 @@ const classRule = compositeTransformation(
     const identifier = ClassRegistry.getIdentifier(clazz.constructor);
     return ['class', identifier!];
   },
-  v => v,
+  clazz => {
+    const allowedProps = ClassRegistry.getAllowedProps(clazz.constructor);
+    if (!allowedProps) {
+      return clazz;
+    }
+
+    const result: any = {};
+    allowedProps.forEach(prop => {
+      result[prop] = clazz[prop];
+    });
+    return result;
+  },
   (v, a) => {
     const clazz = ClassRegistry.getValue(a[1]);
 

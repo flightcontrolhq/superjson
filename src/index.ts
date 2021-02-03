@@ -8,7 +8,7 @@ import {
   Class,
   JSONValue,
 } from './types';
-import { ClassRegistry } from './class-registry';
+import { ClassRegistry, RegisterOptions } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import {
   CustomTransfomer,
@@ -52,8 +52,8 @@ const stringify = (object: SuperJSONValue): string =>
 export const parse = <T = unknown>(string: string): T =>
   deserialize(JSON.parse(string));
 
-const registerClass = (v: Class, identifier?: string) =>
-  ClassRegistry.register(v, identifier);
+const registerClass = (v: Class, options?: RegisterOptions) =>
+  ClassRegistry.register(v, options);
 
 const registerSymbol = (v: Symbol, identifier?: string) =>
   SymbolRegistry.register(v, identifier);

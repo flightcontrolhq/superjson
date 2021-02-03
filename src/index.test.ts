@@ -16,6 +16,7 @@ describe('stringify & parse', () => {
       output: JSONValue | ((v: JSONValue) => void);
       outputAnnotations?: Annotations;
       customExpectations?: (value: any) => void;
+      dontExpectEquality?: boolean;
     }
   > = {
     'works for objects': {
@@ -514,6 +515,27 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works with custom allowedProps': {
+      input: () => {
+        class User {
+          constructor(public username: string, public password: string) {}
+        }
+        SuperJSON.registerClass(User, { allowProps: ['username'] });
+        return new User('bongocat', 'supersecurepassword');
+      },
+      output: {
+        username: 'bongocat',
+      },
+      outputAnnotations: {
+        values: [['class', 'User']],
+      },
+      customExpectations(value) {
+        expect(value.password).toBeUndefined();
+        expect(value.username).toBe('bongocat');
+      },
+      dontExpectEquality: true,
+    },
+
     'works for undefined, issue #48': {
       input: undefined,
       output: null,
@@ -561,6 +583,7 @@ describe('stringify & parse', () => {
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
       customExpectations,
+      dontExpectEquality,
     },
   ] of Object.entries(cases)) {
     test(testName, () => {
@@ -578,7 +601,9 @@ describe('stringify & parse', () => {
       expect(meta).toEqual(expectedOutputAnnotations);
 
       const untransformed = SuperJSON.deserialize({ json, meta });
-      expect(untransformed).toEqual(inputValue);
+      if (!dontExpectEquality) {
+        expect(untransformed).toEqual(inputValue);
+      }
       customExpectations?.(untransformed);
     });
   }
