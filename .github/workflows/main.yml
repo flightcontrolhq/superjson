@@ -4,14 +4,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node: [14.x, 12.x, 10.x]
+
+    env:
+      CI: true
+      YARN_IGNORE_ENGINES: true
+
     steps:
       - name: Begin CI...
         uses: actions/checkout@v2
 
-      - name: Use Node 12
+      - name: Use Node
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: ${{ matrix.node }}
 
       - name: Use cached node_modules
         uses: actions/cache@v2
@@ -23,28 +31,19 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-        env:
-          CI: true
 
       - name: Lint
         run: yarn lint
-        env:
-          CI: true
 
       - name: Test
         run: yarn test --ci --coverage --maxWorkers=2
-        env:
-          CI: true
 
       - name: Build
         run: yarn build
-        env:
-          CI: true
 
       - name: Run benchmark
         run: node benchmark.js | tee output.txt
         env:
-          CI: true
           NODE_ENV: production
 
       - name: Store benchmark result

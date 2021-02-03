@@ -8,6 +8,8 @@ import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 import { ObjectID } from 'mongodb';
 
+const isNode10 = process.version.indexOf('v10') === 0;
+
 describe('stringify & parse', () => {
   const cases: Record<
     string,
@@ -16,6 +18,7 @@ describe('stringify & parse', () => {
       output: JSONValue | ((v: JSONValue) => void);
       outputAnnotations?: Annotations;
       customExpectations?: (value: any) => void;
+      skipOnNode10?: boolean;
       dontExpectEquality?: boolean;
     }
   > = {
@@ -424,6 +427,7 @@ describe('stringify & parse', () => {
     },
 
     'works for symbols': {
+      skipOnNode10: true,
       input: () => {
         const parent = Symbol('Parent');
         const child = Symbol('Child');
@@ -473,6 +477,7 @@ describe('stringify & parse', () => {
     },
 
     'issue #58': {
+      skipOnNode10: true,
       input: () => {
         const cool = Symbol('cool');
         SuperJSON.registerSymbol(cool);
@@ -580,10 +585,17 @@ describe('stringify & parse', () => {
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
       customExpectations,
+      skipOnNode10,
       dontExpectEquality,
     },
   ] of Object.entries(cases)) {
-    test(testName, () => {
+    let testFunc = test;
+
+    if (skipOnNode10 && isNode10) {
+      testFunc = test.skip;
+    }
+
+    testFunc(testName, () => {
       const inputValue = typeof input === 'function' ? input() : input;
 
       // let's make sure SuperJSON doesn't mutate our input!
