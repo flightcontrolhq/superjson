@@ -107,7 +107,6 @@ const simpleRules = [
       const baseError: any = {
         name: v.name,
         message: v.message,
-        stack: v.stack,
       };
 
       allowedErrorProps.forEach(prop => {
