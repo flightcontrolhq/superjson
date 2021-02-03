@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -237,6 +237,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://haspar.us"><img src="https://avatars0.githubusercontent.com/u/15332326?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Piotr Monwid-Olechnowicz</b></sub></a><br /><a href="#ideas-hasparus" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="http://kattcorp.com"><img src="https://avatars1.githubusercontent.com/u/459267?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Johansson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=KATT" title="Code">💻</a> <a href="https://github.com/blitz-js/superjson/commits?author=KATT" title="Tests">⚠️</a></td>
     <td align="center"><a href="https://github.com/simonedelmann"><img src="https://avatars.githubusercontent.com/u/2821076?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simon Edelmann</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Asimonedelmann" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=simonedelmann" title="Code">💻</a> <a href="#ideas-simonedelmann" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://www.samgarson.com"><img src="https://avatars.githubusercontent.com/u/6242344?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sam Garson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Asamtgarson" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="http://twitter.com/_markeh"><img src="https://avatars.githubusercontent.com/u/1357323?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mark Hughes</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Amarkhughes" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 

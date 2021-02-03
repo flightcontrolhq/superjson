@@ -8,6 +8,8 @@ import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 import { ObjectID } from 'mongodb';
 
+const isNode10 = process.version.indexOf('v10') === 0;
+
 describe('stringify & parse', () => {
   const cases: Record<
     string,
@@ -16,6 +18,8 @@ describe('stringify & parse', () => {
       output: JSONValue | ((v: JSONValue) => void);
       outputAnnotations?: Annotations;
       customExpectations?: (value: any) => void;
+      skipOnNode10?: boolean;
+      dontExpectEquality?: boolean;
     }
   > = {
     'works for objects': {
@@ -188,9 +192,6 @@ describe('stringify & parse', () => {
       output: ({ e }: any) => {
         expect(e.name).toBe('Error');
         expect(e.message).toBe('epic fail');
-        expect(e.stack.startsWith('Error: epic fail\n    at Suite.')).toBe(
-          true
-        );
       },
       outputAnnotations: {
         values: {
@@ -426,6 +427,7 @@ describe('stringify & parse', () => {
     },
 
     'works for symbols': {
+      skipOnNode10: true,
       input: () => {
         const parent = Symbol('Parent');
         const child = Symbol('Child');
@@ -475,6 +477,7 @@ describe('stringify & parse', () => {
     },
 
     'issue #58': {
+      skipOnNode10: true,
       input: () => {
         const cool = Symbol('cool');
         SuperJSON.registerSymbol(cool);
@@ -512,6 +515,27 @@ describe('stringify & parse', () => {
           'q.1.z': [['symbol', 'cool']],
         },
       },
+    },
+
+    'works with custom allowedProps': {
+      input: () => {
+        class User {
+          constructor(public username: string, public password: string) {}
+        }
+        SuperJSON.registerClass(User, { allowProps: ['username'] });
+        return new User('bongocat', 'supersecurepassword');
+      },
+      output: {
+        username: 'bongocat',
+      },
+      outputAnnotations: {
+        values: [['class', 'User']],
+      },
+      customExpectations(value) {
+        expect(value.password).toBeUndefined();
+        expect(value.username).toBe('bongocat');
+      },
+      dontExpectEquality: true,
     },
 
     'works for undefined, issue #48': {
@@ -601,9 +625,17 @@ describe('stringify & parse', () => {
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
       customExpectations,
+      skipOnNode10,
+      dontExpectEquality,
     },
   ] of Object.entries(cases)) {
-    test(testName, () => {
+    let testFunc = test;
+
+    if (skipOnNode10 && isNode10) {
+      testFunc = test.skip;
+    }
+
+    testFunc(testName, () => {
       const inputValue = typeof input === 'function' ? input() : input;
 
       // let's make sure SuperJSON doesn't mutate our input!
@@ -620,7 +652,9 @@ describe('stringify & parse', () => {
       const untransformed = SuperJSON.deserialize(
         JSON.parse(JSON.stringify({ json, meta }))
       );
-      expect(untransformed).toEqual(inputValue);
+      if (!dontExpectEquality) {
+        expect(untransformed).toEqual(inputValue);
+      }
       customExpectations?.(untransformed);
     });
   }
@@ -884,4 +918,20 @@ test('regression #95: no undefined', () => {
   const parsed: number = SuperJSON.deserialize(out);
 
   expect(parsed).toEqual(input);
+});
+
+test('regression #108: Error#stack should not be included by default', () => {
+  const input = new Error("Beep boop, you don't wanna see me. I'm an error!");
+  expect(input).toHaveProperty('stack');
+
+  const { stack: thatShouldBeUndefined } = SuperJSON.parse(
+    SuperJSON.stringify(input)
+  ) as any;
+  expect(thatShouldBeUndefined).toBeUndefined();
+
+  SuperJSON.allowErrorProps('stack');
+  const { stack: thatShouldExist } = SuperJSON.parse(
+    SuperJSON.stringify(input)
+  ) as any;
+  expect(thatShouldExist).toEqual(input.stack);
 });

@@ -107,7 +107,6 @@ const simpleRules = [
       const baseError: any = {
         name: v.name,
         message: v.message,
-        stack: v.stack,
       };
 
       allowedErrorProps.forEach(prop => {
@@ -236,7 +235,18 @@ const classRule = compositeTransformation(
     const identifier = ClassRegistry.getIdentifier(clazz.constructor);
     return ['class', identifier!];
   },
-  v => v,
+  clazz => {
+    const allowedProps = ClassRegistry.getAllowedProps(clazz.constructor);
+    if (!allowedProps) {
+      return clazz;
+    }
+
+    const result: any = {};
+    allowedProps.forEach(prop => {
+      result[prop] = clazz[prop];
+    });
+    return result;
+  },
   (v, a) => {
     const clazz = ClassRegistry.getValue(a[1]);
 
@@ -298,9 +308,10 @@ export const transformValue = (
   return undefined;
 };
 
-const simpleRulesByAnnotation = Object.fromEntries(
-  simpleRules.map(r => [r.annotation, r])
-);
+const simpleRulesByAnnotation: Record<string, typeof simpleRules[0]> = {};
+simpleRules.forEach(rule => {
+  simpleRulesByAnnotation[rule.annotation] = rule;
+});
 
 export const untransformValue = (json: any, type: TypeAnnotation) => {
   if (isArray(type)) {
