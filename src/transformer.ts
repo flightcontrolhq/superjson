@@ -251,7 +251,7 @@ const classRule = compositeTransformation(
     const clazz = ClassRegistry.getValue(a[1]);
 
     if (!clazz) {
-      throw new Error('Trying to deserialize unknown class');
+      throw new Error('Trying to deserialize unknown class - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564');
     }
 
     return Object.assign(Object.create(clazz.prototype), v);
