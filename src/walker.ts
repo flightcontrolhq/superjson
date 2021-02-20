@@ -7,7 +7,7 @@ import {
   isSet,
 } from './is';
 import { escapeKey } from './pathstringifier';
-import { Tree } from './pathtree';
+import { PathTree, Tree } from './pathtree';
 import {
   isInstanceOfRegisteredClass,
   transformValue,
@@ -22,11 +22,6 @@ const isDeep = (object: any): boolean =>
   isSet(object) ||
   isInstanceOfRegisteredClass(object);
 
-interface Result {
-  transformedValue: any;
-  annotations?: Tree<TypeAnnotation> | Record<string, Tree<TypeAnnotation>>;
-}
-
 function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
   const existingSet = identities.get(object);
 
@@ -35,6 +30,11 @@ function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
   } else {
     identities.set(object, [path]);
   }
+}
+
+interface Result {
+  transformedValue: any;
+  annotations?: PathTree.CollapsedRootTree<TypeAnnotation>;
 }
 
 export const walker = (
