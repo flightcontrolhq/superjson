@@ -4,7 +4,7 @@ import { forEach, every } from './util';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
-type InnerNode<T> = [T, Record<string, Tree<T>>];
+export type InnerNode<T> = [T, Record<string, Tree<T>>];
 
 export function isTree<T>(
   v: any,
