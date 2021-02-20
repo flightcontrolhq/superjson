@@ -1,12 +1,12 @@
 import { getDeep, setDeep } from './accessDeep';
 import { TypeAnnotation, untransformValue } from './transformer';
-import { PathTree } from './pathtree';
+import { CollapsedRootTree, traversePathTree } from './pathtree';
 import { parsePath, stringifyPath } from './pathstringifier';
 import { forEach } from 'lodash';
 import { isArray, isEmptyObject } from './is';
 
 export interface Annotations {
-  values?: PathTree.CollapsedRootTree<TypeAnnotation>;
+  values?: CollapsedRootTree<TypeAnnotation>;
   referentialEqualities?:
     | Record<string, string[]>
     | [string[]]
@@ -48,12 +48,9 @@ export function createReferentialEqualityAnnotation(
 
 export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   if (annotations.values) {
-    PathTree.traverseWhileIgnoringNullRoot(
-      PathTree.expandRoot(annotations.values),
-      (type, path) => {
-        plain = setDeep(plain, path, v => untransformValue(v, type));
-      }
-    );
+    traversePathTree(annotations.values, (type, path) => {
+      plain = setDeep(plain, path, v => untransformValue(v, type));
+    });
   }
 
   if (annotations.referentialEqualities) {
