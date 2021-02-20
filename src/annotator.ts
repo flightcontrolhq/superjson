@@ -1,10 +1,8 @@
 import { getDeep, setDeep } from './accessDeep';
-import { isPrimitive, isString } from './is';
-import { Walker } from './plainer';
+import { isString } from './is';
 import {
   TypeAnnotation,
   isTypeAnnotation,
-  transformValue,
   untransformValue,
 } from './transformer';
 import { PathTree } from './pathtree';
@@ -40,19 +38,6 @@ export function isAnnotations(object: any): object is Annotations {
   }
 }
 
-class ValueAnnotationFactory {
-  private tree = PathTree.create<TypeAnnotation | null>(null);
-
-  add(path: any[], annotation: TypeAnnotation) {
-    PathTree.append(this.tree, path, annotation);
-  }
-
-  create() {
-    PathTree.compress(this.tree);
-    return PathTree.collapseRoot(this.tree);
-  }
-}
-
 export function createReferentialEqualityAnnotation(
   identitites: Map<any, any[][]>
 ) {
@@ -82,63 +67,6 @@ export function createReferentialEqualityAnnotation(
 
   return PathTree.collapseRoot(tree);
 }
-
-class ReferentialEqualityAnnotationFactory {
-  private readonly objectIdentities = new Map<any, any[][]>();
-
-  register(object: any, path: any[]) {
-    const paths = this.objectIdentities.get(object) ?? [];
-    paths.push(path);
-    this.objectIdentities.set(object, paths);
-  }
-
-  create() {
-    return createReferentialEqualityAnnotation(this.objectIdentities);
-  }
-}
-
-class AnnotationFactory {
-  public readonly valueAnnotations = new ValueAnnotationFactory();
-  public readonly objectIdentities = new ReferentialEqualityAnnotationFactory();
-
-  create(): Annotations {
-    const annotations: Annotations = {};
-
-    const values = this.valueAnnotations.create();
-    if (values) {
-      annotations.values = values;
-    }
-
-    const referentialEqualities = this.objectIdentities.create();
-    if (referentialEqualities) {
-      annotations.referentialEqualities = referentialEqualities;
-    }
-
-    return annotations;
-  }
-}
-
-export const makeAnnotator = () => {
-  const annotationFactory = new AnnotationFactory();
-  const { valueAnnotations, objectIdentities } = annotationFactory;
-
-  const annotator: Walker = ({ path, node }) => {
-    if (!isPrimitive(node)) {
-      objectIdentities.register(node, path);
-    }
-
-    const transformed = transformValue(node);
-
-    if (transformed) {
-      valueAnnotations.add(path, transformed.type);
-      return transformed.value;
-    } else {
-      return node;
-    }
-  };
-
-  return { getAnnotations: () => annotationFactory.create(), annotator };
-};
 
 export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   if (annotations.values) {

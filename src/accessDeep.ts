@@ -1,6 +1,6 @@
 import { isMap, isArray, isPlainObject, isSet } from './is';
 
-export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
+const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   const keys = value.keys();
   while (n > 0) {
     keys.next();

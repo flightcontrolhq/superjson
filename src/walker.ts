@@ -15,14 +15,6 @@ import {
 } from './transformer';
 import { includes, forEach } from './util';
 
-interface WalkerValue {
-  isLeaf: boolean;
-  path: any[];
-  node: any;
-}
-
-export type Walker = (v: WalkerValue) => any;
-
 const isDeep = (object: any): boolean =>
   isPlainObject(object) ||
   isArray(object) ||
