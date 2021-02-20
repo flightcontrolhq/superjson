@@ -45,37 +45,8 @@ export function forEach<T>(
   Object.entries(record).forEach(([key, value]) => run(value, key));
 }
 
-export function every<T>(
-  record: Record<string, T>,
-  predicate: (v: T) => boolean
-) {
-  const values = valuesOfObj(record);
-
-  for (let i = 0; i < values.length; i++) {
-    const value = values[i];
-    if (!predicate(value)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 export function includes<T>(arr: T[], value: T) {
   return arr.indexOf(value) !== -1;
-}
-
-export function mapValues<A, B>(
-  record: Record<string, A>,
-  mapper: (v: A, key: string) => B
-): Record<string, B> {
-  const result: Record<string, B> = {};
-
-  forEach(record, (value, key) => {
-    result[key] = mapper(value, key);
-  });
-
-  return result;
 }
 
 export function findArr<T>(

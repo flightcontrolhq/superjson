@@ -15,7 +15,7 @@ import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 import { allowedErrorProps } from './error-props';
-import { includes, findArr } from './util';
+import { findArr } from './util';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -33,30 +33,6 @@ type CompositeTypeAnnotation =
   | CustomTypeAnnotation;
 
 export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
-
-const ALL_PRIMITIVE_TYPE_ANNOTATIONS: TypeAnnotation[] = [
-  'undefined',
-  'number',
-  'bigint',
-];
-
-export const isPrimitiveTypeAnnotation = (
-  value: any
-): value is PrimitiveTypeAnnotation => {
-  return includes(ALL_PRIMITIVE_TYPE_ANNOTATIONS, value);
-};
-
-const ALL_TYPE_ANNOTATIONS: TypeAnnotation[] = ALL_PRIMITIVE_TYPE_ANNOTATIONS.concat(
-  ['map', 'regexp', 'set', 'Date', 'Error']
-);
-
-export const isTypeAnnotation = (value: any): value is TypeAnnotation => {
-  if (Array.isArray(value)) {
-    return typeof value[1] === 'string';
-  }
-
-  return includes(ALL_TYPE_ANNOTATIONS, value);
-};
 
 function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
   isApplicable: (v: any) => v is I,

@@ -38,14 +38,3 @@ export const parsePath = (string: StringifiedPath) => {
 
   return result;
 };
-
-export const isStringifiedPath = (
-  string: string
-): string is StringifiedPath => {
-  try {
-    parsePath(string);
-    return true;
-  } catch (anyError) {
-    return false;
-  }
-};

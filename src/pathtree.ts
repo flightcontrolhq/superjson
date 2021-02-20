@@ -1,72 +1,12 @@
-import { stringifyPath, parsePath } from './pathstringifier';
-import { isUndefined, isNull, isArray, isPlainObject } from './is';
-import { forEach, every } from './util';
+import { parsePath } from './pathstringifier';
+import { isUndefined, isNull, isArray } from './is';
+import { forEach } from './util';
 
 export type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
-export type InnerNode<T> = [T, Record<string, Tree<T>>];
-
-export function isTree<T>(
-  v: any,
-  valueChecker: (nodeValue: T) => boolean
-): v is Tree<T> {
-  if (!isArray(v)) {
-    return false;
-  }
-
-  if (v.length === 1) {
-    return valueChecker(v[0]);
-  } else if (v.length === 2) {
-    return valueChecker(v[0]) && every(v[1], v => isTree(v, valueChecker));
-  }
-
-  return false;
-}
+type InnerNode<T> = [T, Record<string, Tree<T>>];
 
 export module PathTree {
-  export function create<T>(value: T): Tree<T> {
-    return [value];
-  }
-
-  export function get<T>(
-    tree: Tree<T>,
-    path: string[]
-  ): [T, true] | [null, false] {
-    if (path.length === 0) {
-      return [tree[0] as T, true];
-    }
-
-    if (tree.length === 1) {
-      return [null, false];
-    } else {
-      const [head, ...tail] = path;
-      const [, children] = tree;
-      return get(children[head], tail);
-    }
-  }
-
-  /**
-   * @description Optimised for adding new leaves. Does not support adding inner nodes.
-   */
-  export function append<T>(tree: Tree<T>, path: string[], value: T) {
-    if (path.length === 0) {
-      tree[0] = value;
-      return;
-    }
-
-    if (tree.length === 1) {
-      ((tree as any) as InnerNode<T>)[1] = { [stringifyPath(path)]: [value] };
-    } else {
-      tree[1][stringifyPath(path)] = [value];
-    }
-  }
-
-  export function appendPath(tree: Tree<string | null>, path: string[]) {
-    const front = path.slice(0, path.length - 1);
-    const last = path[path.length - 1];
-    append(tree, front, last);
-  }
-
   /**
    * Depth-first post-order traversal.
    */
@@ -119,21 +59,6 @@ export module PathTree {
     | Tree<T>
     | Record<string, Tree<T>>
     | undefined;
-
-  export function isMinimizedTree<T>(
-    v: any,
-    valueChecker: (v: T) => boolean
-  ): v is CollapsedRootTree<T> {
-    if (isUndefined(v)) {
-      return true;
-    }
-
-    if (isPlainObject(v)) {
-      return every(v, v => isTree(v, valueChecker));
-    }
-
-    return isTree(v, valueChecker);
-  }
 
   /**
    * @description Minimizes trees that start with a `null`-root
