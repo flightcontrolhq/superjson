@@ -1,6 +1,7 @@
-import { applyAnnotations, makeAnnotator } from './annotator';
-import { isEmptyObject } from './is';
-import { plainer } from './plainer';
+import {
+  applyAnnotations,
+  createReferentialEqualityAnnotation,
+} from './annotator';
 import {
   SuperJSONResult,
   SuperJSONValue,
@@ -15,18 +16,30 @@ import {
   CustomTransformerRegistry,
 } from './custom-transformer-registry';
 import { allowErrorProps } from './error-props';
+import { walker } from './walker';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
-  const { getAnnotations, annotator } = makeAnnotator();
-  const output = plainer(object, annotator);
-
-  const annotations = getAnnotations();
+  const identities = new Map<any, any[][]>();
+  const output = walker(object, identities);
   const res: SuperJSONResult = {
-    json: output,
+    json: output.transformedValue,
   };
-  if (!isEmptyObject(annotations)) {
-    res.meta = annotations;
+
+  if (output.annotations) {
+    res.meta = {
+      ...res.meta,
+      values: output.annotations,
+    };
   }
+
+  const equality = createReferentialEqualityAnnotation(identities);
+  if (equality) {
+    res.meta = {
+      ...res.meta,
+      referentialEqualities: equality,
+    };
+  }
+
   return res;
 };
 

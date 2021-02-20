@@ -1,4 +1,12 @@
-import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import {
+  isArray,
+  isEmptyObject,
+  isMap,
+  isPlainObject,
+  isPrimitive,
+  isSet,
+} from './is';
+import { escapeKey } from './pathstringifier';
 import { Tree } from './pathtree';
 import {
   isInstanceOfRegisteredClass,
@@ -24,28 +32,24 @@ const isDeep = (object: any): boolean =>
 
 interface Result {
   transformedValue: any;
-  annotations?: Tree<TypeAnnotation | null>;
+  annotations?: Tree<TypeAnnotation> | Record<string, Tree<TypeAnnotation>>;
 }
 
-function addIdentity(
-  object: any,
-  path: any[],
-  identities: Map<any, Set<any[]>>
-) {
+function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
   const existingSet = identities.get(object);
 
   if (existingSet) {
-    existingSet.add(path);
+    existingSet.push(path);
   } else {
-    identities.set(object, new Set([path]));
+    identities.set(object, [path]);
   }
 }
 
 export const walker = (
   object: any,
+  identities: Map<any, any[][]> = new Map(),
   path: any[] = [],
-  objectsInThisPath: any[] = [],
-  identities: Map<any, Set<any[]>> = new Map()
+  objectsInThisPath: any[] = []
 ): Result => {
   if (!isPrimitive(object)) {
     addIdentity(object, path, identities);
@@ -71,32 +75,48 @@ export const walker = (
     };
   }
 
-  const transformed = transformValue(object) ?? { value: object, type: null };
+  const transformationResult = transformValue(object);
+  const transformed = transformationResult?.value ?? object;
 
-  if (!isPrimitive(transformed.value)) {
-    objectsInThisPath = [...objectsInThisPath, transformed.value];
+  if (!isPrimitive(object)) {
+    objectsInThisPath = [...objectsInThisPath, object];
   }
 
-  const transformedValue: any = isArray(transformed.value) ? [] : {};
-  const innerAnnotations: Record<string, Tree<TypeAnnotation | null>> = {};
+  const transformedValue: any = isArray(transformed) ? [] : {};
+  const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
 
-  forEach(transformed.value, (value, index) => {
+  forEach(transformed, (value, index) => {
     const recursiveResult = walker(
       value,
+      identities,
       [...path, index],
-      objectsInThisPath,
-      identities
+      objectsInThisPath
     );
 
     transformedValue[index] = recursiveResult.transformedValue;
 
-    if (recursiveResult.annotations) {
+    if (isArray(recursiveResult.annotations)) {
       innerAnnotations[index] = recursiveResult.annotations;
+    } else if (isPlainObject(recursiveResult.annotations)) {
+      forEach(recursiveResult.annotations, (tree, key) => {
+        innerAnnotations[escapeKey(index) + '.' + key] = tree;
+      });
     }
   });
 
-  return {
-    transformedValue,
-    annotations: [transformed.type, innerAnnotations],
-  };
+  if (isEmptyObject(innerAnnotations)) {
+    return {
+      transformedValue,
+      annotations: !!transformationResult
+        ? [transformationResult.type]
+        : undefined,
+    };
+  } else {
+    return {
+      transformedValue,
+      annotations: !!transformationResult
+        ? [transformationResult.type, innerAnnotations]
+        : innerAnnotations,
+    };
+  }
 };

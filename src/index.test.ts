@@ -20,6 +20,7 @@ describe('stringify & parse', () => {
       customExpectations?: (value: any) => void;
       skipOnNode10?: boolean;
       dontExpectEquality?: boolean;
+      only?: boolean;
     }
   > = {
     'works for objects': {
@@ -627,12 +628,17 @@ describe('stringify & parse', () => {
       customExpectations,
       skipOnNode10,
       dontExpectEquality,
+      only,
     },
   ] of Object.entries(cases)) {
     let testFunc = test;
 
     if (skipOnNode10 && isNode10) {
       testFunc = test.skip;
+    }
+
+    if (only) {
+      testFunc = test.only;
     }
 
     testFunc(testName, () => {

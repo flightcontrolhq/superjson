@@ -11,22 +11,14 @@ test('walker', () => {
       a: [['NaN', null]],
       b: '/test/g',
     },
-    annotations: [
-      null,
-      {
-        a: [
-          'map',
-          {
-            '0': [
-              null,
-              {
-                '0': ['number'],
-              },
-            ],
-          },
-        ],
-        b: ['regexp'],
-      },
-    ],
+    annotations: {
+      a: [
+        'map',
+        {
+          '0.0': ['number'],
+        },
+      ],
+      b: ['regexp'],
+    },
   });
 });

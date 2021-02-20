@@ -53,6 +53,36 @@ class ValueAnnotationFactory {
   }
 }
 
+export function createReferentialEqualityAnnotation(
+  identitites: Map<any, any[][]>
+) {
+  let tree = PathTree.create<PathTree.CollapsedRootTree<string> | null>(null);
+
+  identitites.forEach(paths => {
+    if (paths.length <= 1) {
+      return;
+    }
+
+    const [shortestPath, ...identicalPaths] = paths
+      .map(path => path.map(String))
+      .sort((a, b) => a.length - b.length);
+
+    let identities = PathTree.create<string | null>(null);
+    identicalPaths.forEach(identicalPath => {
+      PathTree.appendPath(identities, identicalPath);
+    });
+
+    const minimizedIdentities = PathTree.collapseRoot(identities);
+    if (!minimizedIdentities) {
+      throw new Error('Illegal State');
+    }
+
+    PathTree.append(tree, shortestPath, minimizedIdentities);
+  });
+
+  return PathTree.collapseRoot(tree);
+}
+
 class ReferentialEqualityAnnotationFactory {
   private readonly objectIdentities = new Map<any, any[][]>();
 
@@ -63,31 +93,7 @@ class ReferentialEqualityAnnotationFactory {
   }
 
   create() {
-    let tree = PathTree.create<PathTree.CollapsedRootTree<string> | null>(null);
-
-    this.objectIdentities.forEach(paths => {
-      if (paths.length <= 1) {
-        return;
-      }
-
-      const [shortestPath, ...identicalPaths] = paths
-        .map(path => path.map(String))
-        .sort((a, b) => a.length - b.length);
-
-      let identities = PathTree.create<string | null>(null);
-      identicalPaths.forEach(identicalPath => {
-        PathTree.appendPath(identities, identicalPath);
-      });
-
-      const minimizedIdentities = PathTree.collapseRoot(identities);
-      if (!minimizedIdentities) {
-        throw new Error('Illegal State');
-      }
-
-      PathTree.append(tree, shortestPath, minimizedIdentities);
-    });
-
-    return PathTree.collapseRoot(tree);
+    return createReferentialEqualityAnnotation(this.objectIdentities);
   }
 }
 
