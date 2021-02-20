@@ -7,7 +7,7 @@ import {
   isSet,
 } from './is';
 import { escapeKey } from './pathstringifier';
-import { PathTree, Tree } from './pathtree';
+import { CollapsedRootTree, Tree } from './pathtree';
 import {
   isInstanceOfRegisteredClass,
   transformValue,
@@ -34,7 +34,7 @@ function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
 
 interface Result {
   transformedValue: any;
-  annotations?: PathTree.CollapsedRootTree<TypeAnnotation>;
+  annotations?: CollapsedRootTree<TypeAnnotation>;
 }
 
 export const walker = (
