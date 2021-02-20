@@ -1,5 +1,4 @@
-import { Annotations, isAnnotations } from './annotator';
-import { isUndefined } from './is';
+import { Annotations } from './annotator';
 
 export type Class = { new (...args: any[]): any };
 
@@ -40,16 +39,4 @@ export interface SuperJSONObject {
 export interface SuperJSONResult {
   json: JSONValue;
   meta?: Annotations;
-}
-
-export function isSuperJSONResult(object: any): object is SuperJSONResult {
-  if (!('json' in object)) {
-    return false;
-  }
-
-  if (isUndefined(object.meta)) {
-    return true;
-  }
-
-  return isAnnotations(object.meta);
 }

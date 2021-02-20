@@ -1,47 +1,23 @@
 import { getDeep, setDeep } from './accessDeep';
-import { isString } from './is';
-import {
-  TypeAnnotation,
-  isTypeAnnotation,
-  untransformValue,
-} from './transformer';
+import { TypeAnnotation, untransformValue } from './transformer';
 import { PathTree } from './pathtree';
+import { parsePath, stringifyPath } from './pathstringifier';
+import { forEach } from 'lodash';
+import { isArray, isEmptyObject } from './is';
 
 export interface Annotations {
   values?: PathTree.CollapsedRootTree<TypeAnnotation>;
-  referentialEqualities?: PathTree.CollapsedRootTree<
-    PathTree.CollapsedRootTree<string>
-  >;
-}
-
-export function isAnnotations(object: any): object is Annotations {
-  try {
-    if (object.values) {
-      if (!PathTree.isMinimizedTree(object.values, isTypeAnnotation)) {
-        return false;
-      }
-    }
-
-    if (object.referentialEqualities) {
-      if (
-        !PathTree.isMinimizedTree(object.referentialEqualities, tree =>
-          PathTree.isMinimizedTree(tree, isString)
-        )
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  } catch (error) {
-    return false;
-  }
+  referentialEqualities?:
+    | Record<string, string[]>
+    | [string[]]
+    | [string[], Record<string, string[]>];
 }
 
 export function createReferentialEqualityAnnotation(
   identitites: Map<any, any[][]>
-) {
-  let tree = PathTree.create<PathTree.CollapsedRootTree<string> | null>(null);
+): Annotations['referentialEqualities'] {
+  const result: Record<string, string[]> = {};
+  let rootEqualityPaths: string[] | undefined = undefined;
 
   identitites.forEach(paths => {
     if (paths.length <= 1) {
@@ -52,20 +28,22 @@ export function createReferentialEqualityAnnotation(
       .map(path => path.map(String))
       .sort((a, b) => a.length - b.length);
 
-    let identities = PathTree.create<string | null>(null);
-    identicalPaths.forEach(identicalPath => {
-      PathTree.appendPath(identities, identicalPath);
-    });
-
-    const minimizedIdentities = PathTree.collapseRoot(identities);
-    if (!minimizedIdentities) {
-      throw new Error('Illegal State');
+    if (shortestPath.length === 0) {
+      rootEqualityPaths = identicalPaths.map(stringifyPath);
+    } else {
+      result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
     }
-
-    PathTree.append(tree, shortestPath, minimizedIdentities);
   });
 
-  return PathTree.collapseRoot(tree);
+  if (rootEqualityPaths) {
+    if (isEmptyObject(result)) {
+      return [rootEqualityPaths];
+    } else {
+      return [rootEqualityPaths, result];
+    }
+  } else {
+    return isEmptyObject(result) ? undefined : result;
+  }
 }
 
 export const applyAnnotations = (plain: any, annotations: Annotations): any => {
@@ -79,17 +57,22 @@ export const applyAnnotations = (plain: any, annotations: Annotations): any => {
   }
 
   if (annotations.referentialEqualities) {
-    PathTree.traverseWhileIgnoringNullRoot(
-      PathTree.expandRoot(annotations.referentialEqualities),
-      (identicalObjects, path) => {
-        const object = getDeep(plain, path);
+    if (isArray(annotations.referentialEqualities)) {
+      forEach(annotations.referentialEqualities[0], identicalPath => {
+        plain = setDeep(plain, parsePath(identicalPath), () => plain);
+      });
+    }
 
-        PathTree.traversePaths(
-          PathTree.expandRoot(identicalObjects),
-          identicalObjectPath => {
-            plain = setDeep(plain, identicalObjectPath, () => object);
-          }
-        );
+    forEach(
+      isArray(annotations.referentialEqualities)
+        ? annotations.referentialEqualities[1]
+        : annotations.referentialEqualities,
+      (identicalPaths, path) => {
+        const object = getDeep(plain, parsePath(path));
+
+        identicalPaths.map(parsePath).forEach(identicalObjectPath => {
+          plain = setDeep(plain, identicalObjectPath, () => object);
+        });
       }
     );
   }

@@ -2,13 +2,7 @@ import {
   applyAnnotations,
   createReferentialEqualityAnnotation,
 } from './annotator';
-import {
-  SuperJSONResult,
-  SuperJSONValue,
-  isSuperJSONResult,
-  Class,
-  JSONValue,
-} from './types';
+import { SuperJSONResult, SuperJSONValue, Class, JSONValue } from './types';
 import { ClassRegistry, RegisterOptions } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import {
@@ -44,10 +38,6 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
 };
 
 export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
-  if (!isSuperJSONResult(payload)) {
-    throw new Error('Not a valid SuperJSON payload.');
-  }
-
   const { json, meta } = payload;
 
   const result: T = json as any;

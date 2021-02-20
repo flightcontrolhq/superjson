@@ -124,7 +124,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: [{ options: ['0'] }],
+          selected: ['options.0'],
         },
       },
       customExpectations: output => {
@@ -309,7 +309,7 @@ describe('stringify & parse', () => {
         ],
       },
       outputAnnotations: {
-        referentialEqualities: [{ 'children.0.parents': ['0'] }],
+        referentialEqualities: [['children.0.parents.0']],
       },
     },
 
@@ -351,7 +351,7 @@ describe('stringify & parse', () => {
           highscores: ['map'],
         },
         referentialEqualities: {
-          topScorer: [{ 'highscores.0': ['0'] }] as any,
+          topScorer: ['highscores.0.0'],
         },
       },
     },
@@ -374,7 +374,7 @@ describe('stringify & parse', () => {
           b: ['map'],
         },
         referentialEqualities: {
-          a: [['b']],
+          a: ['b'],
         },
       },
       customExpectations: value => {
@@ -419,7 +419,7 @@ describe('stringify & parse', () => {
           users: ['set'],
         },
         referentialEqualities: {
-          userOfTheMonth: [{ users: ['0'] }],
+          userOfTheMonth: ['users.0'],
         },
       },
       customExpectations: value => {
@@ -739,35 +739,7 @@ describe('stringify & parse', () => {
   });
 
   describe('when given a non-SuperJSON object', () => {
-    it('throws', () => {
-      expect(() => {
-        SuperJSON.parse(
-          JSON.stringify({
-            value: {
-              a: 1,
-            },
-            meta: {
-              root: 'invalid_key',
-            },
-          })
-        );
-      }).toThrow();
-
-      expect(() => {
-        SuperJSON.parse(
-          JSON.stringify({
-            value: {
-              a: 1,
-            },
-            meta: {
-              values: {
-                a: 'invalid_key',
-              },
-            },
-          })
-        );
-      }).toThrow();
-    });
+    it.todo('has undefined behaviour');
   });
 
   test('regression #65: BigInt on Safari v13', () => {
