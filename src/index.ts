@@ -1,7 +1,3 @@
-import {
-  applyAnnotations,
-  createReferentialEqualityAnnotation,
-} from './annotator';
 import { SuperJSONResult, SuperJSONValue, Class, JSONValue } from './types';
 import { ClassRegistry, RegisterOptions } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
@@ -10,7 +6,12 @@ import {
   CustomTransformerRegistry,
 } from './custom-transformer-registry';
 import { allowErrorProps } from './error-props';
-import { walker } from './walker';
+import {
+  walker,
+  applyReferentialEqualityAnnotations,
+  applyValueAnnotations,
+  generateReferentialEqualityAnnotations,
+} from './walker';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const identities = new Map<any, any[][]>();
@@ -26,11 +27,13 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
     };
   }
 
-  const equality = createReferentialEqualityAnnotation(identities);
-  if (equality) {
+  const equalityAnnotations = generateReferentialEqualityAnnotations(
+    identities
+  );
+  if (equalityAnnotations) {
     res.meta = {
       ...res.meta,
-      referentialEqualities: equality,
+      referentialEqualities: equalityAnnotations,
     };
   }
 
@@ -40,10 +43,17 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
 export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
   const { json, meta } = payload;
 
-  const result: T = json as any;
+  let result: T = json as any;
 
-  if (!!meta) {
-    return applyAnnotations(result, meta);
+  if (meta?.values) {
+    result = applyValueAnnotations(result, meta.values);
+  }
+
+  if (meta?.referentialEqualities) {
+    result = applyReferentialEqualityAnnotations(
+      result,
+      meta.referentialEqualities
+    );
   }
 
   return result;

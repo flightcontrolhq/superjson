@@ -6,14 +6,87 @@ import {
   isPrimitive,
   isSet,
 } from './is';
-import { escapeKey } from './pathstringifier';
-import { CollapsedRootTree, Tree } from './pathtree';
+import { escapeKey, stringifyPath } from './pathstringifier';
 import {
   isInstanceOfRegisteredClass,
   transformValue,
   TypeAnnotation,
+  untransformValue,
 } from './transformer';
 import { includes, forEach } from './util';
+import { parsePath } from './pathstringifier';
+import { getDeep, setDeep } from './accessDeep';
+
+type Tree<T> = InnerNode<T> | Leaf<T>;
+type Leaf<T> = [T];
+type InnerNode<T> = [T, Record<string, Tree<T>>];
+
+export type MinimisedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
+
+function traverse<T>(
+  tree: MinimisedTree<T>,
+  walker: (v: T, path: string[]) => void,
+  origin: string[] = []
+): void {
+  if (!tree) {
+    return;
+  }
+
+  if (!isArray(tree)) {
+    forEach(tree, (subtree, key) =>
+      traverse(subtree, walker, [...origin, ...parsePath(key)])
+    );
+    return;
+  }
+
+  const [nodeValue, children] = tree;
+  if (children) {
+    forEach(children, (child, key) => {
+      traverse(child, walker, [...origin, ...parsePath(key)]);
+    });
+  }
+
+  walker(nodeValue, origin);
+}
+
+export function applyValueAnnotations(
+  plain: any,
+  annotations: MinimisedTree<TypeAnnotation>
+) {
+  traverse(annotations, (type, path) => {
+    plain = setDeep(plain, path, v => untransformValue(v, type));
+  });
+
+  return plain;
+}
+
+export function applyReferentialEqualityAnnotations(
+  plain: any,
+  annotations: ReferentialEqualityAnnotations
+) {
+  function apply(identicalPaths: string[], path: string) {
+    const object = getDeep(plain, parsePath(path));
+
+    identicalPaths.map(parsePath).forEach(identicalObjectPath => {
+      plain = setDeep(plain, identicalObjectPath, () => object);
+    });
+  }
+
+  if (isArray(annotations)) {
+    const [root, other] = annotations;
+    root.forEach(identicalPath => {
+      plain = setDeep(plain, parsePath(identicalPath), () => plain);
+    });
+
+    if (other) {
+      forEach(other, apply);
+    }
+  } else {
+    forEach(annotations, apply);
+  }
+
+  return plain;
+}
 
 const isDeep = (object: any): boolean =>
   isPlainObject(object) ||
@@ -34,12 +107,50 @@ function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
 
 interface Result {
   transformedValue: any;
-  annotations?: CollapsedRootTree<TypeAnnotation>;
+  annotations?: MinimisedTree<TypeAnnotation>;
+}
+
+export type ReferentialEqualityAnnotations =
+  | Record<string, string[]>
+  | [string[]]
+  | [string[], Record<string, string[]>];
+
+export function generateReferentialEqualityAnnotations(
+  identitites: Map<any, any[][]>
+): ReferentialEqualityAnnotations | undefined {
+  const result: Record<string, string[]> = {};
+  let rootEqualityPaths: string[] | undefined = undefined;
+
+  identitites.forEach(paths => {
+    if (paths.length <= 1) {
+      return;
+    }
+
+    const [shortestPath, ...identicalPaths] = paths
+      .map(path => path.map(String))
+      .sort((a, b) => a.length - b.length);
+
+    if (shortestPath.length === 0) {
+      rootEqualityPaths = identicalPaths.map(stringifyPath);
+    } else {
+      result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
+    }
+  });
+
+  if (rootEqualityPaths) {
+    if (isEmptyObject(result)) {
+      return [rootEqualityPaths];
+    } else {
+      return [rootEqualityPaths, result];
+    }
+  } else {
+    return isEmptyObject(result) ? undefined : result;
+  }
 }
 
 export const walker = (
   object: any,
-  identities: Map<any, any[][]> = new Map(),
+  identities: Map<any, any[][]>,
   path: any[] = [],
   objectsInThisPath: any[] = []
 ): Result => {

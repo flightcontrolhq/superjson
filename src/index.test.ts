@@ -2,8 +2,7 @@
 /* eslint-disable es5/no-es6-methods */
 
 import SuperJSON from './';
-import { JSONValue, SuperJSONValue } from './types';
-import { Annotations } from './annotator';
+import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 import { ObjectID } from 'mongodb';
@@ -16,7 +15,7 @@ describe('stringify & parse', () => {
     {
       input: (() => SuperJSONValue) | SuperJSONValue;
       output: JSONValue | ((v: JSONValue) => void);
-      outputAnnotations?: Annotations;
+      outputAnnotations?: SuperJSONResult['meta'];
       customExpectations?: (value: any) => void;
       skipOnNode10?: boolean;
       dontExpectEquality?: boolean;

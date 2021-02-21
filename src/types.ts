@@ -1,4 +1,5 @@
-import { Annotations } from './annotator';
+import { TypeAnnotation } from './transformer';
+import { MinimisedTree, ReferentialEqualityAnnotations } from './walker';
 
 export type Class = { new (...args: any[]): any };
 
@@ -38,5 +39,8 @@ export interface SuperJSONObject {
 
 export interface SuperJSONResult {
   json: JSONValue;
-  meta?: Annotations;
+  meta?: {
+    values?: MinimisedTree<TypeAnnotation>;
+    referentialEqualities?: ReferentialEqualityAnnotations;
+  };
 }

@@ -2,10 +2,13 @@ import { walker } from './walker';
 
 test('walker', () => {
   expect(
-    walker({
-      a: new Map([[NaN, null]]),
-      b: /test/g,
-    })
+    walker(
+      {
+        a: new Map([[NaN, null]]),
+        b: /test/g,
+      },
+      new Map()
+    )
   ).toEqual({
     transformedValue: {
       a: [['NaN', null]],
