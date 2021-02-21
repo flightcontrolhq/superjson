@@ -11,7 +11,7 @@ import {
   applyReferentialEqualityAnnotations,
   applyValueAnnotations,
   generateReferentialEqualityAnnotations,
-} from './walker';
+} from './plainer';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const identities = new Map<any, any[][]>();

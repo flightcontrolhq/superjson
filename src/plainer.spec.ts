@@ -1,4 +1,4 @@
-import { walker } from './walker';
+import { walker } from './plainer';
 
 test('walker', () => {
   expect(

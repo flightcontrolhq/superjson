@@ -1,5 +1,5 @@
 import { TypeAnnotation } from './transformer';
-import { MinimisedTree, ReferentialEqualityAnnotations } from './walker';
+import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer';
 
 export type Class = { new (...args: any[]): any };
 
