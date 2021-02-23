@@ -1,6 +1,6 @@
 import { isMap, isArray, isPlainObject, isSet } from './is';
 
-export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
+const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   const keys = value.keys();
   while (n > 0) {
     keys.next();
@@ -47,7 +47,7 @@ export const setDeep = (
       }
 
       const row = +key;
-      const type = +path[i + 1] === 0 ? 'key' : 'value';
+      const type = +path[++i] === 0 ? 'key' : 'value';
 
       const keyOfRow = getNthKey(parent, row);
       switch (type) {
@@ -58,8 +58,6 @@ export const setDeep = (
           parent = parent.get(keyOfRow);
           break;
       }
-
-      i++;
     }
   }
 

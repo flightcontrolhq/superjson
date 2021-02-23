@@ -1,13 +1,4 @@
-import { applyAnnotations, makeAnnotator } from './annotator';
-import { isEmptyObject } from './is';
-import { plainer } from './plainer';
-import {
-  SuperJSONResult,
-  SuperJSONValue,
-  isSuperJSONResult,
-  Class,
-  JSONValue,
-} from './types';
+import { SuperJSONResult, SuperJSONValue, Class, JSONValue } from './types';
 import { ClassRegistry, RegisterOptions } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
 import {
@@ -15,32 +6,54 @@ import {
   CustomTransformerRegistry,
 } from './custom-transformer-registry';
 import { allowErrorProps } from './error-props';
+import {
+  walker,
+  applyReferentialEqualityAnnotations,
+  applyValueAnnotations,
+  generateReferentialEqualityAnnotations,
+} from './plainer';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
-  const { getAnnotations, annotator } = makeAnnotator();
-  const output = plainer(object, annotator);
-
-  const annotations = getAnnotations();
+  const identities = new Map<any, any[][]>();
+  const output = walker(object, identities);
   const res: SuperJSONResult = {
-    json: output,
+    json: output.transformedValue,
   };
-  if (!isEmptyObject(annotations)) {
-    res.meta = annotations;
+
+  if (output.annotations) {
+    res.meta = {
+      ...res.meta,
+      values: output.annotations,
+    };
   }
+
+  const equalityAnnotations = generateReferentialEqualityAnnotations(
+    identities
+  );
+  if (equalityAnnotations) {
+    res.meta = {
+      ...res.meta,
+      referentialEqualities: equalityAnnotations,
+    };
+  }
+
   return res;
 };
 
 export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
-  if (!isSuperJSONResult(payload)) {
-    throw new Error('Not a valid SuperJSON payload.');
-  }
-
   const { json, meta } = payload;
 
-  const result: T = json as any;
+  let result: T = json as any;
 
-  if (!!meta) {
-    return applyAnnotations(result, meta);
+  if (meta?.values) {
+    result = applyValueAnnotations(result, meta.values);
+  }
+
+  if (meta?.referentialEqualities) {
+    result = applyReferentialEqualityAnnotations(
+      result,
+      meta.referentialEqualities
+    );
   }
 
   return result;

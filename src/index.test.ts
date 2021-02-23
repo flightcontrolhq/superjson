@@ -2,8 +2,7 @@
 /* eslint-disable es5/no-es6-methods */
 
 import SuperJSON from './';
-import { JSONValue, SuperJSONValue } from './types';
-import { Annotations } from './annotator';
+import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
 import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
 
 import { ObjectID } from 'mongodb';
@@ -16,10 +15,11 @@ describe('stringify & parse', () => {
     {
       input: (() => SuperJSONValue) | SuperJSONValue;
       output: JSONValue | ((v: JSONValue) => void);
-      outputAnnotations?: Annotations;
+      outputAnnotations?: SuperJSONResult['meta'];
       customExpectations?: (value: any) => void;
       skipOnNode10?: boolean;
       dontExpectEquality?: boolean;
+      only?: boolean;
     }
   > = {
     'works for objects': {
@@ -123,7 +123,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: [{ options: ['0'] }],
+          selected: ['options.0'],
         },
       },
       customExpectations: output => {
@@ -308,7 +308,7 @@ describe('stringify & parse', () => {
         ],
       },
       outputAnnotations: {
-        referentialEqualities: [{ 'children.0.parents': ['0'] }],
+        referentialEqualities: [['children.0.parents.0']],
       },
     },
 
@@ -350,7 +350,7 @@ describe('stringify & parse', () => {
           highscores: ['map'],
         },
         referentialEqualities: {
-          topScorer: [{ 'highscores.0': ['0'] }] as any,
+          topScorer: ['highscores.0.0'],
         },
       },
     },
@@ -373,7 +373,7 @@ describe('stringify & parse', () => {
           b: ['map'],
         },
         referentialEqualities: {
-          a: [['b']],
+          a: ['b'],
         },
       },
       customExpectations: value => {
@@ -418,7 +418,7 @@ describe('stringify & parse', () => {
           users: ['set'],
         },
         referentialEqualities: {
-          userOfTheMonth: [{ users: ['0'] }],
+          userOfTheMonth: ['users.0'],
         },
       },
       customExpectations: value => {
@@ -627,12 +627,17 @@ describe('stringify & parse', () => {
       customExpectations,
       skipOnNode10,
       dontExpectEquality,
+      only,
     },
   ] of Object.entries(cases)) {
     let testFunc = test;
 
     if (skipOnNode10 && isNode10) {
       testFunc = test.skip;
+    }
+
+    if (only) {
+      testFunc = test.only;
     }
 
     testFunc(testName, () => {
@@ -733,35 +738,7 @@ describe('stringify & parse', () => {
   });
 
   describe('when given a non-SuperJSON object', () => {
-    it('throws', () => {
-      expect(() => {
-        SuperJSON.parse(
-          JSON.stringify({
-            value: {
-              a: 1,
-            },
-            meta: {
-              root: 'invalid_key',
-            },
-          })
-        );
-      }).toThrow();
-
-      expect(() => {
-        SuperJSON.parse(
-          JSON.stringify({
-            value: {
-              a: 1,
-            },
-            meta: {
-              values: {
-                a: 'invalid_key',
-              },
-            },
-          })
-        );
-      }).toThrow();
-    });
+    it.todo('has undefined behaviour');
   });
 
   test('regression #65: BigInt on Safari v13', () => {
