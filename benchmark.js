@@ -1,5 +1,5 @@
-const Benchmark = require('benchmark');
-const SuperJSON = require('./dist/').default;
+import Benchmark from 'benchmark';
+import SuperJSON from './dist/index.js';
 
 const instances = {
   'toy example': {

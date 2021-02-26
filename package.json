@@ -1,8 +1,10 @@
 {
   "version": "1.7.2",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "dist",
     "src"
@@ -11,11 +13,12 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "tsc",
+    "clean": "rm -rf ./dist",
+    "build": "tsup src/index.ts --dts --sourcemap --target es5 --format cjs,esm",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepack": "tsc",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepublishOnly": "npm run build"
   },
   "importSort": {
     ".ts": {
@@ -46,7 +49,6 @@
       "url": "https://twitter.com/flybayer"
     }
   ],
-  "module": "dist/superjson.esm.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/blitz-js/superjson"
@@ -60,12 +62,14 @@
     "husky": "^5.0.9",
     "mongodb": "^3.6.4",
     "tsdx": "^0.14.1",
+    "tsup": "^4.0.0",
     "typescript": "^4.1.5"
   },
   "dependencies": {
     "debug": "^4.3.1"
   },
   "resolutions": {
+    "**/eslint": "^7.17.0",
     "**/@typescript-eslint/eslint-plugin": "^4.11.1",
     "**/@typescript-eslint/parser": "^4.11.1",
     "**/jest": "^26.6.3",

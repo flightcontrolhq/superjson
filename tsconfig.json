@@ -1,21 +1,23 @@
 {
-  "include": ["src"],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts"],
   "compilerOptions": {
-    "module": "CommonJS",
+    "target": "es5",
+    "module": "ESNext",
     "lib": ["esnext"],
-    "importHelpers": false,
-    "declaration": true,
-    "sourceMap": true,
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "strict": true,
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "downlevelIteration": true
-  }
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true
+  },
+  "exclude": [
+    "**/dist",
+    "**/node_modules",
+    "**/test",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
 }
