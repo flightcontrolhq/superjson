@@ -14,12 +14,8 @@
     "build": "tsc",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepack": "tsc"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "tsdx lint"
-    }
+    "prepack": "tsc",
+    "prepare": "husky install"
   },
   "importSort": {
     ".ts": {
