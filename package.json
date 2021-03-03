@@ -14,7 +14,7 @@
   },
   "scripts": {
     "clean": "rm -rf ./dist",
-    "build": "tsup src/index.ts --dts --sourcemap --target es5 --format cjs,esm",
+    "build": "node --experimental-worker ./node_modules/.bin/tsup src/index.ts --dts --sourcemap --target es5 --format cjs,esm",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
     "prepare": "husky install",
