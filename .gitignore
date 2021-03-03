@@ -2,3 +2,4 @@ node_modules
 dist
 coverage
 output.txt
+yarn-error.log

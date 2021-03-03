@@ -1,8 +1,14 @@
 {
+  "include": ["src"],
   "compilerOptions": {
     "target": "es5",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["esnext"],
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": true,
+    "sourceMap": true,
+    "importHelpers": false,
     "downlevelIteration": true,
     "esModuleInterop": true,
     "moduleResolution": "Node",

@@ -42,7 +42,7 @@ jobs:
         run: yarn build
 
       - name: Run benchmark
-        run: node benchmark.js | tee output.txt
+        run: yarn benchmark
         env:
           NODE_ENV: production
 

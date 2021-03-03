@@ -1,0 +1,11 @@
+#!/bin/bash
+currentver="$(node --version)"
+requiredver="v12.0.0"
+
+if [ "$(printf '%s\n' "$requiredver" "$currentver" | sort -V | head -n1)" = "$requiredver" ]; then
+  echo "Building with tsup"
+  node --experimental-worker ./node_modules/.bin/tsup src/index.ts --dts --sourcemap --target es5 --format cjs,esm
+else
+  echo "Fallback to tsc"
+  ./node_modules/.bin/tsc && cp dist/index.js dist/index.cjs
+fi
