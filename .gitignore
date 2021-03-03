@@ -3,3 +3,4 @@ dist
 coverage
 output.txt
 yarn-error.log
+benchmark.mjs

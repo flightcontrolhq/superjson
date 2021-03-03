@@ -1,0 +1,12 @@
+#!/bin/bash
+currentver="$(node --version)"
+requiredver="v12.0.0"
+
+if [ "$(printf '%s\n' "$requiredver" "$currentver" | sort -V | head -n1)" = "$requiredver" ]; then
+  echo "Benchmarking ESM"
+  node benchmark.js | tee output.txt
+else
+  echo "Benchmarking CJS"
+  cp benchmark.js benchmark.mjs
+  node --experimental-modules benchmark.mjs | tee output.txt
+fi

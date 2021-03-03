@@ -14,7 +14,7 @@
   },
   "scripts": {
     "clean": "rm -rf ./dist",
-    "benchmark": "node --experimental-modules benchmark.js | tee output.txt",
+    "benchmark": "./scripts/benchmark",
     "build": "./scripts/build",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
