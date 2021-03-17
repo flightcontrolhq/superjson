@@ -12,12 +12,12 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "npm run build:cjs && npm run build:esm",
+    "build": "yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc",
     "build:esm": "tsc --module es2015 --outDir dist/esm",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepack": "npm run build",
+    "prepack": "yarn build",
     "prepare": "husky install"
   },
   "importSort": {
