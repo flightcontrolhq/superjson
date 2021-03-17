@@ -3,7 +3,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "module": "dist/superjson.esm.js",
+  "module": "dist/esm/index.js",
   "files": [
     "dist",
     "src"
@@ -12,10 +12,12 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "tsdx build",
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc",
+    "build:esm": "tsc --module es2015 --outDir dist/esm",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepack": "tsdx build",
+    "prepack": "npm run build",
     "prepare": "husky install"
   },
   "importSort": {

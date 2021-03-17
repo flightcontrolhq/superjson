@@ -2,7 +2,7 @@
   "include": ["src"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"],
   "compilerOptions": {
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["esnext"],
     "importHelpers": false,
     "declaration": true,
