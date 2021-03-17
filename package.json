@@ -3,6 +3,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "module": "dist/esm/index.js",
   "files": [
     "dist",
     "src"
@@ -11,10 +12,12 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "yarn build:cjs && yarn build:esm",
+    "build:cjs": "tsc",
+    "build:esm": "tsc --module es2015 --outDir dist/esm",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepack": "tsc",
+    "prepack": "yarn build",
     "prepare": "husky install"
   },
   "importSort": {
@@ -46,7 +49,6 @@
       "url": "https://twitter.com/flybayer"
     }
   ],
-  "module": "dist/superjson.esm.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/blitz-js/superjson"
