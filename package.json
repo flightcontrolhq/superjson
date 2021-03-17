@@ -11,10 +11,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdx build",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
-    "prepack": "tsc",
+    "prepack": "tsdx build",
     "prepare": "husky install"
   },
   "importSort": {
