@@ -3,6 +3,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "module": "dist/superjson.esm.js",
   "files": [
     "dist",
     "src"
@@ -46,7 +47,6 @@
       "url": "https://twitter.com/flybayer"
     }
   ],
-  "module": "dist/superjson.esm.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/blitz-js/superjson"
