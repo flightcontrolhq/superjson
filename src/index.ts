@@ -12,6 +12,7 @@ import {
   applyValueAnnotations,
   generateReferentialEqualityAnnotations,
 } from './plainer';
+import cloneDeep from 'lodash.clonedeep';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
   const identities = new Map<any, any[][]>();
@@ -43,7 +44,7 @@ export const serialize = (object: SuperJSONValue): SuperJSONResult => {
 export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
   const { json, meta } = payload;
 
-  let result: T = json as any;
+  let result: T = cloneDeep(json) as any;
 
   if (meta?.values) {
     result = applyValueAnnotations(result, meta.values);
