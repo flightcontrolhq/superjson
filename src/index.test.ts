@@ -847,6 +847,30 @@ test('regression #83: negative zero', () => {
   expect(1 / parsed).toBe(-Infinity);
 });
 
+test('regression https://github.com/blitz-js/babel-plugin-superjson-next/issues/63: Nested BigInt', () => {
+  const serialized = SuperJSON.serialize({
+    topics: [
+      {
+        post_count: BigInt('22'),
+      },
+    ],
+  });
+
+  expect(() => JSON.stringify(serialized)).not.toThrow();
+
+  expect(typeof (serialized.json as any).topics[0].post_count).toBe('string');
+  expect(serialized.json).toEqual({
+    topics: [
+      {
+        post_count: '22',
+      },
+    ],
+  });
+
+  SuperJSON.deserialize(serialized);
+  expect(typeof (serialized.json as any).topics[0].post_count).toBe('string');
+});
+
 test('performance regression', () => {
   const data: any[] = [];
   for (let i = 0; i < 100; i++) {
