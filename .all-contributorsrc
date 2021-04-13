@@ -131,7 +131,6 @@
       "contributions": [
         "code"
       ]
-
     },
     {
       "login": "ElMassimo",
@@ -140,6 +139,15 @@
       "profile": "http://maximomussini.com",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "PeterDekkers",
+      "name": "Peter Dekkers",
+      "avatar_url": "https://avatars.githubusercontent.com/u/425971?v=4",
+      "profile": "https://goodcode.nz",
+      "contributions": [
+        "bug"
       ]
     }
   ],
