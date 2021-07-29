@@ -9,6 +9,19 @@ import { ObjectID } from 'mongodb';
 
 const isNode10 = process.version.indexOf('v10') === 0;
 
+interface ICustomError extends Error {
+  rule: { name: string; lastName: string };
+}
+class CustomError extends Error implements ICustomError {
+  name = 'CustomError';
+  rule: { name: string; lastName: string };
+
+  constructor() {
+    super();
+    this.rule = { name: 'foo', lastName: 'bar' };
+  }
+}
+
 describe('stringify & parse', () => {
   const cases: Record<
     string,
@@ -831,6 +844,21 @@ describe('allowErrorProps(...) (#91)', () => {
     expect(errorAfterTransition.map).toEqual(undefined);
 
     expect(errorAfterTransition.map).toBeInstanceOf(Map);
+  });
+
+  it('custom error works with custom props', () => {
+    SuperJSON.registerClass(CustomError);
+
+    SuperJSON.allowErrorProps('rule');
+    SuperJSON.allowErrorProps('name');
+
+    const errorAfterTransition: any = SuperJSON.parse(
+      SuperJSON.stringify(new CustomError())
+    );
+
+    expect(errorAfterTransition.rule.name).toEqual('foo');
+    expect(errorAfterTransition.rule.lastName).toEqual('bar');
+    expect(errorAfterTransition.name).toEqual('CustomError');
   });
 });
 
