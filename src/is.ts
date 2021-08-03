@@ -10,6 +10,7 @@ export const isPlainObject = (
   payload: any
 ): payload is { [key: string]: any } => {
   if (getType(payload) !== 'Object') return false;
+  if (Object.getPrototypeOf(payload) === null) return true;
   return (
     payload.constructor === Object &&
     Object.getPrototypeOf(payload) === Object.prototype

@@ -9,6 +9,7 @@ import {
   isString,
   isSymbol,
   isUndefined,
+  isPlainObject,
 } from './is';
 
 test('Basic true tests', () => {
@@ -67,4 +68,9 @@ test('Primitive tests', () => {
 
 test('Date exception', () => {
   expect(isDate(new Date('_'))).toBe(false);
+});
+
+test('Regression: null-prototype object', () => {
+  expect(isPlainObject(Object.create(null))).toBe(true);
+  expect(isPrimitive(Object.create(null))).toBe(false);
 });

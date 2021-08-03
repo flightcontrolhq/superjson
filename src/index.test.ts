@@ -936,3 +936,13 @@ test('regression #108: Error#stack should not be included by default', () => {
   ) as any;
   expect(thatShouldExist).toEqual(input.stack);
 });
+
+test('regression: `Object.create(null)` / object without prototype', () => {
+  const input: Record<string, unknown> = Object.create(null);
+  input.date = new Date();
+
+  const stringified = SuperJSON.stringify(input);
+  const parsed: any = SuperJSON.parse(stringified);
+
+  expect(parsed.date).toBeInstanceOf(Date);
+});
