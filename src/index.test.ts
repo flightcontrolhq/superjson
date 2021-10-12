@@ -3,7 +3,14 @@
 
 import SuperJSON from './';
 import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
-import {isArray, isMap, isPlainObject, isPrimitive, isSet, isTypedArray} from './is';
+import {
+  isArray,
+  isMap,
+  isPlainObject,
+  isPrimitive,
+  isSet,
+  isTypedArray,
+} from './is';
 
 import { ObjectID } from 'mongodb';
 
@@ -541,18 +548,18 @@ describe('stringify & parse', () => {
     'works with typed arrays': {
       input: {
         a: new Int8Array([1, 2]),
-        b: new Uint8ClampedArray(3)
+        b: new Uint8ClampedArray(3),
       },
       output: {
         a: [1, 2],
-        b: [0, 0, 0]
+        b: [0, 0, 0],
       },
       outputAnnotations: {
         values: {
           a: [['typed-array', 'Int8Array']],
-          b: [['typed-array', 'Uint8ClampedArray']]
-        }
-      }
+          b: [['typed-array', 'Uint8ClampedArray']],
+        },
+      },
     },
 
     'works for undefined, issue #48': {

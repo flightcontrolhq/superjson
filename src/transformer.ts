@@ -10,11 +10,11 @@ import {
   isSymbol,
   isArray,
   isError,
-  isTypedArray
+  isTypedArray,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { TypedArrayRegistry } from "./typed-array-registry";
+import { TypedArrayRegistry } from './typed-array-registry';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 import { allowedErrorProps } from './error-props';
 import { findArr } from './util';
@@ -23,7 +23,7 @@ export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'Error';
 
-type TypedArrayAnnotation = ['typed-array', string]
+type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
@@ -198,19 +198,19 @@ const symbolRule = compositeTransformation(
 );
 
 const typedArrayRule = compositeTransformation(
-    isTypedArray,
-    (v) => ['typed-array', v.constructor.name],
-    (v) => Array.from(v),
-    (v, a) => {
-      const ctor = TypedArrayRegistry.getValue(a[1]);
+  isTypedArray,
+  v => ['typed-array', v.constructor.name],
+  v => Array.from(v),
+  (v, a) => {
+    const ctor = TypedArrayRegistry.getValue(a[1]);
 
-      if (!ctor) {
-        throw new Error('Trying to deserialize unknown typed array');
-      }
-
-      return new ctor(v);
+    if (!ctor) {
+      throw new Error('Trying to deserialize unknown typed array');
     }
-)
+
+    return new ctor(v);
+  }
+);
 
 export function isInstanceOfRegisteredClass(
   potentialClass: any
@@ -320,7 +320,7 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       case 'custom':
         return customRule.untransform(json, type);
       case 'typed-array':
-        return typedArrayRule.untransform(json, type)
+        return typedArrayRule.untransform(json, type);
       default:
         throw new Error('Unknown transformation: ' + type);
     }

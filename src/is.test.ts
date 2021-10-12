@@ -9,7 +9,8 @@ import {
   isString,
   isSymbol,
   isUndefined,
-  isPlainObject, isTypedArray,
+  isPlainObject,
+  isTypedArray,
 } from './is';
 
 test('Basic true tests', () => {
