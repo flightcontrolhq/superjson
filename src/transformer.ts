@@ -21,14 +21,19 @@ import { findArr } from './util';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
-type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'Error';
+type LeafTypeAnnotation =
+  | PrimitiveTypeAnnotation
+  | 'regexp'
+  | 'Date'
+  | 'Error'
+  | 'typed-array';
 
 type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
 
-type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'typed-array';
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
 
 type CompositeTypeAnnotation =
   | TypedArrayAnnotation
