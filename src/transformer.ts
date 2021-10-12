@@ -14,7 +14,6 @@ import {
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
-import { TypedArrayRegistry } from './typed-array-registry';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 import { allowedErrorProps } from './error-props';
 import { findArr } from './util';
@@ -202,12 +201,26 @@ const symbolRule = compositeTransformation(
   }
 );
 
+const constructorToName = Object.fromEntries(
+  [
+    Int8Array,
+    Uint8Array,
+    Int16Array,
+    Uint16Array,
+    Int32Array,
+    Uint32Array,
+    Float32Array,
+    Float64Array,
+    Uint8ClampedArray,
+  ].map(ctor => [ctor.name, ctor])
+);
+
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
   v => [...v],
   (v, a) => {
-    const ctor = TypedArrayRegistry.getValue(a[1]);
+    const ctor = constructorToName[a[1]];
 
     if (!ctor) {
       throw new Error('Trying to deserialize unknown typed array');
