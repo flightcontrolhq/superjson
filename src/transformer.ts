@@ -200,7 +200,7 @@ const symbolRule = compositeTransformation(
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
-  v => Array.from(v),
+  v => [...v],
   (v, a) => {
     const ctor = TypedArrayRegistry.getValue(a[1]);
 
