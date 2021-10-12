@@ -9,7 +9,7 @@ import {
   isString,
   isSymbol,
   isUndefined,
-  isPlainObject,
+  isPlainObject, isTypedArray,
 } from './is';
 
 test('Basic true tests', () => {
@@ -29,6 +29,7 @@ test('Basic true tests', () => {
   expect(isNumber(1)).toBe(true);
   expect(isDate(new Date())).toBe(true);
   expect(isSymbol(Symbol())).toBe(true);
+  expect(isTypedArray(new Uint8Array())).toBe(true);
 });
 
 test('Basic false tests', () => {
@@ -44,6 +45,8 @@ test('Basic false tests', () => {
   expect(isBoolean(NaN)).toBe(false);
   expect(isRegExp(NaN)).toBe(false);
   expect(isSymbol(NaN)).toBe(false);
+
+  expect(isTypedArray([])).toBe(false);
 });
 
 test('Primitive tests', () => {

@@ -1,3 +1,5 @@
+import {TypedArray} from "./typed-array-registry";
+
 const getType = (payload: any): string =>
   Object.prototype.toString.call(payload).slice(8, -1);
 
@@ -68,3 +70,6 @@ export const isBigint = (payload: any): payload is bigint =>
 
 export const isInfinite = (payload: any): payload is number =>
   payload === Infinity || payload === -Infinity;
+
+export const isTypedArray = (payload: any): payload is TypedArray =>
+    ArrayBuffer.isView(payload) && !(payload instanceof DataView)
