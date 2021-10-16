@@ -1,16 +1,17 @@
 import {
-  isBigint,
-  isDate,
-  isInfinite,
-  isMap,
-  isNaNValue,
-  isRegExp,
-  isSet,
-  isUndefined,
-  isSymbol,
-  isArray,
-  isError,
-  isTypedArray,
+    isBigint,
+    isDate,
+    isInfinite,
+    isMap,
+    isNaNValue,
+    isRegExp,
+    isSet,
+    isUndefined,
+    isSymbol,
+    isArray,
+    isError,
+    isTypedArray,
+    TypedArrayConstructor,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
@@ -25,7 +26,6 @@ type LeafTypeAnnotation =
   | 'regexp'
   | 'Date'
   | 'Error'
-  | 'typed-array';
 
 type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
@@ -201,8 +201,7 @@ const symbolRule = compositeTransformation(
   }
 );
 
-const constructorToName = Object.fromEntries(
-  [
+const constructorToName = [
     Int8Array,
     Uint8Array,
     Int16Array,
@@ -212,8 +211,10 @@ const constructorToName = Object.fromEntries(
     Float32Array,
     Float64Array,
     Uint8ClampedArray,
-  ].map(ctor => [ctor.name, ctor])
-);
+].reduce<Record<string, TypedArrayConstructor>>((obj, ctor) => {
+    obj[ctor.name] = ctor;
+    return obj;
+}, {})
 
 const typedArrayRule = compositeTransformation(
   isTypedArray,

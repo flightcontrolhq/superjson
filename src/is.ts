@@ -69,16 +69,18 @@ export const isBigint = (payload: any): payload is bigint =>
 export const isInfinite = (payload: any): payload is number =>
   payload === Infinity || payload === -Infinity;
 
-type TypedArray =
-  | Int8Array
-  | Uint8Array
-  | Uint8ClampedArray
-  | Int16Array
-  | Uint16Array
-  | Int32Array
-  | Uint32Array
-  | Float32Array
-  | Float64Array;
+export type TypedArrayConstructor =
+  | Int8ArrayConstructor
+  | Uint8ArrayConstructor
+  | Uint8ClampedArrayConstructor
+  | Int16ArrayConstructor
+  | Uint16ArrayConstructor
+  | Int32ArrayConstructor
+  | Uint32ArrayConstructor
+  | Float32ArrayConstructor
+  | Float64ArrayConstructor;
+
+export type TypedArray = InstanceType<TypedArrayConstructor>;
 
 export const isTypedArray = (payload: any): payload is TypedArray =>
   ArrayBuffer.isView(payload) && !(payload instanceof DataView);
