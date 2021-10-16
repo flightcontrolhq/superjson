@@ -1,17 +1,17 @@
 import {
-    isBigint,
-    isDate,
-    isInfinite,
-    isMap,
-    isNaNValue,
-    isRegExp,
-    isSet,
-    isUndefined,
-    isSymbol,
-    isArray,
-    isError,
-    isTypedArray,
-    TypedArrayConstructor,
+  isBigint,
+  isDate,
+  isInfinite,
+  isMap,
+  isNaNValue,
+  isRegExp,
+  isSet,
+  isUndefined,
+  isSymbol,
+  isArray,
+  isError,
+  isTypedArray,
+  TypedArrayConstructor,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
@@ -21,11 +21,7 @@ import { findArr } from './util';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
-type LeafTypeAnnotation =
-  | PrimitiveTypeAnnotation
-  | 'regexp'
-  | 'Date'
-  | 'Error'
+type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'Error';
 
 type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
@@ -202,19 +198,19 @@ const symbolRule = compositeTransformation(
 );
 
 const constructorToName = [
-    Int8Array,
-    Uint8Array,
-    Int16Array,
-    Uint16Array,
-    Int32Array,
-    Uint32Array,
-    Float32Array,
-    Float64Array,
-    Uint8ClampedArray,
+  Int8Array,
+  Uint8Array,
+  Int16Array,
+  Uint16Array,
+  Int32Array,
+  Uint32Array,
+  Float32Array,
+  Float64Array,
+  Uint8ClampedArray,
 ].reduce<Record<string, TypedArrayConstructor>>((obj, ctor) => {
-    obj[ctor.name] = ctor;
-    return obj;
-}, {})
+  obj[ctor.name] = ctor;
+  return obj;
+}, {});
 
 const typedArrayRule = compositeTransformation(
   isTypedArray,
