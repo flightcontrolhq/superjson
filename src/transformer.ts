@@ -11,6 +11,7 @@ import {
   isArray,
   isError,
   isTypedArray,
+  isDecimal,
   TypedArrayConstructor,
 } from './is';
 import { ClassRegistry } from './class-registry';
@@ -18,6 +19,7 @@ import { SymbolRegistry } from './symbol-registry';
 import { CustomTransformerRegistry } from './custom-transformer-registry';
 import { allowedErrorProps } from './error-props';
 import { findArr } from './util';
+import Decimal from 'decimal.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -28,7 +30,7 @@ type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
 
-type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Decimal';
 
 type CompositeTypeAnnotation =
   | TypedArrayAnnotation
@@ -79,7 +81,12 @@ const simpleRules = [
     v => v.toISOString(),
     v => new Date(v)
   ),
-
+  simpleTransformation(
+    isDecimal,
+    'Decimal',
+    v => v.toJSON(),
+    v => new Decimal(v)
+  ),
   simpleTransformation(
     isError,
     'Error',

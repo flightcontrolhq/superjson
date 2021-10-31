@@ -1,5 +1,6 @@
 import { TypeAnnotation } from './transformer';
 import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer';
+import Decimal from 'decimal.js';
 
 export type Class = { new (...args: any[]): any };
 
@@ -23,7 +24,8 @@ export type SerializableJSONValue =
   | bigint
   | Date
   | ClassInstance
-  | RegExp;
+  | RegExp
+  | typeof Decimal;
 
 export type SuperJSONValue =
   | JSONValue

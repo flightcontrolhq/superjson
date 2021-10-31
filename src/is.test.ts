@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js';
 import {
   isArray,
   isBoolean,
@@ -11,6 +12,7 @@ import {
   isUndefined,
   isPlainObject,
   isTypedArray,
+  isDecimal,
 } from './is';
 
 test('Basic true tests', () => {
@@ -29,6 +31,7 @@ test('Basic true tests', () => {
   expect(isNumber(0)).toBe(true);
   expect(isNumber(1)).toBe(true);
   expect(isDate(new Date())).toBe(true);
+  expect(isDecimal(new Decimal('100.1'))).toBe(true);
   expect(isSymbol(Symbol())).toBe(true);
   expect(isTypedArray(new Uint8Array())).toBe(true);
 });
@@ -37,6 +40,7 @@ test('Basic false tests', () => {
   expect(isNumber(NaN)).toBe(false);
   expect(isDate(new Date('_'))).toBe(false);
   expect(isDate(NaN)).toBe(false);
+  expect(isDecimal(NaN)).toBe(false);
   expect(isUndefined(NaN)).toBe(false);
   expect(isNull(NaN)).toBe(false);
 

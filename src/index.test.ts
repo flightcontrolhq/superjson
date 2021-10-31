@@ -13,6 +13,7 @@ import {
 } from './is';
 
 import { ObjectID } from 'mongodb';
+import Decimal from 'decimal.js';
 
 const isNode10 = process.version.indexOf('v10') === 0;
 
@@ -188,6 +189,20 @@ describe('stringify & parse', () => {
       outputAnnotations: {
         values: {
           'meeting.date': ['Date'],
+        },
+      },
+    },
+
+    'works for Decimals': {
+      input: {
+        totalCost: new Decimal('199.99'),
+      },
+      output: {
+        totalCost: new Decimal('199.99').toJSON(),
+      },
+      outputAnnotations: {
+        values: {
+          totalCost: ['Decimal'],
         },
       },
     },
