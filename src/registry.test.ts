@@ -1,4 +1,3 @@
-import debug from 'debug';
 import { Registry } from './registry';
 import { Class } from './types';
 
@@ -17,8 +16,7 @@ test('class registry', () => {
 
   expect(() => registry.register(Car)).not.toThrow();
 
-  debug.enable('superjson');
-  const warnSpy = jest.spyOn(process.stderr, 'write');
+  const warnSpy = jest.spyOn(console, 'debug');
 
   registry.register(class Car {});
   expect(warnSpy).toHaveBeenCalledTimes(1);
