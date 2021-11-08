@@ -218,6 +218,31 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 | `Map`       | ❌                           | ✅                       |
 | `Error`     | ❌                           | ✅                       |
 
+## Recipes
+
+SuperJSON by default only supports built-in data types to keep bundle-size as low as possible.
+Here are some recipes you can use to extend to non-default data types.
+
+Place them in some central utility file and make sure they're executed before any other `SuperJSON` calls.
+In a Next.js project, `_app.ts` would be a good spot for that.
+
+### `Decimal.js` / `Prisma.Decimal`
+
+```ts
+import { Decimal } from "decimal.js"
+
+SuperJSON.registerCustom<Decimal, string>(
+  {
+    isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
+    serialize: v => v.toJSON(),
+    deserialize: v => new Decimal(v),
+  },
+  'decimal.js'
+);
+```
+
+
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
