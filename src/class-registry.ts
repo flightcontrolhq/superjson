@@ -6,7 +6,7 @@ export interface RegisterOptions {
   allowProps?: string[];
 }
 
-class _ClassRegistry extends Registry<Class> {
+export class ClassRegistry extends Registry<Class> {
   constructor() {
     super(c => c.name);
   }
@@ -29,5 +29,3 @@ class _ClassRegistry extends Registry<Class> {
     return this.classToAllowedProps.get(value);
   }
 }
-
-export const ClassRegistry = new _ClassRegistry();

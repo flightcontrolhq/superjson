@@ -8,20 +8,20 @@ export interface CustomTransfomer<I, O extends JSONValue> {
   deserialize: (v: O) => I;
 }
 
-const transfomers: Record<string, CustomTransfomer<any, any>> = {};
+export class CustomTransformerRegistry {
+  private transfomers: Record<string, CustomTransfomer<any, any>> = {};
 
-export const CustomTransformerRegistry = {
   register<I, O extends JSONValue>(transformer: CustomTransfomer<I, O>) {
-    transfomers[transformer.name] = transformer;
-  },
+    this.transfomers[transformer.name] = transformer;
+  }
 
   findApplicable<T>(v: T) {
-    return find(transfomers, transformer => transformer.isApplicable(v)) as
-      | CustomTransfomer<T, JSONValue>
-      | undefined;
-  },
+    return find(this.transfomers, transformer =>
+      transformer.isApplicable(v)
+    ) as CustomTransfomer<T, JSONValue> | undefined;
+  }
 
   findByName(name: string) {
-    return transfomers[name];
-  },
-};
+    return this.transfomers[name];
+  }
+}

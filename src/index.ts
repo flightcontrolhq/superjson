@@ -1,11 +1,10 @@
 import { SuperJSONResult, SuperJSONValue, Class, JSONValue } from './types';
 import { ClassRegistry, RegisterOptions } from './class-registry';
-import { SymbolRegistry } from './symbol-registry';
+import { Registry } from './registry';
 import {
   CustomTransfomer,
   CustomTransformerRegistry,
 } from './custom-transformer-registry';
-import { allowErrorProps } from './error-props';
 import {
   walker,
   applyReferentialEqualityAnnotations,
@@ -14,80 +13,116 @@ import {
 } from './plainer';
 import { copy } from 'copy-anything';
 
-export const serialize = (object: SuperJSONValue): SuperJSONResult => {
-  const identities = new Map<any, any[][]>();
-  const output = walker(object, identities);
-  const res: SuperJSONResult = {
-    json: output.transformedValue,
-  };
-
-  if (output.annotations) {
-    res.meta = {
-      ...res.meta,
-      values: output.annotations,
+export default class SuperJSON {
+  serialize(object: SuperJSONValue): SuperJSONResult {
+    const identities = new Map<any, any[][]>();
+    const output = walker(object, identities, this);
+    const res: SuperJSONResult = {
+      json: output.transformedValue,
     };
-  }
 
-  const equalityAnnotations = generateReferentialEqualityAnnotations(
-    identities
-  );
-  if (equalityAnnotations) {
-    res.meta = {
-      ...res.meta,
-      referentialEqualities: equalityAnnotations,
-    };
-  }
+    if (output.annotations) {
+      res.meta = {
+        ...res.meta,
+        values: output.annotations,
+      };
+    }
 
-  return res;
-};
-
-export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
-  const { json, meta } = payload;
-
-  let result: T = copy(json) as any;
-
-  if (meta?.values) {
-    result = applyValueAnnotations(result, meta.values);
-  }
-
-  if (meta?.referentialEqualities) {
-    result = applyReferentialEqualityAnnotations(
-      result,
-      meta.referentialEqualities
+    const equalityAnnotations = generateReferentialEqualityAnnotations(
+      identities
     );
+    if (equalityAnnotations) {
+      res.meta = {
+        ...res.meta,
+        referentialEqualities: equalityAnnotations,
+      };
+    }
+
+    return res;
   }
 
-  return result;
-};
+  deserialize<T = unknown>(payload: SuperJSONResult): T {
+    const { json, meta } = payload;
 
-export const stringify = (object: SuperJSONValue): string =>
-  JSON.stringify(serialize(object));
+    let result: T = copy(json) as any;
 
-export const parse = <T = unknown>(string: string): T =>
-  deserialize(JSON.parse(string));
+    if (meta?.values) {
+      result = applyValueAnnotations(result, meta.values, this);
+    }
 
-export const registerClass = (v: Class, options?: RegisterOptions | string) =>
-  ClassRegistry.register(v, options);
+    if (meta?.referentialEqualities) {
+      result = applyReferentialEqualityAnnotations(
+        result,
+        meta.referentialEqualities
+      );
+    }
 
-export const registerSymbol = (v: Symbol, identifier?: string) =>
-  SymbolRegistry.register(v, identifier);
+    return result;
+  }
 
-export const registerCustom = <I, O extends JSONValue>(
-  transformer: Omit<CustomTransfomer<I, O>, 'name'>,
-  name: string
-) =>
-  CustomTransformerRegistry.register({
-    name,
-    ...transformer,
-  });
+  stringify(object: SuperJSONValue): string {
+    return JSON.stringify(this.serialize(object));
+  }
 
-export default {
-  stringify,
-  parse,
-  serialize,
-  deserialize,
-  registerClass,
-  registerSymbol,
-  registerCustom,
-  allowErrorProps,
-};
+  parse<T = unknown>(string: string): T {
+    return this.deserialize(JSON.parse(string));
+  }
+
+  readonly classRegistry = new ClassRegistry();
+  registerClass(v: Class, options?: RegisterOptions | string) {
+    this.classRegistry.register(v, options);
+  }
+
+  readonly symbolRegistry = new Registry<Symbol>(s => s.description ?? '');
+  registerSymbol(v: Symbol, identifier?: string) {
+    this.symbolRegistry.register(v, identifier);
+  }
+
+  readonly customTransformerRegistry = new CustomTransformerRegistry();
+  registerCustom<I, O extends JSONValue>(
+    transformer: Omit<CustomTransfomer<I, O>, 'name'>,
+    name: string
+  ) {
+    this.customTransformerRegistry.register({
+      name,
+      ...transformer,
+    });
+  }
+
+  readonly allowedErrorProps: string[] = [];
+  allowErrorProps(...props: string[]) {
+    this.allowedErrorProps.push(...props);
+  }
+
+  private static defaultInstance = new SuperJSON();
+  static serialize = SuperJSON.defaultInstance.serialize.bind(
+    SuperJSON.defaultInstance
+  );
+  static deserialize = SuperJSON.defaultInstance.deserialize.bind(
+    SuperJSON.defaultInstance
+  );
+  static stringify = SuperJSON.defaultInstance.stringify.bind(
+    SuperJSON.defaultInstance
+  );
+  static parse = SuperJSON.defaultInstance.parse.bind(
+    SuperJSON.defaultInstance
+  );
+  static registerClass = SuperJSON.defaultInstance.registerClass.bind(
+    SuperJSON.defaultInstance
+  );
+  static registerSymbol = SuperJSON.defaultInstance.registerSymbol.bind(
+    SuperJSON.defaultInstance
+  );
+  static registerCustom = SuperJSON.defaultInstance.registerCustom.bind(
+    SuperJSON.defaultInstance
+  );
+  static allowErrorProps = SuperJSON.defaultInstance.allowErrorProps.bind(
+    SuperJSON.defaultInstance
+  );
+}
+
+export const serialize = SuperJSON.serialize;
+export const deserialize = SuperJSON.deserialize;
+
+export const stringify = SuperJSON.stringify;
+export const parse = SuperJSON.parse;
