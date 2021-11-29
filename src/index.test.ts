@@ -1076,3 +1076,20 @@ test('prototype pollution - constructor', () => {
 
   expect((Object.prototype as any).x).toBeUndefined();
 });
+
+test('superjson instances are independent of one another', () => {
+  class Car {}
+  const s1 = new SuperJSON();
+  s1.registerClass(Car);
+
+  const s2 = new SuperJSON();
+
+  const value = {
+    car: new Car(),
+  };
+
+  const res1 = s1.serialize(value);
+  expect(res1.meta?.values).toEqual({ car: [['class', 'Car']] });
+  const res2 = s2.serialize(value);
+  expect(res2.json).toEqual(value);
+});
