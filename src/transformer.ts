@@ -10,6 +10,8 @@ import {
   isSymbol,
   isArray,
   isError,
+  isTypedArray,
+  TypedArrayConstructor,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
@@ -21,6 +23,7 @@ export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'Error';
 
+type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
@@ -28,6 +31,7 @@ type CustomTypeAnnotation = ['custom', string];
 type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
 
 type CompositeTypeAnnotation =
+  | TypedArrayAnnotation
   | ClassTypeAnnotation
   | SymbolTypeAnnotation
   | CustomTypeAnnotation;
@@ -193,6 +197,36 @@ const symbolRule = compositeTransformation(
   }
 );
 
+const constructorToName = [
+  Int8Array,
+  Uint8Array,
+  Int16Array,
+  Uint16Array,
+  Int32Array,
+  Uint32Array,
+  Float32Array,
+  Float64Array,
+  Uint8ClampedArray,
+].reduce<Record<string, TypedArrayConstructor>>((obj, ctor) => {
+  obj[ctor.name] = ctor;
+  return obj;
+}, {});
+
+const typedArrayRule = compositeTransformation(
+  isTypedArray,
+  v => ['typed-array', v.constructor.name],
+  v => [...v],
+  (v, a) => {
+    const ctor = constructorToName[a[1]];
+
+    if (!ctor) {
+      throw new Error('Trying to deserialize unknown typed array');
+    }
+
+    return new ctor(v);
+  }
+);
+
 export function isInstanceOfRegisteredClass(
   potentialClass: any
 ): potentialClass is any {
@@ -257,7 +291,7 @@ const customRule = compositeTransformation(
   }
 );
 
-const compositeRules = [classRule, symbolRule, customRule];
+const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
 
 export const transformValue = (
   value: any
@@ -300,6 +334,8 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
         return classRule.untransform(json, type);
       case 'custom':
         return customRule.untransform(json, type);
+      case 'typed-array':
+        return typedArrayRule.untransform(json, type);
       default:
         throw new Error('Unknown transformation: ' + type);
     }

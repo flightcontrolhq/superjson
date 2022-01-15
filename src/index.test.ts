@@ -3,9 +3,17 @@
 
 import SuperJSON from './';
 import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
-import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import {
+  isArray,
+  isMap,
+  isPlainObject,
+  isPrimitive,
+  isSet,
+  isTypedArray,
+} from './is';
 
 import { ObjectID } from 'mongodb';
+import { Decimal } from 'decimal.js';
 
 const isNode10 = process.version.indexOf('v10') === 0;
 
@@ -476,6 +484,31 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works for Decimal.js': {
+      input: () => {
+        SuperJSON.registerCustom<Decimal, string>(
+          {
+            isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
+            serialize: v => v.toJSON(),
+            deserialize: v => new Decimal(v),
+          },
+          'decimal.js'
+        );
+
+        return {
+          a: new Decimal('100.1'),
+        };
+      },
+      output: {
+        a: '100.1',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['custom', 'decimal.js']],
+        },
+      },
+    },
+
     'issue #58': {
       skipOnNode10: true,
       input: () => {
@@ -538,6 +571,23 @@ describe('stringify & parse', () => {
       dontExpectEquality: true,
     },
 
+    'works with typed arrays': {
+      input: {
+        a: new Int8Array([1, 2]),
+        b: new Uint8ClampedArray(3),
+      },
+      output: {
+        a: [1, 2],
+        b: [0, 0, 0],
+      },
+      outputAnnotations: {
+        values: {
+          a: [['typed-array', 'Int8Array']],
+          b: [['typed-array', 'Uint8ClampedArray']],
+        },
+      },
+    },
+
     'works for undefined, issue #48': {
       input: undefined,
       output: null,
@@ -587,6 +637,10 @@ describe('stringify & parse', () => {
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
     if (isPrimitive(object)) {
+      return;
+    }
+
+    if (isTypedArray(object)) {
       return;
     }
 

@@ -1,5 +1,5 @@
 {
-  "version": "1.7.5",
+  "version": "1.8.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -59,6 +59,7 @@
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/mongodb": "^3.6.12",
     "benchmark": "^2.1.4",
+    "decimal.js": "^10.3.1",
     "eslint-plugin-es5": "^1.5.0",
     "husky": "^6.0.0",
     "mongodb": "^3.6.6",
