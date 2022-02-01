@@ -196,7 +196,7 @@ const jsonString = stringify(object);
 parse(jsonString);
 ```
 
-Returns **`string`**.
+Returns **`your original value`**.
 
 ---
 
