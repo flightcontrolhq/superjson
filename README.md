@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-16-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-17-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -272,6 +272,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://goodcode.nz"><img src="https://avatars.githubusercontent.com/u/425971?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Peter Dekkers</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3APeterDekkers" title="Bug reports">🐛</a></td>
     <td align="center"><a href="http://goleary.com"><img src="https://avatars.githubusercontent.com/u/16123225?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gabe O'Leary</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=goleary" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/binajmen"><img src="https://avatars.githubusercontent.com/u/15611419?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benjamin</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=binajmen" title="Documentation">📖</a></td>
   </tr>
 </table>
 
