@@ -93,7 +93,7 @@ const { json, meta } = superjson.serialize(object);
 json = {
   normal: 'string',
   timestamp: "2020-06-20T04:56:50.293Z",
-  test: "/blitz/",
+  test: "/superjson/",
 };
 
 // note that `normal` is not included here; `meta` only has special cases
