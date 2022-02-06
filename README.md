@@ -67,7 +67,7 @@ const jsonString = superjson.stringify({ date: new Date(0) });
 And parse your JSON like so:
 
 ```js
-const object = superjson.parse<{ date: Date }>(jsonString);
+const object = superjson.parse < { date: Date } > jsonString;
 
 // object === { date: new Date(0) }
 ```
@@ -93,7 +93,7 @@ const { json, meta } = superjson.serialize(object);
 json = {
   normal: 'string',
   timestamp: "2020-06-20T04:56:50.293Z",
-  test: "/blitz/",
+  test: "/superjson/",
 };
 
 // note that `normal` is not included here; `meta` only has special cases
@@ -204,19 +204,19 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 
 | type        | supported by standard JSON? | supported by Superjson? |
 | ----------- | --------------------------- | ----------------------- |
-| `string`    | ✅                           | ✅                       |
-| `number`    | ✅                           | ✅                       |
-| `boolean`   | ✅                           | ✅                       |
-| `null`      | ✅                           | ✅                       |
-| `Array`     | ✅                           | ✅                       |
-| `Object`    | ✅                           | ✅                       |
-| `undefined` | ❌                           | ✅                       |
-| `bigint`    | ❌                           | ✅                       |
-| `Date`      | ❌                           | ✅                       |
-| `RegExp`    | ❌                           | ✅                       |
-| `Set`       | ❌                           | ✅                       |
-| `Map`       | ❌                           | ✅                       |
-| `Error`     | ❌                           | ✅                       |
+| `string`    | ✅                          | ✅                      |
+| `number`    | ✅                          | ✅                      |
+| `boolean`   | ✅                          | ✅                      |
+| `null`      | ✅                          | ✅                      |
+| `Array`     | ✅                          | ✅                      |
+| `Object`    | ✅                          | ✅                      |
+| `undefined` | ❌                          | ✅                      |
+| `bigint`    | ❌                          | ✅                      |
+| `Date`      | ❌                          | ✅                      |
+| `RegExp`    | ❌                          | ✅                      |
+| `Set`       | ❌                          | ✅                      |
+| `Map`       | ❌                          | ✅                      |
+| `Error`     | ❌                          | ✅                      |
 
 ## Recipes
 
@@ -229,19 +229,17 @@ In a Next.js project, `_app.ts` would be a good spot for that.
 ### `Decimal.js` / `Prisma.Decimal`
 
 ```ts
-import { Decimal } from "decimal.js"
+import { Decimal } from 'decimal.js';
 
 SuperJSON.registerCustom<Decimal, string>(
   {
     isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
-    serialize: v => v.toJSON(),
-    deserialize: v => new Decimal(v),
+    serialize: (v) => v.toJSON(),
+    deserialize: (v) => new Decimal(v),
   },
   'decimal.js'
 );
 ```
-
-
 
 ## Contributors ✨
 
