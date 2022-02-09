@@ -18,7 +18,9 @@
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
     "prepack": "yarn build",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "publish-please": "publish-please",
+    "prepublishOnly": "publish-please guard"
   },
   "importSort": {
     ".ts": {
