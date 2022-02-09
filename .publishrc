@@ -1,0 +1,6 @@
+{
+    "validations": {
+        "vulnerableDependencies": false,
+        "sensitiveData": false
+    }
+}
