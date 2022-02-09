@@ -1,5 +1,6 @@
 {
     "validations": {
+        "branch": "/(main)/",
         "vulnerableDependencies": false,
         "sensitiveData": false
     }
