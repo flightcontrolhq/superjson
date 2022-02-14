@@ -115,7 +115,7 @@ Thankfully, Superjson is a perfect tool to bypass that limitation!
 Install the library with your package manager of choice, e.g.:
 
 ```sh
-yarn add -D babel-plugin-superjson-next
+yarn add babel-plugin-superjson-next
 ```
 
 Add the plugin to your .babelrc. If you don't have one, create it.
