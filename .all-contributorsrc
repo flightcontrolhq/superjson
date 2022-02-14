@@ -167,6 +167,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "chrisj-back2work",
+      "name": "Chris Johnson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/68551954?v=4",
+      "profile": "https://github.com/chrisj-back2work",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
