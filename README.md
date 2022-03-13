@@ -132,6 +132,23 @@ Add the plugin to your .babelrc. If you don't have one, create it.
 
 Done! Now you can safely use all JS datatypes in your `getServerSideProps` / etc. .
 
+## Using with Remix
+
+Remix's `json` helper and `useLoaderData` hook doesn't allow you to transmit JavaScript objects like Dates. [`superjson-remix`](https://github.com/donavon/superjson-remix) is a thin wrapper around `superjson` that allows you to use it with Remix.
+
+Change the import to `superjson-remix` and you're good to go!
+
+```diff
+- import { json, useLoaderData } from 'remix';
++ import { json, useLoaderData } from 'superjson-remix';import
+```
+
+Install the library with your package manager of choice, e.g.:
+
+```sh
+yarn add superjson-remix
+```
+
 ## API
 
 ### serialize
