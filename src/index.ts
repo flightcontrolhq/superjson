@@ -60,7 +60,7 @@ export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
   return result;
 };
 
-const stringify = (object: SuperJSONValue): string =>
+export const stringify = (object: SuperJSONValue): string =>
   JSON.stringify(serialize(object));
 
 export const parse = <T = unknown>(string: string): T =>
