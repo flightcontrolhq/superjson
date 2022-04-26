@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -93,7 +93,7 @@ const { json, meta } = superjson.serialize(object);
 json = {
   normal: 'string',
   timestamp: "2020-06-20T04:56:50.293Z",
-  test: "/blitz/",
+  test: "/superjson/",
 };
 
 // note that `normal` is not included here; `meta` only has special cases
@@ -115,7 +115,7 @@ Thankfully, Superjson is a perfect tool to bypass that limitation!
 Install the library with your package manager of choice, e.g.:
 
 ```sh
-yarn add -D babel-plugin-superjson-next
+yarn add babel-plugin-superjson-next
 ```
 
 Add the plugin to your .babelrc. If you don't have one, create it.
@@ -274,6 +274,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://goleary.com"><img src="https://avatars.githubusercontent.com/u/16123225?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gabe O'Leary</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=goleary" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/binajmen"><img src="https://avatars.githubusercontent.com/u/15611419?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benjamin</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=binajmen" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/chrisj-back2work"><img src="https://avatars.githubusercontent.com/u/68551954?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chris Johnson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=chrisj-back2work" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://nicholaschiang.com"><img src="https://avatars.githubusercontent.com/u/20798889?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nicholas Chiang</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Anicholaschiang" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=nicholaschiang" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/datner"><img src="https://avatars.githubusercontent.com/u/22598347?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Datner</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=datner" title="Code">💻</a></td>
   </tr>
 </table>
 
