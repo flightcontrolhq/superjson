@@ -3,9 +3,9 @@ import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer';
 
 export type Class = { new (...args: any[]): any };
 
-export type PrimitveJSONValue = string | number | boolean | undefined | null;
+export type PrimitiveJSONValue = string | number | boolean | undefined | null;
 
-export type JSONValue = PrimitveJSONValue | JSONArray | JSONObject;
+export type JSONValue = PrimitiveJSONValue | JSONArray | JSONObject;
 
 export interface JSONArray extends Array<JSONValue> {}
 

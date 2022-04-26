@@ -158,6 +158,52 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "binajmen",
+      "name": "Benjamin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15611419?v=4",
+      "profile": "https://github.com/binajmen",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "icflorescu",
+      "name": "Ionut-Cristian Florescu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/581999?v=4",
+      "profile": "https://www.linkedin.com/in/icflorescu",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "chrisj-back2work",
+      "name": "Chris Johnson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/68551954?v=4",
+      "profile": "https://github.com/chrisj-back2work",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "nicholaschiang",
+      "name": "Nicholas Chiang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20798889?v=4",
+      "profile": "https://nicholaschiang.com",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "datner",
+      "name": "Datner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22598347?v=4",
+      "profile": "https://github.com/datner",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
