@@ -177,6 +177,15 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "datner",
+      "name": "Datner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22598347?v=4",
+      "profile": "https://github.com/datner",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
