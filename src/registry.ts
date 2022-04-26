@@ -1,7 +1,4 @@
 import { DoubleIndexedKV } from './double-indexed-kv';
-import createDebug from 'debug';
-
-const debug = createDebug('superjson');
 
 export class Registry<T> {
   private kv = new DoubleIndexedKV<string, T>();
@@ -20,7 +17,9 @@ export class Registry<T> {
     if (process.env.NODE_ENV !== 'production') {
       const alreadyRegistered = this.kv.getByKey(identifier);
       if (alreadyRegistered && alreadyRegistered !== value) {
-        debug(`Ambiguous class "${identifier}", provide a unique identifier.`);
+        console.debug(
+          `Ambiguous class "${identifier}", provide a unique identifier.`
+        );
       }
     }
 
