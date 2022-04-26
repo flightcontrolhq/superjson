@@ -9,6 +9,8 @@ import {
   isString,
   isSymbol,
   isUndefined,
+  isPlainObject,
+  isTypedArray,
 } from './is';
 
 test('Basic true tests', () => {
@@ -28,6 +30,7 @@ test('Basic true tests', () => {
   expect(isNumber(1)).toBe(true);
   expect(isDate(new Date())).toBe(true);
   expect(isSymbol(Symbol())).toBe(true);
+  expect(isTypedArray(new Uint8Array())).toBe(true);
 });
 
 test('Basic false tests', () => {
@@ -43,6 +46,8 @@ test('Basic false tests', () => {
   expect(isBoolean(NaN)).toBe(false);
   expect(isRegExp(NaN)).toBe(false);
   expect(isSymbol(NaN)).toBe(false);
+
+  expect(isTypedArray([])).toBe(false);
 });
 
 test('Primitive tests', () => {
@@ -59,6 +64,7 @@ test('Primitive tests', () => {
   expect(isPrimitive([])).toBe(false);
   expect(isPrimitive([])).toBe(false);
   expect(isPrimitive({})).toBe(false);
+  // eslint-disable-next-line no-new-object
   expect(isPrimitive(new Object())).toBe(false);
   expect(isPrimitive(new Date())).toBe(false);
   expect(isPrimitive(() => {})).toBe(false);
@@ -66,4 +72,9 @@ test('Primitive tests', () => {
 
 test('Date exception', () => {
   expect(isDate(new Date('_'))).toBe(false);
+});
+
+test('Regression: null-prototype object', () => {
+  expect(isPlainObject(Object.create(null))).toBe(true);
+  expect(isPrimitive(Object.create(null))).toBe(false);
 });

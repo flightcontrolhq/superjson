@@ -10,6 +10,8 @@ export const isPlainObject = (
   payload: any
 ): payload is { [key: string]: any } => {
   if (getType(payload) !== 'Object') return false;
+  if (Object.getPrototypeOf(payload) === null) return true;
+  if (payload === Object.prototype) return false;
   return (
     payload.constructor === Object &&
     Object.getPrototypeOf(payload) === Object.prototype
@@ -46,6 +48,9 @@ export const isSymbol = (payload: any): payload is symbol =>
 export const isDate = (payload: any): payload is Date =>
   payload instanceof Date && !isNaN(payload.valueOf());
 
+export const isError = (payload: any): payload is Error =>
+  payload instanceof Error;
+
 export const isNaNValue = (payload: any): payload is typeof NaN =>
   typeof payload === 'number' && isNaN(payload);
 
@@ -64,3 +69,19 @@ export const isBigint = (payload: any): payload is bigint =>
 
 export const isInfinite = (payload: any): payload is number =>
   payload === Infinity || payload === -Infinity;
+
+export type TypedArrayConstructor =
+  | Int8ArrayConstructor
+  | Uint8ArrayConstructor
+  | Uint8ClampedArrayConstructor
+  | Int16ArrayConstructor
+  | Uint16ArrayConstructor
+  | Int32ArrayConstructor
+  | Uint32ArrayConstructor
+  | Float32ArrayConstructor
+  | Float64ArrayConstructor;
+
+export type TypedArray = InstanceType<TypedArrayConstructor>;
+
+export const isTypedArray = (payload: any): payload is TypedArray =>
+  ArrayBuffer.isView(payload) && !(payload instanceof DataView);

@@ -66,6 +66,145 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "ftonato",
+      "name": "Ademílson F. Tonato",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/5417662?v=4",
+      "profile": "https://twitter.com/ftonato",
+      "contributions": [
+        "test"
+      ]
+    },
+    {
+      "login": "hasparus",
+      "name": "Piotr Monwid-Olechnowicz",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/15332326?v=4",
+      "profile": "https://haspar.us",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "KATT",
+      "name": "Alex Johansson",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/459267?v=4",
+      "profile": "http://kattcorp.com",
+      "contributions": [
+        "code",
+        "test"
+      ]
+    },
+    {
+      "login": "simonedelmann",
+      "name": "Simon Edelmann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2821076?v=4",
+      "profile": "https://github.com/simonedelmann",
+      "contributions": [
+        "bug",
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "samtgarson",
+      "name": "Sam Garson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6242344?v=4",
+      "profile": "https://www.samgarson.com",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "markhughes",
+      "name": "Mark Hughes",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1357323?v=4",
+      "profile": "http://twitter.com/_markeh",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "Lxxyx",
+      "name": "Lxxyx",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13161470?v=4",
+      "profile": "https://blog.lxxyx.cn/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ElMassimo",
+      "name": "Máximo Mussini",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1158253?v=4",
+      "profile": "http://maximomussini.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "PeterDekkers",
+      "name": "Peter Dekkers",
+      "avatar_url": "https://avatars.githubusercontent.com/u/425971?v=4",
+      "profile": "https://goodcode.nz",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "goleary",
+      "name": "Gabe O'Leary",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16123225?v=4",
+      "profile": "http://goleary.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "binajmen",
+      "name": "Benjamin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15611419?v=4",
+      "profile": "https://github.com/binajmen",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "icflorescu",
+      "name": "Ionut-Cristian Florescu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/581999?v=4",
+      "profile": "https://www.linkedin.com/in/icflorescu",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "chrisj-back2work",
+      "name": "Chris Johnson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/68551954?v=4",
+      "profile": "https://github.com/chrisj-back2work",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "nicholaschiang",
+      "name": "Nicholas Chiang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20798889?v=4",
+      "profile": "https://nicholaschiang.com",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "datner",
+      "name": "Datner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22598347?v=4",
+      "profile": "https://github.com/datner",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",

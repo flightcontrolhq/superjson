@@ -1,3 +1,4 @@
+import debug from 'debug';
 import { Registry } from './registry';
 import { Class } from './types';
 
@@ -16,19 +17,16 @@ test('class registry', () => {
 
   expect(() => registry.register(Car)).not.toThrow();
 
-  expect(() => registry.register(class Car {})).toThrow(
-    'Ambiguous class, provide a unique identifier.'
+  debug.enable('superjson');
+  const warnSpy = jest.spyOn(process.stderr, 'write');
+
+  registry.register(class Car {});
+  expect(warnSpy).toHaveBeenCalledTimes(1);
+  expect(warnSpy.mock.calls[0][0]).toContain(
+    'Ambiguous class "Car", provide a unique identifier.'
   );
 
-  registry.unregister(Car);
-
-  expect(registry.getValue('Car')).toBeUndefined();
-
-  registry.register(Car, 'car1');
-
   registry.register(class Car {}, 'car2');
-
-  expect(registry.getValue('car1')).toBe(Car);
 
   expect(registry.getValue('car2')).not.toBeUndefined();
 

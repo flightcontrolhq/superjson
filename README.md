@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -93,13 +93,15 @@ const { json, meta } = superjson.serialize(object);
 json = {
   normal: 'string',
   timestamp: "2020-06-20T04:56:50.293Z",
-  test: "/blitz/",
+  test: "/superjson/",
 };
 
 // note that `normal` is not included here; `meta` only has special cases
 meta = {
-  timestamp: ['date'],
-  test: ['regexp'],
+  values: {
+    timestamp: ['date'],
+    test: ['regexp'],
+  }
 };
 */
 ```
@@ -113,7 +115,7 @@ Thankfully, Superjson is a perfect tool to bypass that limitation!
 Install the library with your package manager of choice, e.g.:
 
 ```sh
-yarn add -D babel-plugin-superjson-next
+yarn add babel-plugin-superjson-next
 ```
 
 Add the plugin to your .babelrc. If you don't have one, create it.
@@ -194,7 +196,7 @@ const jsonString = stringify(object);
 parse(jsonString);
 ```
 
-Returns **`string`**.
+Returns **`your original value`**.
 
 ---
 
@@ -202,18 +204,44 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 
 | type        | supported by standard JSON? | supported by Superjson? |
 | ----------- | --------------------------- | ----------------------- |
-| `string`    | ✅                          | ✅                      |
-| `number`    | ✅                          | ✅                      |
-| `boolean`   | ✅                          | ✅                      |
-| `null`      | ✅                          | ✅                      |
-| `Array`     | ✅                          | ✅                      |
-| `Object`    | ✅                          | ✅                      |
-| `undefined` | ❌                          | ✅                      |
-| `bigint`    | ❌                          | ✅                      |
-| `Date`      | ❌                          | ✅                      |
-| `RegExp`    | ❌                          | ✅                      |
-| `Set`       | ❌                          | ✅                      |
-| `Map`       | ❌                          | ✅                      |
+| `string`    | ✅                           | ✅                       |
+| `number`    | ✅                           | ✅                       |
+| `boolean`   | ✅                           | ✅                       |
+| `null`      | ✅                           | ✅                       |
+| `Array`     | ✅                           | ✅                       |
+| `Object`    | ✅                           | ✅                       |
+| `undefined` | ❌                           | ✅                       |
+| `bigint`    | ❌                           | ✅                       |
+| `Date`      | ❌                           | ✅                       |
+| `RegExp`    | ❌                           | ✅                       |
+| `Set`       | ❌                           | ✅                       |
+| `Map`       | ❌                           | ✅                       |
+| `Error`     | ❌                           | ✅                       |
+
+## Recipes
+
+SuperJSON by default only supports built-in data types to keep bundle-size as low as possible.
+Here are some recipes you can use to extend to non-default data types.
+
+Place them in some central utility file and make sure they're executed before any other `SuperJSON` calls.
+In a Next.js project, `_app.ts` would be a good spot for that.
+
+### `Decimal.js` / `Prisma.Decimal`
+
+```ts
+import { Decimal } from "decimal.js"
+
+SuperJSON.registerCustom<Decimal, string>(
+  {
+    isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
+    serialize: v => v.toJSON(),
+    deserialize: v => new Decimal(v),
+  },
+  'decimal.js'
+);
+```
+
+
 
 ## Contributors ✨
 
@@ -230,6 +258,25 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://jeremyliberman.com/"><img src="https://avatars3.githubusercontent.com/u/2754163?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jeremy Liberman</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=mrleebo" title="Tests">⚠️</a> <a href="https://github.com/blitz-js/superjson/commits?author=mrleebo" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/jorisre"><img src="https://avatars1.githubusercontent.com/u/7545547?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Joris</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=jorisre" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/tomhooijenga"><img src="https://avatars0.githubusercontent.com/u/1853235?v=4?s=100" width="100px;" alt=""/><br /><sub><b>tomhooijenga</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=tomhooijenga" title="Code">💻</a> <a href="https://github.com/blitz-js/superjson/issues?q=author%3Atomhooijenga" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://twitter.com/ftonato"><img src="https://avatars2.githubusercontent.com/u/5417662?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ademílson F. Tonato</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=ftonato" title="Tests">⚠️</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://haspar.us"><img src="https://avatars0.githubusercontent.com/u/15332326?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Piotr Monwid-Olechnowicz</b></sub></a><br /><a href="#ideas-hasparus" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="http://kattcorp.com"><img src="https://avatars1.githubusercontent.com/u/459267?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Johansson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=KATT" title="Code">💻</a> <a href="https://github.com/blitz-js/superjson/commits?author=KATT" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/simonedelmann"><img src="https://avatars.githubusercontent.com/u/2821076?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Simon Edelmann</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Asimonedelmann" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=simonedelmann" title="Code">💻</a> <a href="#ideas-simonedelmann" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://www.samgarson.com"><img src="https://avatars.githubusercontent.com/u/6242344?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sam Garson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Asamtgarson" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="http://twitter.com/_markeh"><img src="https://avatars.githubusercontent.com/u/1357323?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mark Hughes</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Amarkhughes" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://blog.lxxyx.cn/"><img src="https://avatars.githubusercontent.com/u/13161470?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lxxyx</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=Lxxyx" title="Code">💻</a></td>
+    <td align="center"><a href="http://maximomussini.com"><img src="https://avatars.githubusercontent.com/u/1158253?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Máximo Mussini</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=ElMassimo" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://goodcode.nz"><img src="https://avatars.githubusercontent.com/u/425971?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Peter Dekkers</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3APeterDekkers" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="http://goleary.com"><img src="https://avatars.githubusercontent.com/u/16123225?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gabe O'Leary</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=goleary" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/binajmen"><img src="https://avatars.githubusercontent.com/u/15611419?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benjamin</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=binajmen" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.linkedin.com/in/icflorescu"><img src="https://avatars.githubusercontent.com/u/581999?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ionut-Cristian Florescu</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Aicflorescu" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/chrisj-back2work"><img src="https://avatars.githubusercontent.com/u/68551954?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chris Johnson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=chrisj-back2work" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://nicholaschiang.com"><img src="https://avatars.githubusercontent.com/u/20798889?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nicholas Chiang</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Anicholaschiang" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=nicholaschiang" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/datner"><img src="https://avatars.githubusercontent.com/u/22598347?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Datner</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=datner" title="Code">💻</a></td>
   </tr>
 </table>
 

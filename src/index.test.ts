@@ -2,18 +2,32 @@
 /* eslint-disable es5/no-es6-methods */
 
 import SuperJSON from './';
-import { JSONValue, SuperJSONValue } from './types';
-import { Annotations } from './annotator';
-import { isArray, isMap, isPlainObject, isPrimitive, isSet } from './is';
+import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
+import {
+  isArray,
+  isMap,
+  isPlainObject,
+  isPrimitive,
+  isSet,
+  isTypedArray,
+} from './is';
+
+import { ObjectID } from 'mongodb';
+import { Decimal } from 'decimal.js';
+
+const isNode10 = process.version.indexOf('v10') === 0;
 
 describe('stringify & parse', () => {
   const cases: Record<
     string,
     {
       input: (() => SuperJSONValue) | SuperJSONValue;
-      output: JSONValue;
-      outputAnnotations?: Annotations;
+      output: JSONValue | ((v: JSONValue) => void);
+      outputAnnotations?: SuperJSONResult['meta'];
       customExpectations?: (value: any) => void;
+      skipOnNode10?: boolean;
+      dontExpectEquality?: boolean;
+      only?: boolean;
     }
   > = {
     'works for objects': {
@@ -117,7 +131,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         referentialEqualities: {
-          selected: [{ options: ['0'] }],
+          selected: ['options.0'],
         },
       },
       customExpectations: output => {
@@ -175,6 +189,21 @@ describe('stringify & parse', () => {
       outputAnnotations: {
         values: {
           'meeting.date': ['Date'],
+        },
+      },
+    },
+
+    'works for Errors': {
+      input: {
+        e: new Error('epic fail'),
+      },
+      output: ({ e }: any) => {
+        expect(e.name).toBe('Error');
+        expect(e.message).toBe('epic fail');
+      },
+      outputAnnotations: {
+        values: {
+          e: ['Error'],
         },
       },
     },
@@ -249,6 +278,27 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works for unknown': {
+      input: () => {
+        type Freak = {
+          name: string;
+          age: unknown;
+        };
+
+        const person: Freak = {
+          name: '@ftonato',
+          age: 1,
+        };
+
+        return person;
+      },
+      output: {
+        name: '@ftonato',
+        age: 1,
+      },
+      outputAnnotations: undefined,
+    },
+
     'works for self-referencing objects': {
       input: () => {
         const a = { role: 'parent', children: [] as any[] };
@@ -266,7 +316,7 @@ describe('stringify & parse', () => {
         ],
       },
       outputAnnotations: {
-        referentialEqualities: [{ 'children.0.parents': ['0'] }],
+        referentialEqualities: [['children.0.parents.0']],
       },
     },
 
@@ -308,7 +358,7 @@ describe('stringify & parse', () => {
           highscores: ['map'],
         },
         referentialEqualities: {
-          topScorer: [{ 'highscores.0': ['0'] }] as any,
+          topScorer: ['highscores.0.0'],
         },
       },
     },
@@ -331,7 +381,7 @@ describe('stringify & parse', () => {
           b: ['map'],
         },
         referentialEqualities: {
-          a: [['b']],
+          a: ['b'],
         },
       },
       customExpectations: value => {
@@ -376,7 +426,7 @@ describe('stringify & parse', () => {
           users: ['set'],
         },
         referentialEqualities: {
-          userOfTheMonth: [{ users: ['0'] }],
+          userOfTheMonth: ['users.0'],
         },
       },
       customExpectations: value => {
@@ -385,6 +435,7 @@ describe('stringify & parse', () => {
     },
 
     'works for symbols': {
+      skipOnNode10: true,
       input: () => {
         const parent = Symbol('Parent');
         const child = Symbol('Child');
@@ -408,7 +459,58 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works for custom transformers': {
+      input: () => {
+        SuperJSON.registerCustom<ObjectID, string>(
+          {
+            isApplicable: (v): v is ObjectID => v instanceof ObjectID,
+            serialize: v => v.toHexString(),
+            deserialize: v => new ObjectID(v),
+          },
+          'objectid'
+        );
+
+        return {
+          a: new ObjectID('5f7887f4f0b172093e89f126'),
+        };
+      },
+      output: {
+        a: '5f7887f4f0b172093e89f126',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['custom', 'objectid']],
+        },
+      },
+    },
+
+    'works for Decimal.js': {
+      input: () => {
+        SuperJSON.registerCustom<Decimal, string>(
+          {
+            isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
+            serialize: v => v.toJSON(),
+            deserialize: v => new Decimal(v),
+          },
+          'decimal.js'
+        );
+
+        return {
+          a: new Decimal('100.1'),
+        };
+      },
+      output: {
+        a: '100.1',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['custom', 'decimal.js']],
+        },
+      },
+    },
+
     'issue #58': {
+      skipOnNode10: true,
       input: () => {
         const cool = Symbol('cool');
         SuperJSON.registerSymbol(cool);
@@ -448,15 +550,97 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works with custom allowedProps': {
+      input: () => {
+        class User {
+          constructor(public username: string, public password: string) {}
+        }
+        SuperJSON.registerClass(User, { allowProps: ['username'] });
+        return new User('bongocat', 'supersecurepassword');
+      },
+      output: {
+        username: 'bongocat',
+      },
+      outputAnnotations: {
+        values: [['class', 'User']],
+      },
+      customExpectations(value) {
+        expect(value.password).toBeUndefined();
+        expect(value.username).toBe('bongocat');
+      },
+      dontExpectEquality: true,
+    },
+
+    'works with typed arrays': {
+      input: {
+        a: new Int8Array([1, 2]),
+        b: new Uint8ClampedArray(3),
+      },
+      output: {
+        a: [1, 2],
+        b: [0, 0, 0],
+      },
+      outputAnnotations: {
+        values: {
+          a: [['typed-array', 'Int8Array']],
+          b: [['typed-array', 'Uint8ClampedArray']],
+        },
+      },
+    },
+
     'works for undefined, issue #48': {
       input: undefined,
       output: null,
       outputAnnotations: { values: ['undefined'] },
     },
+
+    'regression #109: nested classes': {
+      input: () => {
+        class Pet {
+          constructor(private name: string) {}
+
+          woof() {
+            return this.name;
+          }
+        }
+
+        class User {
+          constructor(public pet: Pet) {}
+        }
+
+        SuperJSON.registerClass(Pet);
+        SuperJSON.registerClass(User);
+
+        const pet = new Pet('Rover');
+        const user = new User(pet);
+
+        return user;
+      },
+      output: {
+        pet: {
+          name: 'Rover',
+        },
+      },
+      outputAnnotations: {
+        values: [
+          ['class', 'User'],
+          {
+            pet: [['class', 'Pet']],
+          },
+        ],
+      },
+      customExpectations(value) {
+        expect(value.pet.woof()).toEqual('Rover');
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
     if (isPrimitive(object)) {
+      return;
+    }
+
+    if (isTypedArray(object)) {
       return;
     }
 
@@ -495,20 +679,41 @@ describe('stringify & parse', () => {
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
       customExpectations,
+      skipOnNode10,
+      dontExpectEquality,
+      only,
     },
   ] of Object.entries(cases)) {
-    test(testName, () => {
+    let testFunc = test;
+
+    if (skipOnNode10 && isNode10) {
+      testFunc = test.skip;
+    }
+
+    if (only) {
+      testFunc = test.only;
+    }
+
+    testFunc(testName, () => {
       const inputValue = typeof input === 'function' ? input() : input;
 
       // let's make sure SuperJSON doesn't mutate our input!
       deepFreeze(inputValue);
       const { json, meta } = SuperJSON.serialize(inputValue);
 
-      expect(json).toEqual(expectedOutput);
+      if (typeof expectedOutput === 'function') {
+        expectedOutput(json);
+      } else {
+        expect(json).toEqual(expectedOutput);
+      }
       expect(meta).toEqual(expectedOutputAnnotations);
 
-      const untransformed = SuperJSON.deserialize({ json, meta });
-      expect(untransformed).toEqual(inputValue);
+      const untransformed = SuperJSON.deserialize(
+        JSON.parse(JSON.stringify({ json, meta }))
+      );
+      if (!dontExpectEquality) {
+        expect(untransformed).toEqual(inputValue);
+      }
       customExpectations?.(untransformed);
     });
   }
@@ -559,6 +764,7 @@ describe('stringify & parse', () => {
         class Currency {
           constructor(private valueInUsd: number) {}
 
+          // @ts-ignore
           get inUSD() {
             return this.valueInUsd;
           }
@@ -586,39 +792,12 @@ describe('stringify & parse', () => {
   });
 
   describe('when given a non-SuperJSON object', () => {
-    it('throws', () => {
-      expect(() => {
-        SuperJSON.parse(
-          JSON.stringify({
-            value: {
-              a: 1,
-            },
-            meta: {
-              root: 'invalid_key',
-            },
-          })
-        );
-      }).toThrow();
-
-      expect(() => {
-        SuperJSON.parse(
-          JSON.stringify({
-            value: {
-              a: 1,
-            },
-            meta: {
-              values: {
-                a: 'invalid_key',
-              },
-            },
-          })
-        );
-      }).toThrow();
-    });
+    it.todo('has undefined behaviour');
   });
 
   test('regression #65: BigInt on Safari v13', () => {
     const oldBigInt = global.BigInt;
+    // @ts-ignore
     delete global.BigInt;
 
     const input = {
@@ -646,4 +825,238 @@ describe('stringify & parse', () => {
 
     global.BigInt = oldBigInt;
   });
+
+  test('regression #80: Custom error serialisation isnt overriden', () => {
+    class CustomError extends Error {
+      constructor(public readonly customProperty: number) {
+        super("I'm a custom error");
+        // eslint-disable-next-line es5/no-es6-static-methods
+        Object.setPrototypeOf(this, CustomError.prototype);
+      }
+    }
+
+    expect(new CustomError(10)).toBeInstanceOf(CustomError);
+
+    SuperJSON.registerClass(CustomError);
+
+    const { error } = SuperJSON.deserialize(
+      SuperJSON.serialize({
+        error: new CustomError(10),
+      })
+    ) as any;
+
+    expect(error).toBeInstanceOf(CustomError);
+    expect(error.customProperty).toEqual(10);
+  });
+});
+
+describe('allowErrorProps(...) (#91)', () => {
+  it('works with simple prop values', () => {
+    const errorWithAdditionalProps: Error & any = new Error(
+      'I have additional props 😄'
+    );
+    errorWithAdditionalProps.code = 'P2002';
+    errorWithAdditionalProps.meta = '👾';
+
+    // same as allowErrorProps("code", "meta")
+    SuperJSON.allowErrorProps('code');
+    SuperJSON.allowErrorProps('meta');
+
+    const errorAfterTransition: any = SuperJSON.parse(
+      SuperJSON.stringify(errorWithAdditionalProps)
+    );
+
+    expect(errorAfterTransition).toBeInstanceOf(Error);
+    expect(errorAfterTransition.message).toEqual('I have additional props 😄');
+    expect(errorAfterTransition.code).toEqual('P2002');
+    expect(errorAfterTransition.meta).toEqual('👾');
+  });
+
+  it.skip('works with complex prop values', () => {
+    const errorWithAdditionalProps: any = new Error();
+    errorWithAdditionalProps.map = new Map();
+
+    SuperJSON.allowErrorProps('map');
+
+    const errorAfterTransition: any = SuperJSON.parse(
+      SuperJSON.stringify(errorWithAdditionalProps)
+    );
+
+    expect(errorAfterTransition.map).toEqual(undefined);
+
+    expect(errorAfterTransition.map).toBeInstanceOf(Map);
+  });
+});
+
+test('regression #83: negative zero', () => {
+  const input = -0;
+
+  const stringified = SuperJSON.stringify(input);
+  expect(stringified).toMatchInlineSnapshot(
+    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"]}}"`
+  );
+
+  const parsed: number = SuperJSON.parse(stringified);
+
+  expect(1 / parsed).toBe(-Infinity);
+});
+
+test('regression https://github.com/blitz-js/babel-plugin-superjson-next/issues/63: Nested BigInt', () => {
+  const serialized = SuperJSON.serialize({
+    topics: [
+      {
+        post_count: BigInt('22'),
+      },
+    ],
+  });
+
+  expect(() => JSON.stringify(serialized)).not.toThrow();
+
+  expect(typeof (serialized.json as any).topics[0].post_count).toBe('string');
+  expect(serialized.json).toEqual({
+    topics: [
+      {
+        post_count: '22',
+      },
+    ],
+  });
+
+  SuperJSON.deserialize(serialized);
+  expect(typeof (serialized.json as any).topics[0].post_count).toBe('string');
+});
+
+test('performance regression', () => {
+  const data: any[] = [];
+  for (let i = 0; i < 100; i++) {
+    let nested1 = [];
+    let nested2 = [];
+    for (let j = 0; j < 10; j++) {
+      nested1[j] = {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        innerNested: {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+      nested2[j] = {
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        innerNested: {
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+    }
+    const object = {
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      nested1,
+      nested2,
+    };
+    data.push(object);
+  }
+
+  const t1 = Date.now();
+  SuperJSON.serialize(data);
+  const t2 = Date.now();
+  const duration = t2 - t1;
+  expect(duration).toBeLessThan(700);
+});
+
+test('regression #95: no undefined', () => {
+  const input: unknown[] = [];
+
+  const out = SuperJSON.serialize(input);
+  expect(out).not.toHaveProperty('meta');
+
+  const parsed: number = SuperJSON.deserialize(out);
+
+  expect(parsed).toEqual(input);
+});
+
+test('regression #108: Error#stack should not be included by default', () => {
+  const input = new Error("Beep boop, you don't wanna see me. I'm an error!");
+  expect(input).toHaveProperty('stack');
+
+  const { stack: thatShouldBeUndefined } = SuperJSON.parse(
+    SuperJSON.stringify(input)
+  ) as any;
+  expect(thatShouldBeUndefined).toBeUndefined();
+
+  SuperJSON.allowErrorProps('stack');
+  const { stack: thatShouldExist } = SuperJSON.parse(
+    SuperJSON.stringify(input)
+  ) as any;
+  expect(thatShouldExist).toEqual(input.stack);
+});
+
+test('regression: `Object.create(null)` / object without prototype', () => {
+  const input: Record<string, unknown> = Object.create(null);
+  input.date = new Date();
+
+  const stringified = SuperJSON.stringify(input);
+  const parsed: any = SuperJSON.parse(stringified);
+
+  expect(parsed.date).toBeInstanceOf(Date);
+});
+
+test('prototype pollution - __proto__', () => {
+  expect(() => {
+    SuperJSON.parse(
+      JSON.stringify({
+        json: {
+          myValue: 1337,
+        },
+        meta: {
+          referentialEqualities: {
+            myValue: ['__proto__.x'],
+          },
+        },
+      })
+    );
+  }).toThrowErrorMatchingInlineSnapshot(
+    `"__proto__ is not allowed as a property"`
+  );
+  expect((Object.prototype as any).x).toBeUndefined();
+});
+
+test('prototype pollution - prototype', () => {
+  expect(() => {
+    SuperJSON.parse(
+      JSON.stringify({
+        json: {
+          myValue: 1337,
+        },
+        meta: {
+          referentialEqualities: {
+            myValue: ['prototype.x'],
+          },
+        },
+      })
+    );
+  }).toThrowErrorMatchingInlineSnapshot(
+    `"prototype is not allowed as a property"`
+  );
+});
+
+test('prototype pollution - constructor', () => {
+  expect(() => {
+    SuperJSON.parse(
+      JSON.stringify({
+        json: {
+          myValue: 1337,
+        },
+        meta: {
+          referentialEqualities: {
+            myValue: ['constructor.prototype.x'],
+          },
+        },
+      })
+    );
+  }).toThrowErrorMatchingInlineSnapshot(
+    `"prototype is not allowed as a property"`
+  );
+
+  expect((Object.prototype as any).x).toBeUndefined();
 });

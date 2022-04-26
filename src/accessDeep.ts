@@ -1,6 +1,7 @@
 import { isMap, isArray, isPlainObject, isSet } from './is';
+import { includes } from './util';
 
-export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
+const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   const keys = value.keys();
   while (n > 0) {
     keys.next();
@@ -10,7 +11,21 @@ export const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   return keys.next().value;
 };
 
+function validatePath(path: (string | number)[]) {
+  if (includes(path, '__proto__')) {
+    throw new Error('__proto__ is not allowed as a property');
+  }
+  if (includes(path, 'prototype')) {
+    throw new Error('prototype is not allowed as a property');
+  }
+  if (includes(path, 'constructor')) {
+    throw new Error('constructor is not allowed as a property');
+  }
+}
+
 export const getDeep = (object: object, path: (string | number)[]): object => {
+  validatePath(path);
+
   path.forEach(key => {
     object = (object as any)[key];
   });
@@ -23,6 +38,8 @@ export const setDeep = (
   path: (string | number)[],
   mapper: (v: any) => any
 ): any => {
+  validatePath(path);
+
   if (path.length === 0) {
     return mapper(object);
   }
@@ -47,7 +64,7 @@ export const setDeep = (
       }
 
       const row = +key;
-      const type = +path[i + 1] === 0 ? 'key' : 'value';
+      const type = +path[++i] === 0 ? 'key' : 'value';
 
       const keyOfRow = getNthKey(parent, row);
       switch (type) {
@@ -58,8 +75,6 @@ export const setDeep = (
           parent = parent.get(keyOfRow);
           break;
       }
-
-      i++;
     }
   }
 

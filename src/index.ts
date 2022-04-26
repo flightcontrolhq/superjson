@@ -1,56 +1,85 @@
-import { applyAnnotations, makeAnnotator } from './annotator';
-import { isEmptyObject } from './is';
-import { plainer } from './plainer';
-import {
-  SuperJSONResult,
-  SuperJSONValue,
-  isSuperJSONResult,
-  Class,
-} from './types';
-import { ClassRegistry } from './class-registry';
+import { SuperJSONResult, SuperJSONValue, Class, JSONValue } from './types';
+import { ClassRegistry, RegisterOptions } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
+import {
+  CustomTransfomer,
+  CustomTransformerRegistry,
+} from './custom-transformer-registry';
+import { allowErrorProps } from './error-props';
+import {
+  walker,
+  applyReferentialEqualityAnnotations,
+  applyValueAnnotations,
+  generateReferentialEqualityAnnotations,
+} from './plainer';
+import { copy } from 'copy-anything';
 
 export const serialize = (object: SuperJSONValue): SuperJSONResult => {
-  const { getAnnotations, annotator } = makeAnnotator();
-  const output = plainer(object, annotator);
-
-  const annotations = getAnnotations();
-
-  return {
-    json: output,
-    meta: isEmptyObject(annotations) ? undefined : annotations,
+  const identities = new Map<any, any[][]>();
+  const output = walker(object, identities);
+  const res: SuperJSONResult = {
+    json: output.transformedValue,
   };
+
+  if (output.annotations) {
+    res.meta = {
+      ...res.meta,
+      values: output.annotations,
+    };
+  }
+
+  const equalityAnnotations = generateReferentialEqualityAnnotations(
+    identities
+  );
+  if (equalityAnnotations) {
+    res.meta = {
+      ...res.meta,
+      referentialEqualities: equalityAnnotations,
+    };
+  }
+
+  return res;
 };
 
 export const deserialize = <T = unknown>(payload: SuperJSONResult): T => {
-  if (!isSuperJSONResult(payload)) {
-    throw new Error('Not a valid SuperJSON payload.');
-  }
-
   const { json, meta } = payload;
 
-  const result: T = json as any;
+  let result: T = copy(json) as any;
 
-  if (!!meta) {
-    return applyAnnotations(result, meta);
+  if (meta?.values) {
+    result = applyValueAnnotations(result, meta.values);
+  }
+
+  if (meta?.referentialEqualities) {
+    result = applyReferentialEqualityAnnotations(
+      result,
+      meta.referentialEqualities
+    );
   }
 
   return result;
 };
 
-const stringify = (object: SuperJSONValue): string =>
+export const stringify = (object: SuperJSONValue): string =>
   JSON.stringify(serialize(object));
 
 export const parse = <T = unknown>(string: string): T =>
   deserialize(JSON.parse(string));
 
-const registerClass = (v: Class, identifier?: string) =>
-  ClassRegistry.register(v, identifier);
-const unregisterClass = (v: Class) => ClassRegistry.unregister(v);
+const registerClass = (v: Class, options?: RegisterOptions | string) =>
+  ClassRegistry.register(v, options);
 
 const registerSymbol = (v: Symbol, identifier?: string) =>
   SymbolRegistry.register(v, identifier);
-const unregisterSymbol = (v: Symbol) => SymbolRegistry.unregister(v);
+
+const registerCustom = <I, O extends JSONValue>(
+  transformer: Omit<CustomTransfomer<I, O>, 'name'>,
+  name: string
+) =>
+  CustomTransformerRegistry.register({
+    name,
+    ...transformer,
+  });
 
 export default {
   stringify,
@@ -58,7 +87,7 @@ export default {
   serialize,
   deserialize,
   registerClass,
-  unregisterClass,
   registerSymbol,
-  unregisterSymbol,
+  registerCustom,
+  allowErrorProps,
 };
