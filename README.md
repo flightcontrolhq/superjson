@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-22-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -277,6 +277,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/chrisj-back2work"><img src="https://avatars.githubusercontent.com/u/68551954?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chris Johnson</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=chrisj-back2work" title="Documentation">📖</a></td>
     <td align="center"><a href="https://nicholaschiang.com"><img src="https://avatars.githubusercontent.com/u/20798889?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nicholas Chiang</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Anicholaschiang" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=nicholaschiang" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/datner"><img src="https://avatars.githubusercontent.com/u/22598347?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Datner</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=datner" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/ruessej"><img src="https://avatars.githubusercontent.com/u/85690286?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ruessej</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Aruessej" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
