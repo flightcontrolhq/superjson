@@ -66,13 +66,13 @@ export const stringify = (object: SuperJSONValue): string =>
 export const parse = <T = unknown>(string: string): T =>
   deserialize(JSON.parse(string));
 
-const registerClass = (v: Class, options?: RegisterOptions | string) =>
+export const registerClass = (v: Class, options?: RegisterOptions | string) =>
   ClassRegistry.register(v, options);
 
-const registerSymbol = (v: Symbol, identifier?: string) =>
+export const registerSymbol = (v: Symbol, identifier?: string) =>
   SymbolRegistry.register(v, identifier);
 
-const registerCustom = <I, O extends JSONValue>(
+export const registerCustom = <I, O extends JSONValue>(
   transformer: Omit<CustomTransfomer<I, O>, 'name'>,
   name: string
 ) =>
