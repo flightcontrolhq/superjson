@@ -112,6 +112,33 @@ The `getServerSideProps`, `getInitialProps`, and `getStaticProps` data hooks pro
 
 Thankfully, Superjson is a perfect tool to bypass that limitation!
 
+### Next.js (v12.2 or above)
+
+Use [next-superjson-plugin](https://github.com/orionmiz/next-superjson-plugin)
+
+```sh
+yarn add next-superjson-plugin
+```
+
+🚧 Note that swc plugin is still in experimental features.
+
+```js
+// next.config.js
+module.exports = {
+  experimental: {
+    swcPlugins: [
+      [
+        'next-superjson-plugin',
+        {
+          excluded: [],
+        },
+      ],
+    ],
+  },
+}
+```
+
+### Next.js (Older version)
 Install the library with your package manager of choice, e.g.:
 
 ```sh
