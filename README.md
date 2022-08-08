@@ -120,7 +120,6 @@ To use the [SuperJSON SWC plugin](https://github.com/orionmiz/next-superjson-plu
 yarn add next-superjson-plugin
 ```
 
-🚧 Note that swc plugin is still in experimental features.
 
 ```js
 // next.config.js
