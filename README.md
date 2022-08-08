@@ -137,7 +137,7 @@ module.exports = {
 }
 ```
 
-### Next.js (Older version)
+### Next.js (stable Babel transform)
 Install the library with your package manager of choice, e.g.:
 
 ```sh
