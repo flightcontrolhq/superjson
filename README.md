@@ -115,7 +115,7 @@ Thankfully, Superjson is a perfect tool to bypass that limitation!
 ### Next.js SWC Plugin (experimental, v12.2 or above)
 
 Next.js SWC plugins are [experimental](https://nextjs.org/docs/advanced-features/compiler#swc-plugins-experimental), but promise a significant speedup.
-To use the [SuperJSON SWC plugin](https://github.com/orionmiz/next-superjson-plugin), install it and add it to your `next.config.js`:
+To use the [SuperJSON SWC plugin](https://github.com/blitz-js/next-superjson-plugin), install it and add it to your `next.config.js`:
 ```sh
 yarn add next-superjson-plugin
 ```
