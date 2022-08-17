@@ -1001,7 +1001,7 @@ test('regression: `Object.create(null)` / object without prototype', () => {
   expect(parsed.date).toBeInstanceOf(Date);
 });
 
-test.only("issue #196: TypeError: Cannot read property 'queries' of undefined", () => {
+test("issue #196: TypeError: Cannot read property 'queries' of undefined", () => {
   const input: Record<string, unknown> = {
     props: {
       dehydratedState: {
