@@ -1001,6 +1001,107 @@ test('regression: `Object.create(null)` / object without prototype', () => {
   expect(parsed.date).toBeInstanceOf(Date);
 });
 
+test.only("issue #196: TypeError: Cannot read property 'queries' of undefined", () => {
+  const input: Record<string, unknown> = {
+    props: {
+      dehydratedState: {
+        mutations: [],
+        queries: [
+          {
+            state: {
+              data: [
+                {
+                  id: 'cl6w4xsy300010gl10j1mcu5q',
+                  label: 'first template',
+                  ownerId: 'cl6cdyozp0007jbul3o4oqoox',
+                  createdAt: new Date('2022-08-16T12:02:33.291Z'),
+                  updatedAt: new Date('2022-08-16T12:02:33.294Z'),
+                  fields: [
+                    {
+                      id: 'cl6w4xsy400020gl1o22qhkzv',
+                      label: 'years',
+                      type: 'NUMBER',
+                      templateId: 'cl6w4xsy300010gl10j1mcu5q',
+                      createdAt: new Date('2022-08-16T12:02:33.291Z'),
+                      updatedAt: new Date('2022-08-16T12:02:33.294Z'),
+                    },
+                    {
+                      id: 'cl6w4xsy400030gl1ermljulb',
+                      label: 'date',
+                      type: 'DATE',
+                      templateId: 'cl6w4xsy300010gl10j1mcu5q',
+                      createdAt: new Date('2022-08-16T12:02:33.291Z'),
+                      updatedAt: new Date('2022-08-16T12:02:33.294Z'),
+                    },
+                  ],
+                },
+              ],
+              dataUpdateCount: 1,
+              dataUpdatedAt: 1660753910208,
+              error: null,
+              errorUpdateCount: 0,
+              errorUpdatedAt: 0,
+              fetchFailureCount: 0,
+              fetchMeta: null,
+              isInvalidated: false,
+              status: 'success',
+              fetchStatus: 'idle',
+            },
+            queryKey: ['templates'],
+            queryHash: '["templates"]',
+          },
+          {
+            state: {
+              data: {
+                id: 'cl6w4xsy300010gl10j1mcu5q',
+                label: 'first template',
+                ownerId: 'cl6cdyozp0007jbul3o4oqoox',
+                createdAt: new Date('2022-08-16T12:02:33.291Z'),
+                updatedAt: new Date('2022-08-16T12:02:33.294Z'),
+                fields: [
+                  {
+                    id: 'cl6w4xsy400020gl1o22qhkzv',
+                    label: 'years',
+                    type: 'NUMBER',
+                    templateId: 'cl6w4xsy300010gl10j1mcu5q',
+                    createdAt: new Date('2022-08-16T12:02:33.291Z'),
+                    updatedAt: new Date('2022-08-16T12:02:33.294Z'),
+                  },
+                  {
+                    id: 'cl6w4xsy400030gl1ermljulb',
+                    label: 'date',
+                    type: 'DATE',
+                    templateId: 'cl6w4xsy300010gl10j1mcu5q',
+                    createdAt: new Date('2022-08-16T12:02:33.291Z'),
+                    updatedAt: new Date('2022-08-16T12:02:33.294Z'),
+                  },
+                ],
+              },
+              dataUpdateCount: 1,
+              dataUpdatedAt: 1660753910208,
+              error: null,
+              errorUpdateCount: 0,
+              errorUpdatedAt: 0,
+              fetchFailureCount: 0,
+              fetchMeta: null,
+              isInvalidated: false,
+              status: 'success',
+              fetchStatus: 'idle',
+            },
+            queryKey: ['templates', 'cl6w4xsy300010gl10j1mcu5q'],
+            queryHash: '["templates","cl6w4xsy300010gl10j1mcu5q"]',
+          },
+        ],
+      },
+    },
+  };
+
+  const stringified = SuperJSON.stringify(input);
+  const parsed: any = SuperJSON.parse(stringified);
+
+  expect(parsed).toEqual(input);
+});
+
 test('prototype pollution - __proto__', () => {
   expect(() => {
     SuperJSON.parse(
