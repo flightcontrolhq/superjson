@@ -14,6 +14,7 @@ import {
 
 import { ObjectID } from 'mongodb';
 import { Decimal } from 'decimal.js';
+import { dehydrate, QueryClient } from '@tanstack/react-query';
 
 const isNode10 = process.version.indexOf('v10') === 0;
 
@@ -1001,105 +1002,62 @@ test('regression: `Object.create(null)` / object without prototype', () => {
   expect(parsed.date).toBeInstanceOf(Date);
 });
 
-test("issue #196: TypeError: Cannot read property 'queries' of undefined", () => {
-  const input: Record<string, unknown> = {
-    props: {
-      dehydratedState: {
-        mutations: [],
-        queries: [
-          {
-            state: {
-              data: [
-                {
-                  id: 'cl6w4xsy300010gl10j1mcu5q',
-                  label: 'first template',
-                  ownerId: 'cl6cdyozp0007jbul3o4oqoox',
-                  createdAt: new Date('2022-08-16T12:02:33.291Z'),
-                  updatedAt: new Date('2022-08-16T12:02:33.294Z'),
-                  fields: [
-                    {
-                      id: 'cl6w4xsy400020gl1o22qhkzv',
-                      label: 'years',
-                      type: 'NUMBER',
-                      templateId: 'cl6w4xsy300010gl10j1mcu5q',
-                      createdAt: new Date('2022-08-16T12:02:33.291Z'),
-                      updatedAt: new Date('2022-08-16T12:02:33.294Z'),
-                    },
-                    {
-                      id: 'cl6w4xsy400030gl1ermljulb',
-                      label: 'date',
-                      type: 'DATE',
-                      templateId: 'cl6w4xsy300010gl10j1mcu5q',
-                      createdAt: new Date('2022-08-16T12:02:33.291Z'),
-                      updatedAt: new Date('2022-08-16T12:02:33.294Z'),
-                    },
-                  ],
-                },
-              ],
-              dataUpdateCount: 1,
-              dataUpdatedAt: 1660753910208,
-              error: null,
-              errorUpdateCount: 0,
-              errorUpdatedAt: 0,
-              fetchFailureCount: 0,
-              fetchMeta: null,
-              isInvalidated: false,
-              status: 'success',
-              fetchStatus: 'idle',
-            },
-            queryKey: ['templates'],
-            queryHash: '["templates"]',
-          },
-          {
-            state: {
-              data: {
-                id: 'cl6w4xsy300010gl10j1mcu5q',
-                label: 'first template',
-                ownerId: 'cl6cdyozp0007jbul3o4oqoox',
-                createdAt: new Date('2022-08-16T12:02:33.291Z'),
-                updatedAt: new Date('2022-08-16T12:02:33.294Z'),
-                fields: [
-                  {
-                    id: 'cl6w4xsy400020gl1o22qhkzv',
-                    label: 'years',
-                    type: 'NUMBER',
-                    templateId: 'cl6w4xsy300010gl10j1mcu5q',
-                    createdAt: new Date('2022-08-16T12:02:33.291Z'),
-                    updatedAt: new Date('2022-08-16T12:02:33.294Z'),
-                  },
-                  {
-                    id: 'cl6w4xsy400030gl1ermljulb',
-                    label: 'date',
-                    type: 'DATE',
-                    templateId: 'cl6w4xsy300010gl10j1mcu5q',
-                    createdAt: new Date('2022-08-16T12:02:33.291Z'),
-                    updatedAt: new Date('2022-08-16T12:02:33.294Z'),
-                  },
-                ],
-              },
-              dataUpdateCount: 1,
-              dataUpdatedAt: 1660753910208,
-              error: null,
-              errorUpdateCount: 0,
-              errorUpdatedAt: 0,
-              fetchFailureCount: 0,
-              fetchMeta: null,
-              isInvalidated: false,
-              status: 'success',
-              fetchStatus: 'idle',
-            },
-            queryKey: ['templates', 'cl6w4xsy300010gl10j1mcu5q'],
-            queryHash: '["templates","cl6w4xsy300010gl10j1mcu5q"]',
-          },
-        ],
+describe("ReactQuery. Issue #196: TypeError: Cannot read property 'queries' of undefined", () => {
+  it('works with an empty dehydrated QueryClient', () => {
+    const queryClient = new QueryClient();
+    const input = { props: { dehydratedState: dehydrate(queryClient) } };
+
+    const stringified = SuperJSON.stringify(input);
+    const parsed: any = SuperJSON.parse(stringified);
+
+    expect(parsed).toEqual(input);
+  });
+
+  const template = {
+    id: 'cl6mlkijv00000glajl1xljzl',
+    label: 'foo',
+    ownerId: 'cl6cdyozp0007jbul3o4oqoox',
+    createdAt: new Date('2022-08-09T19:50:25.003Z'),
+    updatedAt: new Date('2022-08-09T19:50:25.019Z'),
+    fields: [
+      {
+        id: 'cl6mlkik800010glagppvr24i',
+        label: 'Property',
+        type: 'NUMBER',
+        templateId: 'cl6mlkijv00000glajl1xljzl',
+        createdAt: new Date('2022-08-09T19:50:25.003Z'),
+        updatedAt: new Date('2022-08-09T19:50:25.019Z'),
       },
-    },
+    ],
   };
 
-  const stringified = SuperJSON.stringify(input);
-  const parsed: any = SuperJSON.parse(stringified);
+  it('works with simple-key dehydrated QueryClient', () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['templates'], [template]);
+    const input = { props: { dehydratedState: dehydrate(queryClient) } };
 
-  expect(parsed).toEqual(input);
+    const stringified = SuperJSON.stringify(input);
+    const parsed: any = SuperJSON.parse(stringified);
+
+    expect(parsed).toEqual(input);
+  });
+
+  it('works with double-key dehydrated QueryClient', () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['templates'], [template]);
+
+    queryClient.setQueryData(['templates', template.id], template);
+    const input = { props: { dehydratedState: dehydrate(queryClient) } };
+
+    // INFO: The following code produces the same kind of log described
+    // on https://github.com/blitz-js/superjson/issues/196
+    // console.log(JSON.stringify(input, null, 2));
+
+    const stringified = SuperJSON.stringify(input);
+    const parsed: any = SuperJSON.parse(stringified);
+
+    expect(parsed).toEqual(input);
+  });
 });
 
 test('prototype pollution - __proto__', () => {
