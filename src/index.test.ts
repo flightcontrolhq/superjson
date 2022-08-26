@@ -14,7 +14,7 @@ import {
 
 import { ObjectID } from 'mongodb';
 import { Decimal } from 'decimal.js';
-import { dehydrate, QueryClient } from '@tanstack/react-query';
+import { dehydrate, QueryClient } from '@tanstack/query-core';
 
 const isNode10 = process.version.indexOf('v10') === 0;
 
