@@ -2,20 +2,21 @@
   "include": ["src"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"],
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ESNext",
     "module": "ESNext",
     "lib": ["esnext"],
     "importHelpers": false,
-    "declaration": false,
+    "declaration": true,
     "sourceMap": true,
-    "rootDir": "./src",
+    "emitDeclarationOnly": true,
+    "declarationDir": "./typings",
+    "moduleResolution": "node",
     "strict": true,
     "noUnusedLocals": true,
+    "forceConsistentCasingInFileNames": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "downlevelIteration": true
+    "esModuleInterop": true
   }
 }
