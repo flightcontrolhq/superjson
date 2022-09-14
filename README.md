@@ -236,13 +236,14 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 | `null`      | ✅                           | ✅                       |
 | `Array`     | ✅                           | ✅                       |
 | `Object`    | ✅                           | ✅                       |
-| `undefined` | ❌                           | ✅                       |
+| `undefined`  | ❌                           | ✅                       |
 | `bigint`    | ❌                           | ✅                       |
 | `Date`      | ❌                           | ✅                       |
 | `RegExp`    | ❌                           | ✅                       |
 | `Set`       | ❌                           | ✅                       |
 | `Map`       | ❌                           | ✅                       |
 | `Error`     | ❌                           | ✅                       |
+| `URL`       | ❌                           | ✅                       |
 
 ## Recipes
 
