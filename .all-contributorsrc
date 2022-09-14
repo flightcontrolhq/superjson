@@ -223,6 +223,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "narumincho",
+      "name": "narumincho",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16481886?v=4",
+      "profile": "https://narumincho.notion.site",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
