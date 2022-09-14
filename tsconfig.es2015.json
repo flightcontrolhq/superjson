@@ -2,7 +2,8 @@
   "include": ["src"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"],
   "compilerOptions": {
-    "target": "ES5",
+    "forceConsistentCasingInFileNames": true,
+    "target": "ES2015",
     "module": "ESNext",
     "lib": ["esnext"],
     "importHelpers": false,
@@ -15,7 +16,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "downlevelIteration": true
+    "esModuleInterop": true
   }
 }
