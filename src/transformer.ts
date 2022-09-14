@@ -12,6 +12,7 @@ import {
   isError,
   isTypedArray,
   TypedArrayConstructor,
+  isURL,
 } from './is';
 import { ClassRegistry } from './class-registry';
 import { SymbolRegistry } from './symbol-registry';
@@ -21,7 +22,12 @@ import { findArr } from './util';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
-type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'Error';
+type LeafTypeAnnotation =
+  | PrimitiveTypeAnnotation
+  | 'regexp'
+  | 'Date'
+  | 'Error'
+  | 'URL';
 
 type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
@@ -158,6 +164,13 @@ const simpleRules = [
       return '-0';
     },
     Number
+  ),
+
+  simpleTransformation(
+    isURL,
+    'URL',
+    v => v.toString(),
+    v => new URL(v)
   ),
 ];
 
