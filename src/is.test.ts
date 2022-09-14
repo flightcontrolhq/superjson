@@ -11,6 +11,7 @@ import {
   isUndefined,
   isPlainObject,
   isTypedArray,
+  isURL,
 } from './is';
 
 test('Basic true tests', () => {
@@ -31,6 +32,7 @@ test('Basic true tests', () => {
   expect(isDate(new Date())).toBe(true);
   expect(isSymbol(Symbol())).toBe(true);
   expect(isTypedArray(new Uint8Array())).toBe(true);
+  expect(isURL(new URL('https://example.com'))).toBe(true);
 });
 
 test('Basic false tests', () => {
@@ -48,6 +50,8 @@ test('Basic false tests', () => {
   expect(isSymbol(NaN)).toBe(false);
 
   expect(isTypedArray([])).toBe(false);
+
+  expect(isURL('https://example.com')).toBe(false);
 });
 
 test('Primitive tests', () => {

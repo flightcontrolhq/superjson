@@ -58,6 +58,7 @@
   "devDependencies": {
     "@types/debug": "^4.1.5",
     "@types/mongodb": "^3.6.12",
+    "@types/node": "^18.7.18",
     "benchmark": "^2.1.4",
     "decimal.js": "^10.3.1",
     "eslint-plugin-es5": "^1.5.0",

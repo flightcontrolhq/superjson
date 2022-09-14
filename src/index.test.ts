@@ -633,6 +633,22 @@ describe('stringify & parse', () => {
         expect(value.pet.woof()).toEqual('Rover');
       },
     },
+    'works with URL': {
+      input: {
+        a: new URL('https://example.com/'),
+        b: new URL('https://github.com/blitz-js/superjson'),
+      },
+      output: {
+        a: 'https://example.com/',
+        b: 'https://github.com/blitz-js/superjson',
+      },
+      outputAnnotations: {
+        values: {
+          a: ['URL'],
+          b: ['URL'],
+        },
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
