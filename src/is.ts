@@ -9,9 +9,10 @@ export const isNull = (payload: any): payload is null => payload === null;
 export const isPlainObject = (
   payload: any
 ): payload is { [key: string]: any } => {
-  if (getType(payload) !== 'Object') return false;
-  if (Object.getPrototypeOf(payload) === null) return true;
+  if (typeof payload !== 'object' || payload === null) return false;
   if (payload === Object.prototype) return false;
+  if (Object.getPrototypeOf(payload) === null) return true;
+
   return (
     payload.constructor === Object &&
     Object.getPrototypeOf(payload) === Object.prototype
