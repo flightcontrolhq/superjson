@@ -56,6 +56,7 @@
     "url": "https://github.com/blitz-js/superjson"
   },
   "devDependencies": {
+    "@tanstack/query-core": "^4.2.2",
     "@types/debug": "^4.1.5",
     "@types/mongodb": "^3.6.12",
     "@types/node": "^18.7.18",

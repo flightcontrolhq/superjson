@@ -1412,6 +1412,11 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@tanstack/query-core@^4.2.2":
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-4.2.2.tgz#134a45887ff3fc8667e81936028c746564c90882"
+  integrity sha512-cA+hTvYtZU6cTpY1gmfokLWK76mciEkTW1vN2CJ4CZf7xhpO9HmvmzQo9mTygV96a9EGQUuYPt37fYFrsnzmww==
+
 "@types/babel__core@^7.0.0", "@types/babel__core@^7.1.7":
   version "7.1.12"
   resolved "https://registry.npmjs.org/@types/babel__core/-/babel__core-7.1.12.tgz"
