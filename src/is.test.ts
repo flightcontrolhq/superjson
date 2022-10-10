@@ -33,6 +33,9 @@ test('Basic true tests', () => {
   expect(isSymbol(Symbol())).toBe(true);
   expect(isTypedArray(new Uint8Array())).toBe(true);
   expect(isURL(new URL('https://example.com'))).toBe(true);
+  expect(isPlainObject({})).toBe(true);
+  // eslint-disable-next-line no-new-object
+  expect(isPlainObject(new Object())).toBe(true);
 });
 
 test('Basic false tests', () => {
@@ -52,6 +55,11 @@ test('Basic false tests', () => {
   expect(isTypedArray([])).toBe(false);
 
   expect(isURL('https://example.com')).toBe(false);
+
+  expect(isPlainObject(null)).toBe(false);
+  expect(isPlainObject([])).toBe(false);
+  expect(isPlainObject(Object.prototype)).toBe(false);
+  expect(isPlainObject(Object.create(Array.prototype))).toBe(false);
 });
 
 test('Primitive tests', () => {
