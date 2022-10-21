@@ -1,3 +1,4 @@
+import SuperJSON from '.';
 import { walker } from './plainer';
 
 test('walker', () => {
@@ -7,7 +8,8 @@ test('walker', () => {
         a: new Map([[NaN, null]]),
         b: /test/g,
       },
-      new Map()
+      new Map(),
+      new SuperJSON()
     )
   ).toEqual({
     transformedValue: {

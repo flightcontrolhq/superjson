@@ -16,6 +16,7 @@ import {
 import { includes, forEach } from './util';
 import { parsePath } from './pathstringifier';
 import { getDeep, setDeep } from './accessDeep';
+import SuperJSON from '.';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
@@ -51,10 +52,11 @@ function traverse<T>(
 
 export function applyValueAnnotations(
   plain: any,
-  annotations: MinimisedTree<TypeAnnotation>
+  annotations: MinimisedTree<TypeAnnotation>,
+  superJson: SuperJSON
 ) {
   traverse(annotations, (type, path) => {
-    plain = setDeep(plain, path, v => untransformValue(v, type));
+    plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
   });
 
   return plain;
@@ -88,12 +90,12 @@ export function applyReferentialEqualityAnnotations(
   return plain;
 }
 
-const isDeep = (object: any): boolean =>
+const isDeep = (object: any, superJson: SuperJSON): boolean =>
   isPlainObject(object) ||
   isArray(object) ||
   isMap(object) ||
   isSet(object) ||
-  isInstanceOfRegisteredClass(object);
+  isInstanceOfRegisteredClass(object, superJson);
 
 function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
   const existingSet = identities.get(object);
@@ -151,6 +153,7 @@ export function generateReferentialEqualityAnnotations(
 export const walker = (
   object: any,
   identities: Map<any, any[][]>,
+  superJson: SuperJSON,
   path: any[] = [],
   objectsInThisPath: any[] = []
 ): Result => {
@@ -158,8 +161,8 @@ export const walker = (
     addIdentity(object, path, identities);
   }
 
-  if (!isDeep(object)) {
-    const transformed = transformValue(object);
+  if (!isDeep(object, superJson)) {
+    const transformed = transformValue(object, superJson);
     if (transformed) {
       return {
         transformedValue: transformed.value,
@@ -178,7 +181,7 @@ export const walker = (
     };
   }
 
-  const transformationResult = transformValue(object);
+  const transformationResult = transformValue(object, superJson);
   const transformed = transformationResult?.value ?? object;
 
   if (!isPrimitive(object)) {
@@ -192,6 +195,7 @@ export const walker = (
     const recursiveResult = walker(
       value,
       identities,
+      superJson,
       [...path, index],
       objectsInThisPath
     );

@@ -14,11 +14,8 @@ import {
   TypedArrayConstructor,
   isURL,
 } from './is';
-import { ClassRegistry } from './class-registry';
-import { SymbolRegistry } from './symbol-registry';
-import { CustomTransformerRegistry } from './custom-transformer-registry';
-import { allowedErrorProps } from './error-props';
 import { findArr } from './util';
+import SuperJSON from '.';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -45,10 +42,10 @@ type CompositeTypeAnnotation =
 export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
 
 function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
-  isApplicable: (v: any) => v is I,
+  isApplicable: (v: any, superJson: SuperJSON) => v is I,
   annotation: A,
-  transform: (v: I) => O,
-  untransform: (v: O) => I
+  transform: (v: I, superJson: SuperJSON) => O,
+  untransform: (v: O, superJson: SuperJSON) => I
 ) {
   return {
     isApplicable,
@@ -89,24 +86,24 @@ const simpleRules = [
   simpleTransformation(
     isError,
     'Error',
-    v => {
+    (v, superJson) => {
       const baseError: any = {
         name: v.name,
         message: v.message,
       };
 
-      allowedErrorProps.forEach(prop => {
+      superJson.allowedErrorProps.forEach(prop => {
         baseError[prop] = (v as any)[prop];
       });
 
       return baseError;
     },
-    v => {
+    (v, superJson) => {
       const e = new Error(v.message);
       e.name = v.name;
       e.stack = v.stack;
 
-      allowedErrorProps.forEach(prop => {
+      superJson.allowedErrorProps.forEach(prop => {
         (e as any)[prop] = v[prop];
       });
 
@@ -175,10 +172,10 @@ const simpleRules = [
 ];
 
 function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(
-  isApplicable: (v: any) => v is I,
-  annotation: (v: I) => A,
-  transform: (v: I) => O,
-  untransform: (v: O, a: A) => I
+  isApplicable: (v: any, superJson: SuperJSON) => v is I,
+  annotation: (v: I, superJson: SuperJSON) => A,
+  transform: (v: I, superJson: SuperJSON) => O,
+  untransform: (v: O, a: A, superJson: SuperJSON) => I
 ) {
   return {
     isApplicable,
@@ -189,20 +186,20 @@ function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(
 }
 
 const symbolRule = compositeTransformation(
-  (s): s is Symbol => {
+  (s, superJson): s is Symbol => {
     if (isSymbol(s)) {
-      const isRegistered = !!SymbolRegistry.getIdentifier(s);
+      const isRegistered = !!superJson.symbolRegistry.getIdentifier(s);
       return isRegistered;
     }
     return false;
   },
-  s => {
-    const identifier = SymbolRegistry.getIdentifier(s);
+  (s, superJson) => {
+    const identifier = superJson.symbolRegistry.getIdentifier(s);
     return ['symbol', identifier!];
   },
   v => v.description,
-  (_, a) => {
-    const value = SymbolRegistry.getValue(a[1]);
+  (_, a, superJson) => {
+    const value = superJson.symbolRegistry.getValue(a[1]);
     if (!value) {
       throw new Error('Trying to deserialize unknown symbol');
     }
@@ -241,10 +238,11 @@ const typedArrayRule = compositeTransformation(
 );
 
 export function isInstanceOfRegisteredClass(
-  potentialClass: any
+  potentialClass: any,
+  superJson: SuperJSON
 ): potentialClass is any {
   if (potentialClass?.constructor) {
-    const isRegistered = !!ClassRegistry.getIdentifier(
+    const isRegistered = !!superJson.classRegistry.getIdentifier(
       potentialClass.constructor
     );
     return isRegistered;
@@ -254,12 +252,14 @@ export function isInstanceOfRegisteredClass(
 
 const classRule = compositeTransformation(
   isInstanceOfRegisteredClass,
-  clazz => {
-    const identifier = ClassRegistry.getIdentifier(clazz.constructor);
+  (clazz, superJson) => {
+    const identifier = superJson.classRegistry.getIdentifier(clazz.constructor);
     return ['class', identifier!];
   },
-  clazz => {
-    const allowedProps = ClassRegistry.getAllowedProps(clazz.constructor);
+  (clazz, superJson) => {
+    const allowedProps = superJson.classRegistry.getAllowedProps(
+      clazz.constructor
+    );
     if (!allowedProps) {
       return { ...clazz };
     }
@@ -270,8 +270,8 @@ const classRule = compositeTransformation(
     });
     return result;
   },
-  (v, a) => {
-    const clazz = ClassRegistry.getValue(a[1]);
+  (v, a, superJson) => {
+    const clazz = superJson.classRegistry.getValue(a[1]);
 
     if (!clazz) {
       throw new Error(
@@ -284,19 +284,23 @@ const classRule = compositeTransformation(
 );
 
 const customRule = compositeTransformation(
-  (value): value is any => {
-    return !!CustomTransformerRegistry.findApplicable(value);
+  (value, superJson): value is any => {
+    return !!superJson.customTransformerRegistry.findApplicable(value);
   },
-  value => {
-    const transformer = CustomTransformerRegistry.findApplicable(value)!;
+  (value, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findApplicable(
+      value
+    )!;
     return ['custom', transformer.name];
   },
-  value => {
-    const transformer = CustomTransformerRegistry.findApplicable(value)!;
+  (value, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findApplicable(
+      value
+    )!;
     return transformer.serialize(value);
   },
-  (v, a) => {
-    const transformer = CustomTransformerRegistry.findByName(a[1]);
+  (v, a, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findByName(a[1]);
     if (!transformer) {
       throw new Error('Trying to deserialize unknown custom value');
     }
@@ -307,25 +311,26 @@ const customRule = compositeTransformation(
 const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
 
 export const transformValue = (
-  value: any
+  value: any,
+  superJson: SuperJSON
 ): { value: any; type: TypeAnnotation } | undefined => {
   const applicableCompositeRule = findArr(compositeRules, rule =>
-    rule.isApplicable(value)
+    rule.isApplicable(value, superJson)
   );
   if (applicableCompositeRule) {
     return {
-      value: applicableCompositeRule.transform(value as never),
-      type: applicableCompositeRule.annotation(value),
+      value: applicableCompositeRule.transform(value as never, superJson),
+      type: applicableCompositeRule.annotation(value, superJson),
     };
   }
 
   const applicableSimpleRule = findArr(simpleRules, rule =>
-    rule.isApplicable(value)
+    rule.isApplicable(value, superJson)
   );
 
   if (applicableSimpleRule) {
     return {
-      value: applicableSimpleRule.transform(value as never),
+      value: applicableSimpleRule.transform(value as never, superJson),
       type: applicableSimpleRule.annotation,
     };
   }
@@ -338,17 +343,21 @@ simpleRules.forEach(rule => {
   simpleRulesByAnnotation[rule.annotation] = rule;
 });
 
-export const untransformValue = (json: any, type: TypeAnnotation) => {
+export const untransformValue = (
+  json: any,
+  type: TypeAnnotation,
+  superJson: SuperJSON
+) => {
   if (isArray(type)) {
     switch (type[0]) {
       case 'symbol':
-        return symbolRule.untransform(json, type);
+        return symbolRule.untransform(json, type, superJson);
       case 'class':
-        return classRule.untransform(json, type);
+        return classRule.untransform(json, type, superJson);
       case 'custom':
-        return customRule.untransform(json, type);
+        return customRule.untransform(json, type, superJson);
       case 'typed-array':
-        return typedArrayRule.untransform(json, type);
+        return typedArrayRule.untransform(json, type, superJson);
       default:
         throw new Error('Unknown transformation: ' + type);
     }
@@ -358,6 +367,6 @@ export const untransformValue = (json: any, type: TypeAnnotation) => {
       throw new Error('Unknown transformation: ' + type);
     }
 
-    return transformation.untransform(json as never);
+    return transformation.untransform(json as never, superJson);
   }
 };
