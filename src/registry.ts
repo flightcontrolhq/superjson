@@ -14,15 +14,6 @@ export class Registry<T> {
       identifier = this.generateIdentifier(value);
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      const alreadyRegistered = this.kv.getByKey(identifier);
-      if (alreadyRegistered && alreadyRegistered !== value) {
-        console.debug(
-          `Ambiguous class "${identifier}", provide a unique identifier.`
-        );
-      }
-    }
-
     this.kv.set(identifier, value);
   }
 
