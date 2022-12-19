@@ -232,6 +232,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mgreystone",
+      "name": "Markus Greystone",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12430681?v=4",
+      "profile": "https://github.com/mgreystone",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
@@ -240,5 +249,6 @@
   "projectOwner": "blitz-js",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }
