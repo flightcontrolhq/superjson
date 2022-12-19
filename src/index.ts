@@ -126,3 +126,8 @@ export const deserialize = SuperJSON.deserialize;
 
 export const stringify = SuperJSON.stringify;
 export const parse = SuperJSON.parse;
+
+export const registerClass = SuperJSON.registerClass;
+export const registerCustom = SuperJSON.registerCustom;
+export const registerSymbol = SuperJSON.registerSymbol;
+export const allowErrorProps = SuperJSON.allowErrorProps;
