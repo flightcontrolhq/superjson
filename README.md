@@ -326,9 +326,10 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
-## Prior art
+## See also
 
 Other libraries that aim to solve a similar problem:
 
 - [Serialize JavaScript](https://github.com/yahoo/serialize-javascript) by Eric Ferraiuolo
 - [devalue](https://github.com/Rich-Harris/devalue) by Rich Harris
+- [next-json](https://github.com/iccicci/next-json) by Daniele Ricci
