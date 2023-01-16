@@ -26,9 +26,27 @@ function validatePath(path: (string | number)[]) {
 export const getDeep = (object: object, path: (string | number)[]): object => {
   validatePath(path);
 
-  path.forEach(key => {
-    object = (object as any)[key];
-  });
+  for (let i = 0; i < path.length; i++) {
+    const key = path[i];
+    if (isSet(object)) {
+      object = getNthKey(object, +key);
+    } else if (isMap(object)) {
+      const row = +key;
+      const type = +path[++i] === 0 ? 'key' : 'value';
+
+      const keyOfRow = getNthKey(object, row);
+      switch (type) {
+        case 'key':
+          object = keyOfRow;
+          break;
+        case 'value':
+          object = object.get(keyOfRow);
+          break;
+      }
+    } else {
+      object = (object as any)[key];
+    }
+  }
 
   return object;
 };

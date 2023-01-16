@@ -434,6 +434,39 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works for referentially equal values in different maps and sets': {
+      input: () => {
+        const user = { id: 2 };
+
+        return {
+          workspaces: new Map([
+            [1, { users: new Set([user]) }],
+            [2, { users: new Set([user]) }],
+          ]),
+        };
+      },
+      output: {
+        workspaces: [
+          [1, { users: [{ id: 2 }] }],
+          [2, { users: [{ id: 2 }] }],
+        ],
+      },
+      outputAnnotations: {
+        values: {
+          workspaces: [
+            'map',
+            {
+              '0.1.users': ['set'],
+              '1.1.users': ['set'],
+            },
+          ],
+        },
+        referentialEqualities: {
+          'workspaces.0.1.users.0': ['workspaces.1.1.users.0'],
+        },
+      },
+    },
+
     'works for symbols': {
       skipOnNode10: true,
       input: () => {
