@@ -98,7 +98,9 @@ export const setDeep = (
 
   const lastKey = path[path.length - 1];
 
-  if (isArray(parent) || isPlainObject(parent)) {
+  if (isArray(parent)) {
+    parent[+lastKey] = mapper(parent[+lastKey]);
+  } else if (isPlainObject(parent)) {
     parent[lastKey] = mapper(parent[lastKey]);
   }
 
