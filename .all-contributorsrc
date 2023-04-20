@@ -241,6 +241,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "darthmaim",
+      "name": "darthmaim",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2511547?v=4",
+      "profile": "https://gw2treasures.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
