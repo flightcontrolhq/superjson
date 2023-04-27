@@ -250,6 +250,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "benjick",
+      "name": "Max Malm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/430872?v=4",
+      "profile": "http://www.maxmalm.se",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
