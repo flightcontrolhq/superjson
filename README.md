@@ -8,7 +8,7 @@
 
 <p align="center">
   <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-27-orange.svg?style=flat-square" alt="All Contributors"/></a>
+<a href="#contributors"><img src="https://img.shields.io/badge/all_contributors-28-orange.svg?style=flat-square" alt="All Contributors"/></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <a href="https://www.npmjs.com/package/superjson">
     <img alt="npm" src="https://img.shields.io/npm/v/superjson" />
@@ -317,6 +317,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mgreystone"><img src="https://avatars.githubusercontent.com/u/12430681?v=4?s=100" width="100px;" alt="Markus Greystone"/><br /><sub><b>Markus Greystone</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Amgreystone" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://gw2treasures.com/"><img src="https://avatars.githubusercontent.com/u/2511547?v=4?s=100" width="100px;" alt="darthmaim"/><br /><sub><b>darthmaim</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=darthmaim" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.maxmalm.se"><img src="https://avatars.githubusercontent.com/u/430872?v=4?s=100" width="100px;" alt="Max Malm"/><br /><sub><b>Max Malm</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=benjick" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tylercollier"><img src="https://avatars.githubusercontent.com/u/366538?v=4?s=100" width="100px;" alt="Tyler Collier"/><br /><sub><b>Tyler Collier</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/commits?author=tylercollier" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
