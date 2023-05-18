@@ -103,7 +103,7 @@ json = {
 // note that `normal` is not included here; `meta` only has special cases
 meta = {
   values: {
-    timestamp: ['date'],
+    timestamp: ['Date'],
     test: ['regexp'],
   }
 };
