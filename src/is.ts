@@ -13,10 +13,7 @@ export const isPlainObject = (
   if (payload === Object.prototype) return false;
   if (Object.getPrototypeOf(payload) === null) return true;
 
-  return (
-    payload.constructor === Object &&
-    Object.getPrototypeOf(payload) === Object.prototype
-  );
+  return Object.getPrototypeOf(payload) === Object.prototype;
 };
 
 export const isEmptyObject = (payload: any): payload is {} =>
