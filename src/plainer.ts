@@ -1,5 +1,3 @@
-import SuperJSON from '.';
-import { getDeep, setDeep } from './accessDeep';
 import {
   isArray,
   isEmptyObject,
@@ -8,14 +6,17 @@ import {
   isPrimitive,
   isSet,
 } from './is';
-import { escapeKey, parsePath, stringifyPath } from './pathstringifier';
+import { escapeKey, stringifyPath } from './pathstringifier';
 import {
-  TypeAnnotation,
   isInstanceOfRegisteredClass,
   transformValue,
+  TypeAnnotation,
   untransformValue,
 } from './transformer';
-import { forEach, includes } from './util';
+import { includes, forEach } from './util';
+import { parsePath } from './pathstringifier';
+import { getDeep, setDeep } from './accessDeep';
+import SuperJSON from '.';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
