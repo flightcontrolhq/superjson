@@ -1126,3 +1126,24 @@ test('superjson instances are independent of one another', () => {
   const res2 = s2.serialize(value);
   expect(res2.json).toEqual(value);
 });
+
+test.only('regression: superjson referential equalities only use the top-most parent node', () => {
+  type Node = {
+    children: Node[];
+  };
+  const root: Node = {
+    children: [],
+  };
+  const input = {
+    a: root,
+    b: root,
+  };
+  const res = SuperJSON.serialize(input);
+
+  expect(res.json).toEqual(input);
+  
+  expect(res.meta?.referentialEqualities).toHaveProperty(['a']);
+  // saying that a.children is equal to b.children is redundant since its already know that a === b
+  expect(res.meta?.referentialEqualities).not.toHaveProperty(['a.children']);
+  expect(res.meta).toMatchInlineSnapshot();
+});
