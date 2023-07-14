@@ -14,6 +14,11 @@ import {
 import { copy } from 'copy-anything';
 
 export default class SuperJSON {
+  /**
+   * If true, SuperJSON will make sure only one instance of referentially equal objects are serialized and the rest are replaced with `null`.
+   */
+  public dedupe = false;
+
   serialize(object: SuperJSONValue): SuperJSONResult {
     const identities = new Map<any, any[][]>();
     const output = walker(object, identities, this);

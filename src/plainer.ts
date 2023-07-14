@@ -166,7 +166,11 @@ export const walker = (
     const seen = seenObjects.get(object);
     if (seen) {
       // short-circuit result if we've seen this object before
-      return seen;
+      return superJson.dedupe
+        ? {
+            transformedValue: null,
+          }
+        : seen;
     }
   }
 
