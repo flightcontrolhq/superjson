@@ -135,6 +135,14 @@ export function generateReferentialEqualityAnnotations(
     if (shortestPath.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
+      const parentIsAlreadyIncluded = shortestPath.some(
+        (_, index, shortestPath) => {
+          const prefix = shortestPath.slice(0, index);
+          return stringifyPath(prefix) in result;
+        }
+      );
+      if (parentIsAlreadyIncluded) return;
+
       result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
     }
   });
