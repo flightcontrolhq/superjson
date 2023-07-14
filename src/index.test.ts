@@ -1159,56 +1159,36 @@ test('regression #245: superjson referential equalities only use the top-most pa
 });
 
 test('dedupe=true', () => {
-  {
-    const instance = new SuperJSON();
-    instance.dedupe = true;
+  const instance = new SuperJSON();
+  instance.dedupe = true;
 
-    type Node = {
-      children: Node[];
-    };
-    const root: Node = {
-      children: [],
-    };
-    const input = {
-      a: root,
-      b: root,
-    };
-    const output = instance.serialize(input);
+  type Node = {
+    children: Node[];
+  };
+  const root: Node = {
+    children: [],
+  };
+  const input = {
+    a: root,
+    b: root,
+  };
+  const output = instance.serialize(input);
 
-    const json = output.json as any;
+  const json = output.json as any;
 
-    expect(json.a);
+  expect(json.a);
 
-    // This has already been seen and should be deduped
-    expect(json.b).toBeNull();
+  // This has already been seen and should be deduped
+  expect(json.b).toBeNull();
 
-    expect(json).toMatchInlineSnapshot(`
-      Object {
-        "a": Object {
-          "children": Array [],
-        },
-        "b": null,
-      }
-    `);
+  expect(json).toMatchInlineSnapshot(`
+    Object {
+      "a": Object {
+        "children": Array [],
+      },
+      "b": null,
+    }
+  `);
 
-    expect(instance.deserialize(output)).toEqual(input);
-  }
-
-  {
-    const instance = new SuperJSON();
-    type Node = {
-      children: Node[];
-    };
-    const root: Node = {
-      children: [],
-    };
-    const input = {
-      a: root,
-      b: root,
-    };
-    const output = instance.serialize(input);
-
-    // Ensure that we have no breaking changes
-    expect(output.json).toEqual(input);
-  }
+  expect(instance.deserialize(output)).toEqual(input);
 });
