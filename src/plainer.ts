@@ -134,7 +134,7 @@ export function generateReferentialEqualityAnnotations(
     if (shortestPath.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
-result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
+      result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
     }
   });
 
