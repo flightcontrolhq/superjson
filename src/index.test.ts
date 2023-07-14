@@ -1127,7 +1127,7 @@ test('superjson instances are independent of one another', () => {
   expect(res2.json).toEqual(value);
 });
 
-test.only('regression: superjson referential equalities only use the top-most parent node', () => {
+test('regression #245: superjson referential equalities only use the top-most parent node', () => {
   type Node = {
     children: Node[];
   };
