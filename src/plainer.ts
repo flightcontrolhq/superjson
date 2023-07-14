@@ -1,3 +1,5 @@
+import SuperJSON from '.';
+import { getDeep, setDeep } from './accessDeep';
 import {
   isArray,
   isEmptyObject,
@@ -6,17 +8,14 @@ import {
   isPrimitive,
   isSet,
 } from './is';
-import { escapeKey, stringifyPath } from './pathstringifier';
+import { escapeKey, parsePath, stringifyPath } from './pathstringifier';
 import {
+  TypeAnnotation,
   isInstanceOfRegisteredClass,
   transformValue,
-  TypeAnnotation,
   untransformValue,
 } from './transformer';
-import { includes, forEach } from './util';
-import { parsePath } from './pathstringifier';
-import { getDeep, setDeep } from './accessDeep';
-import SuperJSON from '.';
+import { forEach, includes } from './util';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
@@ -135,7 +134,9 @@ export function generateReferentialEqualityAnnotations(
     if (shortestPath.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
-      result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
+      const stringifiedShortestPath = stringifyPath(shortestPath);
+      result[stringifiedShortestPath] = identicalPaths.map(stringifyPath);
+      // visitedPaths.add(stringifiedShortestPath);
     }
   });
 
@@ -155,27 +156,40 @@ export const walker = (
   identities: Map<any, any[][]>,
   superJson: SuperJSON,
   path: any[] = [],
-  objectsInThisPath: any[] = []
+  objectsInThisPath: any[] = [],
+  seenObjects = new Map<unknown, Result>()
 ): Result => {
-  if (!isPrimitive(object)) {
+  const primitive = isPrimitive(object);
+
+  if (!primitive) {
     addIdentity(object, path, identities);
+
+    const seen = seenObjects.get(object);
+    if (seen) {
+      // short-circuit result if we've seen this object before
+      return seen;
+    }
   }
 
   if (!isDeep(object, superJson)) {
     const transformed = transformValue(object, superJson);
-    if (transformed) {
-      return {
-        transformedValue: transformed.value,
-        annotations: [transformed.type],
-      };
-    } else {
-      return {
-        transformedValue: object,
-      };
+
+    const result: Result = transformed
+      ? {
+          transformedValue: transformed.value,
+          annotations: [transformed.type],
+        }
+      : {
+          transformedValue: object,
+        };
+    if (!primitive) {
+      seenObjects.set(object, result);
     }
+    return result;
   }
 
   if (includes(objectsInThisPath, object)) {
+    // prevent circular references
     return {
       transformedValue: null,
     };
@@ -183,10 +197,6 @@ export const walker = (
 
   const transformationResult = transformValue(object, superJson);
   const transformed = transformationResult?.value ?? object;
-
-  if (!isPrimitive(object)) {
-    objectsInThisPath = [...objectsInThisPath, object];
-  }
 
   const transformedValue: any = isArray(transformed) ? [] : {};
   const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
@@ -197,7 +207,8 @@ export const walker = (
       identities,
       superJson,
       [...path, index],
-      objectsInThisPath
+      [...objectsInThisPath, object],
+      seenObjects
     );
 
     transformedValue[index] = recursiveResult.transformedValue;
@@ -211,19 +222,22 @@ export const walker = (
     }
   });
 
-  if (isEmptyObject(innerAnnotations)) {
-    return {
-      transformedValue,
-      annotations: !!transformationResult
-        ? [transformationResult.type]
-        : undefined,
-    };
-  } else {
-    return {
-      transformedValue,
-      annotations: !!transformationResult
-        ? [transformationResult.type, innerAnnotations]
-        : innerAnnotations,
-    };
+  const result: Result = isEmptyObject(innerAnnotations)
+    ? {
+        transformedValue,
+        annotations: !!transformationResult
+          ? [transformationResult.type]
+          : undefined,
+      }
+    : {
+        transformedValue,
+        annotations: !!transformationResult
+          ? [transformationResult.type, innerAnnotations]
+          : innerAnnotations,
+      };
+  if (!primitive) {
+    seenObjects.set(object, result);
   }
+
+  return result;
 };

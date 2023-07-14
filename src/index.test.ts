@@ -1140,10 +1140,20 @@ test('regression #245: superjson referential equalities only use the top-most pa
   };
   const res = SuperJSON.serialize(input);
 
-  expect(res.json).toEqual(input);
-
   expect(res.meta?.referentialEqualities).toHaveProperty(['a']);
+
   // saying that a.children is equal to b.children is redundant since its already know that a === b
   expect(res.meta?.referentialEqualities).not.toHaveProperty(['a.children']);
-  expect(res.meta).toMatchInlineSnapshot();
+  expect(res.meta).toMatchInlineSnapshot(`
+    Object {
+      "referentialEqualities": Object {
+        "a": Array [
+          "b",
+        ],
+      },
+    }
+  `);
+
+  const parsed = SuperJSON.deserialize(res);
+  expect(parsed).toEqual(input);
 });
