@@ -154,6 +154,7 @@ export const walker = (
   object: any,
   identities: Map<any, any[][]>,
   superJson: SuperJSON,
+  dedupeReferentialEqualities: boolean,
   path: any[] = [],
   objectsInThisPath: any[] = [],
   seenObjects = new Map<unknown, Result>()
@@ -166,7 +167,7 @@ export const walker = (
     const seen = seenObjects.get(object);
     if (seen) {
       // short-circuit result if we've seen this object before
-      return superJson.dedupe
+      return dedupeReferentialEqualities
         ? {
             transformedValue: null,
           }
@@ -209,6 +210,7 @@ export const walker = (
       value,
       identities,
       superJson,
+      dedupeReferentialEqualities,
       [...path, index],
       [...objectsInThisPath, object],
       seenObjects

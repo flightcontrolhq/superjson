@@ -1158,9 +1158,10 @@ test('regression #245: superjson referential equalities only use the top-most pa
   expect(parsed).toEqual(input);
 });
 
-test('dedupe=true', () => {
-  const instance = new SuperJSON();
-  instance.dedupe = true;
+test('dedupeReferentialEqualities=true', () => {
+  const instance = new SuperJSON({
+    dedupeReferentialEqualities: true,
+  });
 
   type Node = {
     children: Node[];
