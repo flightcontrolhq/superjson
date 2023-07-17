@@ -1194,7 +1194,7 @@ test('dedupe=true, pruned', () => {
   expect(instance.deserialize(output)).toEqual(input);
 });
 
-test.only('dedupe=true, circular', () => {
+test('dedupe=true, circular', () => {
   const instance = new SuperJSON({
     dedupe: true,
   });
