@@ -10,7 +10,7 @@ test('walker', () => {
       },
       new Map(),
       new SuperJSON(),
-      false,
+      false
     )
   ).toEqual({
     transformedValue: {
