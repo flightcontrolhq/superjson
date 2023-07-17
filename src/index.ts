@@ -17,17 +17,17 @@ export default class SuperJSON {
   /**
    * If true, SuperJSON will make sure only one instance of referentially equal objects are serialized and the rest are replaced with `null`.
    */
-  private readonly dedupeReferentialEqualities: boolean;
+  private readonly dedupe: boolean;
 
   /**
    * @param dedupeReferentialEqualities  If true, SuperJSON will make sure only one instance of referentially equal objects are serialized and the rest are replaced with `null`.
    */
   constructor({
-    dedupeReferentialEqualities = false,
+    dedupe = false,
   }: {
-    dedupeReferentialEqualities?: boolean;
+    dedupe?: boolean;
   } = {}) {
-    this.dedupeReferentialEqualities = dedupeReferentialEqualities;
+    this.dedupe = dedupe;
   }
 
   serialize(object: SuperJSONValue): SuperJSONResult {
@@ -36,7 +36,7 @@ export default class SuperJSON {
       object,
       identities,
       this,
-      this.dedupeReferentialEqualities
+      this.dedupe
     );
     const res: SuperJSONResult = {
       json: output.transformedValue,
