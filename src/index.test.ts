@@ -1157,3 +1157,39 @@ test('regression #245: superjson referential equalities only use the top-most pa
   const parsed = SuperJSON.deserialize(res);
   expect(parsed).toEqual(input);
 });
+
+test('dedupe=true', () => {
+  const instance = new SuperJSON({
+    dedupe: true,
+  });
+
+  type Node = {
+    children: Node[];
+  };
+  const root: Node = {
+    children: [],
+  };
+  const input = {
+    a: root,
+    b: root,
+  };
+  const output = instance.serialize(input);
+
+  const json = output.json as any;
+
+  expect(json.a);
+
+  // This has already been seen and should be deduped
+  expect(json.b).toBeNull();
+
+  expect(json).toMatchInlineSnapshot(`
+    Object {
+      "a": Object {
+        "children": Array [],
+      },
+      "b": null,
+    }
+  `);
+
+  expect(instance.deserialize(output)).toEqual(input);
+});

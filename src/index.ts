@@ -1,4 +1,4 @@
-import { SuperJSONResult, SuperJSONValue, Class, JSONValue } from './types';
+import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types';
 import { ClassRegistry, RegisterOptions } from './class-registry';
 import { Registry } from './registry';
 import {
@@ -6,17 +6,33 @@ import {
   CustomTransformerRegistry,
 } from './custom-transformer-registry';
 import {
-  walker,
   applyReferentialEqualityAnnotations,
   applyValueAnnotations,
   generateReferentialEqualityAnnotations,
+  walker,
 } from './plainer';
 import { copy } from 'copy-anything';
 
 export default class SuperJSON {
+  /**
+   * If true, SuperJSON will make sure only one instance of referentially equal objects are serialized and the rest are replaced with `null`.
+   */
+  private readonly dedupe: boolean;
+
+  /**
+   * @param dedupeReferentialEqualities  If true, SuperJSON will make sure only one instance of referentially equal objects are serialized and the rest are replaced with `null`.
+   */
+  constructor({
+    dedupe = false,
+  }: {
+    dedupe?: boolean;
+  } = {}) {
+    this.dedupe = dedupe;
+  }
+
   serialize(object: SuperJSONValue): SuperJSONResult {
     const identities = new Map<any, any[][]>();
-    const output = walker(object, identities, this);
+    const output = walker(object, identities, this, this.dedupe);
     const res: SuperJSONResult = {
       json: output.transformedValue,
     };
