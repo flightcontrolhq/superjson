@@ -169,7 +169,7 @@ export const walker = (
       // short-circuit result if we've seen this object before
       return dedupe
         ? {
-            transformedValue: null,
+            transformedValue: '[Pruned *]',
           }
         : seen;
     }
@@ -195,7 +195,7 @@ export const walker = (
   if (includes(objectsInThisPath, object)) {
     // prevent circular references
     return {
-      transformedValue: null,
+      transformedValue: '[Circular *]',
     };
   }
 
