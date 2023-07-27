@@ -1193,3 +1193,27 @@ test('dedupe=true', () => {
 
   expect(instance.deserialize(output)).toEqual(input);
 });
+
+
+import * as fs from 'fs';
+
+test('dedupe=true testy', () => {
+
+  const content = fs.readFileSync(__dirname + '/non-deduped-cal.json', 'utf-8');
+  const parsed = JSON.parse(content);
+
+  const deserialized = SuperJSON.deserialize(parsed);
+
+  const nondeduped = new SuperJSON({})
+
+  const deduped = new SuperJSON({
+    dedupe: true,
+  });
+
+  const nondedupedOut = nondeduped.deserialize(nondeduped.serialize(deserialized))
+  const dedupedOut = deduped.deserialize(deduped.serialize(deserialized))
+
+
+  expect(dedupedOut).toEqual(nondedupedOut);
+
+})
