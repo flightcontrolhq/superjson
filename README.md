@@ -43,7 +43,7 @@ At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limita
 Superjson solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`.
 
 ## Sponsors
-[<img src="https://user-images.githubusercontent.com/3496193/206313745-11f25f7b-2540-4a4c-86c0-d085e38b0b45.png" alt="Flightcontrol Logo" style="width: 400px;"/>](https://www.flightcontrol.dev/?ref=superjson)
+[<img src="https://raw.githubusercontent.com/blitz-js/blitz/main/assets/flightcontrol.png" alt="Flightcontrol Logo" style="width: 400px;"/>](https://www.flightcontrol.dev/?ref=superjson)
 
 
 ## Getting started
