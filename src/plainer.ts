@@ -118,7 +118,8 @@ export type ReferentialEqualityAnnotations =
   | [string[], Record<string, string[]>];
 
 export function generateReferentialEqualityAnnotations(
-  identitites: Map<any, any[][]>
+  identitites: Map<any, any[][]>,
+  dedupe: boolean
 ): ReferentialEqualityAnnotations | undefined {
   const result: Record<string, string[]> = {};
   let rootEqualityPaths: string[] | undefined = undefined;
@@ -128,14 +129,23 @@ export function generateReferentialEqualityAnnotations(
       return;
     }
 
-    const [shortestPath, ...identicalPaths] = paths
-      .map(path => path.map(String))
-      .sort((a, b) => a.length - b.length);
+    // if we're not deduping, all of these objects continue existing.
+    // putting the shortest path first makes it easier to parse for humans
+    // if we're deduping though, only the first entry will still exist, so we can't do this optimisation.
+    if (!dedupe) {
+      paths = paths
+        .map(path => path.map(String))
+        .sort((a, b) => a.length - b.length);
+    }
 
-    if (shortestPath.length === 0) {
+    const [representativePath, ...identicalPaths] = paths;
+
+    if (representativePath.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
-      result[stringifyPath(shortestPath)] = identicalPaths.map(stringifyPath);
+      result[stringifyPath(representativePath)] = identicalPaths.map(
+        stringifyPath
+      );
     }
   });
 

@@ -45,7 +45,8 @@ export default class SuperJSON {
     }
 
     const equalityAnnotations = generateReferentialEqualityAnnotations(
-      identities
+      identities,
+      this.dedupe
     );
     if (equalityAnnotations) {
       res.meta = {
