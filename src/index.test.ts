@@ -1,6 +1,8 @@
 /* eslint-disable es5/no-for-of */
 /* eslint-disable es5/no-es6-methods */
 
+import * as fs from 'fs';
+
 import SuperJSON from './';
 import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
 import {
@@ -1194,26 +1196,23 @@ test('dedupe=true', () => {
   expect(instance.deserialize(output)).toEqual(input);
 });
 
-
-import * as fs from 'fs';
-
-test('dedupe=true testy', () => {
-
+test.only('dedupe=true testy', () => {
   const content = fs.readFileSync(__dirname + '/non-deduped-cal.json', 'utf-8');
   const parsed = JSON.parse(content);
 
   const deserialized = SuperJSON.deserialize(parsed);
 
-  const nondeduped = new SuperJSON({})
+  const nondeduped = new SuperJSON({});
 
   const deduped = new SuperJSON({
     dedupe: true,
   });
 
-  const nondedupedOut = nondeduped.deserialize(nondeduped.serialize(deserialized))
-  const dedupedOut = deduped.deserialize(deduped.serialize(deserialized))
+  const nondedupedOut = nondeduped.deserialize(
+    nondeduped.serialize(deserialized)
+  );
+  const dedupedOut = deduped.deserialize(deduped.serialize(deserialized));
 
-
-  expect(dedupedOut).toEqual(nondedupedOut);
-
-})
+  expect(nondedupedOut).toEqual(deserialized);
+  expect(dedupedOut).toEqual(deserialized);
+});
