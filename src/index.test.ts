@@ -1196,7 +1196,7 @@ test('dedupe=true', () => {
   expect(instance.deserialize(output)).toEqual(input);
 });
 
-test('dedupe=true testy', () => {
+test('dedupe=true on a large complicated schema', () => {
   const content = fs.readFileSync(__dirname + '/non-deduped-cal.json', 'utf-8');
   const parsed = JSON.parse(content);
 
@@ -1215,45 +1215,4 @@ test('dedupe=true testy', () => {
 
   expect(nondedupedOut).toEqual(deserialized);
   expect(dedupedOut).toEqual(deserialized);
-});
-
-test.only('dabbling around with dedupe=true', () => {
-  const deduped = new SuperJSON({
-    dedupe: true,
-  });
-
-  const b = {};
-
-  const obj = {
-    a: { b },
-    b,
-  };
-
-  const { json, meta } = deduped.serialize(obj);
-
-  // Here's the main problem:
-  // we're setting `b` to `null`, because we already saw the object in `a.b`
-  expect(json).toEqual({
-    a: {
-      b: {},
-    },
-    b: null,
-  });
-  // but then, we're also saying that `a.b` is the same as `b` - so we'll end up copying `null` into `a.b`!
-  expect(meta?.referentialEqualities).toEqual({
-    b: ['a.b'],
-  });
-
-  // in this specific case, the correct thing would be to flip around the order of `referentialEqualities`
-  expect(
-    deduped.deserialize({
-      json,
-      meta: { referentialEqualities: { 'a.b': ['b'] } },
-    })
-  ).toEqual(obj);
-
-  // but the current behaviour is definitely wrong:
-  expect(deduped.deserialize({ json, meta })).toEqual(obj);
-
-  // so we need to ensure that `referentialEqualities` always keys by the object that's *not* deduped
 });
