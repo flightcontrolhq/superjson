@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="superjson" src="./docs/superjson.png" width="300" />
+  <img alt="superjson" src="./docs/superjson.png" width="800" />
 </p>
 
 <p align="center">
@@ -44,6 +44,10 @@ Superjson solves these issues by providing a thin wrapper over `JSON.stringify` 
 
 ## Sponsors
 [<img src="https://raw.githubusercontent.com/blitz-js/blitz/main/assets/flightcontrol.png" alt="Flightcontrol Logo" style="width: 400px;"/>](https://www.flightcontrol.dev/?ref=superjson)
+
+Superjson logo by [NUMI](https://github.com/numi-hq/open-design):
+
+[<img src="https://raw.githubusercontent.com/numi-hq/open-design/main/assets/numi-lockup.png" alt="NUMI Logo" style="width: 200px;"/>](https://numi.tech/?ref=superjson)
 
 
 ## Getting started
