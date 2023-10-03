@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="superjson" src="./docs/superjson.png" width="800" />
+  <img alt="superjson" src="./docs/superjson-logo.png" width="800" />
 </p>
 
 <p align="center">
@@ -43,12 +43,12 @@ At [Blitz](https://github.com/blitz-js/blitz), we have struggled with the limita
 Superjson solves these issues by providing a thin wrapper over `JSON.stringify` and `JSON.parse`.
 
 ## Sponsors
+
 [<img src="https://raw.githubusercontent.com/blitz-js/blitz/main/assets/flightcontrol.png" alt="Flightcontrol Logo" style="width: 400px;"/>](https://www.flightcontrol.dev/?ref=superjson)
 
 Superjson logo by [NUMI](https://github.com/numi-hq/open-design):
 
 [<img src="https://raw.githubusercontent.com/numi-hq/open-design/main/assets/numi-lockup.png" alt="NUMI Logo" style="width: 200px;"/>](https://numi.tech/?ref=superjson)
-
 
 ## Getting started
 
@@ -75,7 +75,7 @@ const jsonString = superjson.stringify({ date: new Date(0) });
 And parse your JSON like so:
 
 ```js
-const object = superjson.parse<{ date: Date }>(jsonString);
+const object = superjson.parse < { date: Date } > jsonString;
 
 // object === { date: new Date(0) }
 ```
@@ -124,10 +124,10 @@ Thankfully, Superjson is a perfect tool to bypass that limitation!
 
 Next.js SWC plugins are [experimental](https://nextjs.org/docs/advanced-features/compiler#swc-plugins-experimental), but promise a significant speedup.
 To use the [SuperJSON SWC plugin](https://github.com/blitz-js/next-superjson-plugin), install it and add it to your `next.config.js`:
+
 ```sh
 yarn add next-superjson-plugin
 ```
-
 
 ```js
 // next.config.js
@@ -142,10 +142,11 @@ module.exports = {
       ],
     ],
   },
-}
+};
 ```
 
 ### Next.js (stable Babel transform)
+
 Install the library with your package manager of choice, e.g.:
 
 ```sh
@@ -238,20 +239,20 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 
 | type        | supported by standard JSON? | supported by Superjson? |
 | ----------- | --------------------------- | ----------------------- |
-| `string`    | ✅                           | ✅                       |
-| `number`    | ✅                           | ✅                       |
-| `boolean`   | ✅                           | ✅                       |
-| `null`      | ✅                           | ✅                       |
-| `Array`     | ✅                           | ✅                       |
-| `Object`    | ✅                           | ✅                       |
-| `undefined`  | ❌                           | ✅                       |
-| `bigint`    | ❌                           | ✅                       |
-| `Date`      | ❌                           | ✅                       |
-| `RegExp`    | ❌                           | ✅                       |
-| `Set`       | ❌                           | ✅                       |
-| `Map`       | ❌                           | ✅                       |
-| `Error`     | ❌                           | ✅                       |
-| `URL`       | ❌                           | ✅                       |
+| `string`    | ✅                          | ✅                      |
+| `number`    | ✅                          | ✅                      |
+| `boolean`   | ✅                          | ✅                      |
+| `null`      | ✅                          | ✅                      |
+| `Array`     | ✅                          | ✅                      |
+| `Object`    | ✅                          | ✅                      |
+| `undefined` | ❌                          | ✅                      |
+| `bigint`    | ❌                          | ✅                      |
+| `Date`      | ❌                          | ✅                      |
+| `RegExp`    | ❌                          | ✅                      |
+| `Set`       | ❌                          | ✅                      |
+| `Map`       | ❌                          | ✅                      |
+| `Error`     | ❌                          | ✅                      |
+| `URL`       | ❌                          | ✅                      |
 
 ## Recipes
 
@@ -264,7 +265,7 @@ In a Next.js project, `_app.ts` would be a good spot for that.
 ### `Decimal.js` / `Prisma.Decimal`
 
 ```ts
-import { Decimal } from "decimal.js"
+import { Decimal } from 'decimal.js';
 
 SuperJSON.registerCustom<Decimal, string>(
   {
@@ -275,8 +276,6 @@ SuperJSON.registerCustom<Decimal, string>(
   'decimal.js'
 );
 ```
-
-
 
 ## Contributors ✨
 
