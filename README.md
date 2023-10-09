@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="superjson" src="./docs/superjson-logo.png" width="800" />
+  <img alt="superjson" src="./docs/superjson-banner.png" width="800" />
 </p>
 
 <p align="center">
