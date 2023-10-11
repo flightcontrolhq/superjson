@@ -1,5 +1,7 @@
-import { Registry } from './registry';
-import { Class } from './types';
+import { Registry } from './registry.js';
+import { Class } from './types.js';
+
+import { test, expect } from 'vitest';
 
 test('class registry', () => {
   const registry = new Registry<Class>(c => c.name);

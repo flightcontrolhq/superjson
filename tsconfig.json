@@ -2,7 +2,8 @@
   "include": ["src"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"],
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "ES6",
+    "moduleResolution": "node",
     "lib": ["esnext"],
     "importHelpers": false,
     "declaration": true,
@@ -14,7 +15,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "downlevelIteration": true
   }

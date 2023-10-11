@@ -3,8 +3,8 @@
 
 import * as fs from 'fs';
 
-import SuperJSON from './';
-import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
+import SuperJSON from './index.js';
+import { JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
 import {
   isArray,
   isMap,
@@ -12,10 +12,12 @@ import {
   isPrimitive,
   isSet,
   isTypedArray,
-} from './is';
+} from './is.js';
 
 import { ObjectID } from 'mongodb';
 import { Decimal } from 'decimal.js';
+
+import { describe, it, expect, test } from 'vitest';
 
 const isNode10 = process.version.indexOf('v10') === 0;
 
@@ -1147,9 +1149,9 @@ test('regression #245: superjson referential equalities only use the top-most pa
   // saying that a.children is equal to b.children is redundant since its already know that a === b
   expect(res.meta?.referentialEqualities).not.toHaveProperty(['a.children']);
   expect(res.meta).toMatchInlineSnapshot(`
-    Object {
-      "referentialEqualities": Object {
-        "a": Array [
+    {
+      "referentialEqualities": {
+        "a": [
           "b",
         ],
       },
@@ -1185,9 +1187,9 @@ test('dedupe=true', () => {
   expect(json.b).toBeNull();
 
   expect(json).toMatchInlineSnapshot(`
-    Object {
-      "a": Object {
-        "children": Array [],
+    {
+      "a": {
+        "children": [],
       },
       "b": null,
     }

@@ -5,18 +5,18 @@ import {
   isPlainObject,
   isPrimitive,
   isSet,
-} from './is';
-import { escapeKey, stringifyPath } from './pathstringifier';
+} from './is.js';
+import { escapeKey, stringifyPath } from './pathstringifier.js';
 import {
   isInstanceOfRegisteredClass,
   transformValue,
   TypeAnnotation,
   untransformValue,
-} from './transformer';
-import { includes, forEach } from './util';
-import { parsePath } from './pathstringifier';
-import { getDeep, setDeep } from './accessDeep';
-import SuperJSON from '.';
+} from './transformer.js';
+import { includes, forEach } from './util.js';
+import { parsePath } from './pathstringifier.js';
+import { getDeep, setDeep } from './accessDeep.js';
+import SuperJSON from './index.js';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];

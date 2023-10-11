@@ -13,9 +13,9 @@ import {
   isTypedArray,
   TypedArrayConstructor,
   isURL,
-} from './is';
-import { findArr } from './util';
-import SuperJSON from '.';
+} from './is.js';
+import { findArr } from './util.js';
+import SuperJSON from './index.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 

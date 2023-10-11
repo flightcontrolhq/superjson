@@ -1,5 +1,5 @@
-import { JSONValue } from './types';
-import { find } from './util';
+import { JSONValue } from './types.js';
+import { find } from './util.js';
 
 export interface CustomTransfomer<I, O extends JSONValue> {
   name: string;
