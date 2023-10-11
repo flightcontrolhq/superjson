@@ -1,5 +1,5 @@
-import { TypeAnnotation } from './transformer';
-import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer';
+import { TypeAnnotation } from './transformer.js';
+import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer.js';
 
 export type Class = { new (...args: any[]): any };
 

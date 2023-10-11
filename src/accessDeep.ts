@@ -1,5 +1,5 @@
-import { isMap, isArray, isPlainObject, isSet } from './is';
-import { includes } from './util';
+import { isMap, isArray, isPlainObject, isSet } from './is.js';
+import { includes } from './util.js';
 
 const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
   const keys = value.keys();

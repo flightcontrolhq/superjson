@@ -1,20 +1,17 @@
 {
   "version": "1.13.3",
   "license": "MIT",
-  "main": "dist/index.js",
+  "type": "module",
   "typings": "dist/index.d.ts",
-  "module": "dist/esm/index.js",
-  "files": [
-    "dist",
-    "src"
-  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": ["dist"],
   "engines": {
-    "node": ">=10"
+    "node": ">=16"
   },
   "scripts": {
-    "build": "yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc",
-    "build:esm": "tsc --module es2015 --outDir dist/esm",
+    "build": "tsc",
     "test": "tsdx test --notify --verbose",
     "lint": "tsdx lint",
     "prepack": "yarn build",

@@ -12,7 +12,7 @@ import {
   isPlainObject,
   isTypedArray,
   isURL,
-} from './is';
+} from './is.js';
 
 test('Basic true tests', () => {
   expect(isUndefined(undefined)).toBe(true);

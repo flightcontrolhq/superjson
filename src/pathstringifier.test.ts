@@ -1,4 +1,4 @@
-import { parsePath, escapeKey } from './pathstringifier';
+import { parsePath, escapeKey } from './pathstringifier.js';
 
 describe('parsePath', () => {
   it.each([

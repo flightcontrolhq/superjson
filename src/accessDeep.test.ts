@@ -1,4 +1,4 @@
-import { setDeep } from './accessDeep';
+import { setDeep } from './accessDeep.js';
 
 describe('setDeep', () => {
   it('correctly sets values in maps', () => {

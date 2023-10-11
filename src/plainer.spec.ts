@@ -1,5 +1,5 @@
-import SuperJSON from '.';
-import { walker } from './plainer';
+import SuperJSON from './index.js';
+import { walker } from './plainer.js';
 
 test('walker', () => {
   expect(

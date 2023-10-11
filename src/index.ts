@@ -1,16 +1,16 @@
-import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types';
-import { ClassRegistry, RegisterOptions } from './class-registry';
-import { Registry } from './registry';
+import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
+import { ClassRegistry, RegisterOptions } from './class-registry.js';
+import { Registry } from './registry.js';
 import {
   CustomTransfomer,
   CustomTransformerRegistry,
-} from './custom-transformer-registry';
+} from './custom-transformer-registry.js';
 import {
   applyReferentialEqualityAnnotations,
   applyValueAnnotations,
   generateReferentialEqualityAnnotations,
   walker,
-} from './plainer';
+} from './plainer.js';
 import { copy } from 'copy-anything';
 
 export default class SuperJSON {

@@ -3,8 +3,8 @@
 
 import * as fs from 'fs';
 
-import SuperJSON from './';
-import { JSONValue, SuperJSONResult, SuperJSONValue } from './types';
+import SuperJSON from './index.js';
+import { JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
 import {
   isArray,
   isMap,
@@ -12,7 +12,7 @@ import {
   isPrimitive,
   isSet,
   isTypedArray,
-} from './is';
+} from './is.js';
 
 import { ObjectID } from 'mongodb';
 import { Decimal } from 'decimal.js';

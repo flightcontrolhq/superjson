@@ -1,4 +1,4 @@
-import { DoubleIndexedKV } from './double-indexed-kv';
+import { DoubleIndexedKV } from './double-indexed-kv.js';
 
 export class Registry<T> {
   private kv = new DoubleIndexedKV<string, T>();

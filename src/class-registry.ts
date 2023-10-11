@@ -1,5 +1,5 @@
-import { Registry } from './registry';
-import { Class } from './types';
+import { Registry } from './registry.js';
+import { Class } from './types.js';
 
 export interface RegisterOptions {
   identifier?: string;
