@@ -6,7 +6,7 @@ jobs:
 
     strategy:
       matrix:
-        node: [14.x, 12.x, 10.x]
+        node: [20.x, 18.x, 16.x]
 
     env:
       CI: true
