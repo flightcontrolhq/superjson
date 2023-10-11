@@ -17,6 +17,8 @@ import {
 import { ObjectID } from 'mongodb';
 import { Decimal } from 'decimal.js';
 
+import { describe, it, expect, test } from 'vitest';
+
 const isNode10 = process.version.indexOf('v10') === 0;
 
 describe('stringify & parse', () => {
@@ -1147,9 +1149,9 @@ test('regression #245: superjson referential equalities only use the top-most pa
   // saying that a.children is equal to b.children is redundant since its already know that a === b
   expect(res.meta?.referentialEqualities).not.toHaveProperty(['a.children']);
   expect(res.meta).toMatchInlineSnapshot(`
-    Object {
-      "referentialEqualities": Object {
-        "a": Array [
+    {
+      "referentialEqualities": {
+        "a": [
           "b",
         ],
       },
@@ -1185,9 +1187,9 @@ test('dedupe=true', () => {
   expect(json.b).toBeNull();
 
   expect(json).toMatchInlineSnapshot(`
-    Object {
-      "a": Object {
-        "children": Array [],
+    {
+      "a": {
+        "children": [],
       },
       "b": null,
     }

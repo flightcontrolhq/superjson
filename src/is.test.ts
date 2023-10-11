@@ -14,6 +14,8 @@ import {
   isURL,
 } from './is.js';
 
+import { test, expect } from 'vitest';
+
 test('Basic true tests', () => {
   expect(isUndefined(undefined)).toBe(true);
   expect(isNull(null)).toBe(true);

@@ -1,6 +1,8 @@
 import SuperJSON from './index.js';
 import { walker } from './plainer.js';
 
+import { test, expect } from 'vitest';
+
 test('walker', () => {
   expect(
     walker(

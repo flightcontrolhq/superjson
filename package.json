@@ -6,13 +6,15 @@
   "exports": {
     ".": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=16"
   },
   "scripts": {
     "build": "tsc",
-    "test": "tsdx test --notify --verbose",
+    "test": "vitest run",
     "lint": "tsdx lint",
     "prepack": "yarn build",
     "prepare": "husky install",
@@ -63,15 +65,14 @@
     "mongodb": "^3.6.6",
     "publish-please": "^5.5.2",
     "tsdx": "^0.14.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.2.4",
+    "vitest": "^0.34.6"
   },
   "dependencies": {
     "copy-anything": "^3.0.2"
   },
   "resolutions": {
     "**/@typescript-eslint/eslint-plugin": "^4.11.1",
-    "**/@typescript-eslint/parser": "^4.11.1",
-    "**/jest": "^26.6.3",
-    "**/ts-jest": "^26.4.4"
+    "**/@typescript-eslint/parser": "^4.11.1"
   }
 }

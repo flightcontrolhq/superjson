@@ -1,5 +1,7 @@
 import { parsePath, escapeKey } from './pathstringifier.js';
 
+import { test, describe, it, expect } from 'vitest';
+
 describe('parsePath', () => {
   it.each([
     ['test.a.b', ['test', 'a', 'b']],
