@@ -686,6 +686,23 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'strips constructor, __proto__, and prototype properties': {
+      input: {
+        a: {
+          z: 10,
+          constructor: undefined,
+          __proto__: null,
+          prototype: null,
+        },
+      },
+      output: {
+        a: {
+          z: 10,
+        },
+      },
+      outputAnnotations: undefined,
+      dontExpectEquality: true,
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {

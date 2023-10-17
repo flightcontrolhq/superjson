@@ -216,6 +216,14 @@ export const walker = (
   const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
 
   forEach(transformed, (value, index) => {
+    if (
+      index === '__proto__' ||
+      index === 'constructor' ||
+      index === 'prototype'
+    ) {
+      return;
+    }
+
     const recursiveResult = walker(
       value,
       identities,
