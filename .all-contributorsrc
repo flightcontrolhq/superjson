@@ -268,6 +268,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "kidqueb",
+      "name": "Nick Quebbeman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/884128?v=4",
+      "profile": "https://github.com/kidqueb",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
@@ -277,5 +287,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular"
+  "commitConvention": "angular",
+  "commitType": "docs"
 }
