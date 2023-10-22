@@ -75,7 +75,9 @@ const jsonString = superjson.stringify({ date: new Date(0) });
 And parse your JSON like so:
 
 ```js
-const object = superjson.parse < { date: Date } > jsonString;
+const object = superjson.parse<
+{ date: Date }
+>(jsonString);
 
 // object === { date: new Date(0) }
 ```
