@@ -275,6 +275,15 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/884128?v=4",
       "profile": "https://github.com/kidqueb",
       "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "tmcw",
+      "name": "Tom MacWright",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32314?v=4",
+      "profile": "https://macwright.com/",
+      "contributions": [
         "bug",
         "code"
       ]

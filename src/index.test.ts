@@ -1054,6 +1054,17 @@ test('regression: `Object.create(null)` / object without prototype', () => {
   expect(parsed.date).toBeInstanceOf(Date);
 });
 
+test.each(['__proto__', 'prototype', 'constructor'])(
+  'serialize prototype pollution: %s',
+  forbidden => {
+    expect(() => {
+      SuperJSON.serialize({
+        [forbidden]: 1,
+      });
+    }).toThrowError(/This is a prototype pollution risk/);
+  }
+);
+
 test('prototype pollution - __proto__', () => {
   expect(() => {
     SuperJSON.parse(

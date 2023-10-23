@@ -75,7 +75,9 @@ const jsonString = superjson.stringify({ date: new Date(0) });
 And parse your JSON like so:
 
 ```js
-const object = superjson.parse < { date: Date } > jsonString;
+const object = superjson.parse<
+{ date: Date }
+>(jsonString);
 
 // object === { date: new Date(0) }
 ```
@@ -324,6 +326,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kidqueb"><img src="https://avatars.githubusercontent.com/u/884128?v=4?s=100" width="100px;" alt="Nick Quebbeman"/><br /><sub><b>Nick Quebbeman</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Akidqueb" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=kidqueb" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://macwright.com/"><img src="https://avatars.githubusercontent.com/u/32314?v=4?s=100" width="100px;" alt="Tom MacWright"/><br /><sub><b>Tom MacWright</b></sub></a><br /><a href="https://github.com/blitz-js/superjson/issues?q=author%3Atmcw" title="Bug reports">🐛</a> <a href="https://github.com/blitz-js/superjson/commits?author=tmcw" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
