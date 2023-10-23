@@ -221,7 +221,9 @@ export const walker = (
       index === 'constructor' ||
       index === 'prototype'
     ) {
-      return;
+      throw new Error(
+        `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
+      );
     }
 
     const recursiveResult = walker(

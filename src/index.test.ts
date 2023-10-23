@@ -686,23 +686,6 @@ describe('stringify & parse', () => {
         },
       },
     },
-    'strips constructor, __proto__, and prototype properties': {
-      input: {
-        a: {
-          z: 10,
-          constructor: undefined,
-          __proto__: null,
-          prototype: null,
-        },
-      },
-      output: {
-        a: {
-          z: 10,
-        },
-      },
-      outputAnnotations: undefined,
-      dontExpectEquality: true,
-    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -1070,6 +1053,17 @@ test('regression: `Object.create(null)` / object without prototype', () => {
 
   expect(parsed.date).toBeInstanceOf(Date);
 });
+
+test.each(['__proto__', 'prototype', 'constructor'])(
+  'serialize prototype pollution: %s',
+  forbidden => {
+    expect(() => {
+      SuperJSON.serialize({
+        [forbidden]: 1,
+      });
+    }).toThrowError(/This is a prototype pollution risk/);
+  }
+);
 
 test('prototype pollution - __proto__', () => {
   expect(() => {
