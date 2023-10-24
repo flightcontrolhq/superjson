@@ -138,7 +138,7 @@ export default class SuperJSON {
   );
 }
 
-export { SuperJSON };
+export { SuperJSON, SuperJSONResult };
 
 export const serialize = SuperJSON.serialize;
 export const deserialize = SuperJSON.deserialize;
