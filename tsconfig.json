@@ -2,6 +2,7 @@
   "include": ["src"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts"],
   "compilerOptions": {
+    "target": "ES2020",
     "module": "ES6",
     "moduleResolution": "node",
     "lib": ["esnext"],
