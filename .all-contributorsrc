@@ -287,6 +287,15 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "peterbud",
+      "name": "Peter Budai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7863452?v=4",
+      "profile": "https://github.com/peterbud",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "badgeTemplate": "<a href=\"#contributors\"><img src=\"https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square\" alt=\"All Contributors\"/></a>",
