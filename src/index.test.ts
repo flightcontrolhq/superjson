@@ -1059,7 +1059,7 @@ test.each(['__proto__', 'prototype', 'constructor'])(
   forbidden => {
     expect(() => {
       SuperJSON.serialize({
-        [forbidden]: 1,
+        [forbidden]: NaN,
       });
     }).toThrowError(/This is a prototype pollution risk/);
   }
@@ -1228,4 +1228,9 @@ test('dedupe=true on a large complicated schema', () => {
 
   expect(nondedupedOut).toEqual(deserialized);
   expect(dedupedOut).toEqual(deserialized);
+});
+
+test("prototype pollution detector doesn't trigger when there's no meta", () => {
+  const { meta } = SuperJSON.serialize({ constructor: { name: 'hello' } });
+  expect(meta).toBeUndefined();
 });
