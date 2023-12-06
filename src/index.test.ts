@@ -686,6 +686,21 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'repro #281': {
+      input: {
+        schema: { constructor: { type: 'string' } },
+        createdAt: new Date('2023-12-06T10:49:28.911Z'),
+      },
+      output: {
+        schema: { constructor: { type: 'string' } },
+        createdAt: '2023-12-06T10:49:28.911Z',
+      },
+      outputAnnotations: {
+        values: {
+          createdAt: ['Date'],
+        },
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
