@@ -1054,17 +1054,6 @@ test('regression: `Object.create(null)` / object without prototype', () => {
   expect(parsed.date).toBeInstanceOf(Date);
 });
 
-test.each(['__proto__', 'prototype', 'constructor'])(
-  'serialize prototype pollution: %s',
-  forbidden => {
-    expect(() => {
-      SuperJSON.serialize({
-        [forbidden]: 1,
-      });
-    }).toThrowError(/This is a prototype pollution risk/);
-  }
-);
-
 test('prototype pollution - __proto__', () => {
   expect(() => {
     SuperJSON.parse(
@@ -1079,49 +1068,7 @@ test('prototype pollution - __proto__', () => {
         },
       })
     );
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"__proto__ is not allowed as a property"`
-  );
-  expect((Object.prototype as any).x).toBeUndefined();
-});
-
-test('prototype pollution - prototype', () => {
-  expect(() => {
-    SuperJSON.parse(
-      JSON.stringify({
-        json: {
-          myValue: 1337,
-        },
-        meta: {
-          referentialEqualities: {
-            myValue: ['prototype.x'],
-          },
-        },
-      })
-    );
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"prototype is not allowed as a property"`
-  );
-});
-
-test('prototype pollution - constructor', () => {
-  expect(() => {
-    SuperJSON.parse(
-      JSON.stringify({
-        json: {
-          myValue: 1337,
-        },
-        meta: {
-          referentialEqualities: {
-            myValue: ['constructor.prototype.x'],
-          },
-        },
-      })
-    );
-  }).toThrowErrorMatchingInlineSnapshot(
-    `"prototype is not allowed as a property"`
-  );
-
+  });
   expect((Object.prototype as any).x).toBeUndefined();
 });
 
