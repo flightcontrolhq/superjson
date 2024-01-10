@@ -1176,3 +1176,18 @@ test('dedupe=true on a large complicated schema', () => {
   expect(nondedupedOut).toEqual(deserialized);
   expect(dedupedOut).toEqual(deserialized);
 });
+
+test.only('repro prototype pollution', () => {
+  SuperJSON.deserialize({
+    json: {
+      a: {},
+      maliciousProperty: 'pwned',
+    },
+    meta: {
+      referentialEqualities: {
+        maliciousProperty: ['a.__proto__.test'],
+      },
+    },
+  });
+  expect(({} as any).test).toEqual('pwned');
+});
