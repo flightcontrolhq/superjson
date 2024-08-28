@@ -2,19 +2,22 @@
   "version": "2.2.1",
   "license": "MIT",
   "type": "module",
-  "typings": "dist/index.d.ts",
-  "main": "./dist/index.js",
+  "module": "dist/esm/index.mjs",
+  "main": "dist/cjs/index.cjs",
+  "types": "dist/cjs/types/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "require": "./dist/cjs/index.cjs",
+      "import": "./dist/esm/index.mjs",
+      "default": "./dist/esm/index.mjs"
+    }
   },
-  "files": [
-    "dist"
-  ],
   "engines": {
     "node": ">=16"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rollup --config rollup.config.ts --configPlugin typescript",
     "test": "vitest run",
     "lint": "tsdx lint",
     "prepack": "yarn build",
@@ -56,6 +59,9 @@
     "url": "https://github.com/blitz-js/superjson"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/debug": "^4.1.5",
     "@types/mongodb": "^3.6.12",
     "@types/node": "^18.7.18",
@@ -65,6 +71,7 @@
     "husky": "^6.0.0",
     "mongodb": "^3.6.6",
     "publish-please": "^5.5.2",
+    "rollup": "^4.21.1",
     "tsdx": "^0.14.1",
     "typescript": "^4.2.4",
     "vitest": "^0.34.6"

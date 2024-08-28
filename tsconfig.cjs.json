@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext", // Set to esnext for Rollup compatibility
+    "outDir": "./dist/cjs",
+    "declaration": true,
+    "declarationDir": "./dist/cjs/types" // Place within the output directory
+  }
+}
