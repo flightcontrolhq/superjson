@@ -13,6 +13,7 @@ import {
   isTypedArray,
   TypedArrayConstructor,
   isURL,
+  isAggregateError,
 } from './is.js';
 import { findArr } from './util.js';
 import SuperJSON from './index.js';
@@ -23,7 +24,6 @@ type LeafTypeAnnotation =
   | PrimitiveTypeAnnotation
   | 'regexp'
   | 'Date'
-  | 'Error'
   | 'URL';
 
 type TypedArrayAnnotation = ['typed-array', string];
@@ -31,7 +31,7 @@ type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
 
-type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error' | 'AggregateError';
 
 type CompositeTypeAnnotation =
   | TypedArrayAnnotation
@@ -81,6 +81,36 @@ const simpleRules = [
     'Date',
     v => v.toISOString(),
     v => new Date(v)
+  ),
+
+  simpleTransformation(
+    isAggregateError,
+    'AggregateError',
+    (v, superJson) => {
+      const baseError: any = {
+        name: v.name,
+        message: v.message,
+        errors: v.errors,
+        cause: v.cause
+      };
+
+      superJson.allowedErrorProps.forEach(prop => {
+        baseError[prop] = (v as any)[prop];
+      });
+
+      return baseError;
+    },
+    (v, superJson) => {
+      const e = new AggregateError(v.errors, v.message, { cause: v.cause });
+      e.name = v.name;
+      e.stack = v.stack;
+
+      superJson.allowedErrorProps.forEach(prop => {
+        (e as any)[prop] = v[prop];
+      });
+
+      return e;
+    }
   ),
 
   simpleTransformation(
