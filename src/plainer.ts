@@ -1,6 +1,7 @@
 import {
   isArray,
   isEmptyObject,
+  isError,
   isMap,
   isPlainObject,
   isPrimitive,
@@ -95,6 +96,7 @@ const isDeep = (object: any, superJson: SuperJSON): boolean =>
   isArray(object) ||
   isMap(object) ||
   isSet(object) ||
+  isError(object) ||
   isInstanceOfRegisteredClass(object, superJson);
 
 function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
