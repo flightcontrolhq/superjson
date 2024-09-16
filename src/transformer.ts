@@ -90,6 +90,7 @@ const simpleRules = [
       const baseError: any = {
         name: v.name,
         message: v.message,
+        cause: v.cause
       };
 
       superJson.allowedErrorProps.forEach(prop => {
@@ -99,7 +100,7 @@ const simpleRules = [
       return baseError;
     },
     (v, superJson) => {
-      const e = new Error(v.message);
+      const e = new Error(v.message, { cause: v.cause });
       e.name = v.name;
       e.stack = v.stack;
 
