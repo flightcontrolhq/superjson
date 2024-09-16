@@ -23,7 +23,6 @@ type LeafTypeAnnotation =
   | PrimitiveTypeAnnotation
   | 'regexp'
   | 'Date'
-  | 'Error'
   | 'URL';
 
 type TypedArrayAnnotation = ['typed-array', string];
@@ -31,7 +30,7 @@ type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
 
-type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error';
 
 type CompositeTypeAnnotation =
   | TypedArrayAnnotation
