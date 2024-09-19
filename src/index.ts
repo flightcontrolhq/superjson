@@ -1,4 +1,10 @@
-import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
+import {
+  Class,
+  JSONValue,
+  SerializableJSONValue,
+  SuperJSONResult,
+  SuperJSONValue,
+} from './types.js';
 import { ClassRegistry, RegisterOptions } from './class-registry.js';
 import { Registry } from './registry.js';
 import {
@@ -12,6 +18,14 @@ import {
   walker,
 } from './plainer.js';
 import { copy } from 'copy-anything';
+
+export {
+  CustomTransfomer,
+  CustomTransformerRegistry,
+  JSONValue,
+  SerializableJSONValue,
+  SuperJSONValue,
+};
 
 export default class SuperJSON {
   /**
