@@ -275,7 +275,7 @@ const classRule = compositeTransformation(
 
     if (!clazz) {
       throw new Error(
-        `Trying to deserialize unknown class - ${a[1]} - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`
+        `Trying to deserialize unknown class '${a[1]}' - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`
       );
     }
 
