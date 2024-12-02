@@ -58,6 +58,11 @@ Install the library with your package manager of choice, e.g.:
 yarn add superjson
 ```
 
+## Ask AI
+
+[SuperJson](https://codeparrot.ai/oracle?owner=flightcontrolhq&repo=superjson) AI will help you understand this repository better. You can ask for code examples, installation guide, debugging help and much more.
+
+
 ## Basic Usage
 
 The easiest way to use Superjson is with its `stringify` and `parse` functions. If you know how to use `JSON.stringify`, you already know Superjson!
