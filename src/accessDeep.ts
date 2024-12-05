@@ -2,6 +2,7 @@ import { isMap, isArray, isPlainObject, isSet } from './is.js';
 import { includes } from './util.js';
 
 const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
+  if (n > value.size) throw new Error('index out of bounds');
   const keys = value.keys();
   while (n > 0) {
     keys.next();
