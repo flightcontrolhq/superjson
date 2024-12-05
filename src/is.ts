@@ -49,6 +49,9 @@ export const isDate = (payload: any): payload is Date =>
 export const isError = (payload: any): payload is Error =>
   payload instanceof Error;
 
+export const isAggregateError = (payload: any): payload is AggregateError =>
+  payload instanceof AggregateError
+
 export const isNaNValue = (payload: any): payload is typeof NaN =>
   typeof payload === 'number' && isNaN(payload);
 
