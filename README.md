@@ -255,6 +255,7 @@ Superjson supports many extra types which JSON does not. You can serialize all t
 | `Map`       | ❌                          | ✅                      |
 | `Error`     | ❌                          | ✅                      |
 | `URL`       | ❌                          | ✅                      |
+| `Decimal`   | ❌                          | ❌                      |
 
 ## Recipes
 
