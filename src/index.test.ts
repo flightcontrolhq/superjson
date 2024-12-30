@@ -523,15 +523,6 @@ describe('stringify & parse', () => {
 
     'works for Decimal.js': {
       input: () => {
-        SuperJSON.registerCustom<Decimal, string>(
-          {
-            isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
-            serialize: v => v.toJSON(),
-            deserialize: v => new Decimal(v),
-          },
-          'decimal.js'
-        );
-
         return {
           a: new Decimal('100.1'),
         };

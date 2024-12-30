@@ -12,6 +12,7 @@ import {
   walker,
 } from './plainer.js';
 import { copy } from 'copy-anything';
+import { Decimal } from 'decimal.js';
 
 export default class SuperJSON {
   /**
@@ -28,6 +29,15 @@ export default class SuperJSON {
     dedupe?: boolean;
   } = {}) {
     this.dedupe = dedupe;
+
+    this.registerCustom<Decimal, string>(
+      {
+        isApplicable: (v): v is Decimal => Decimal.isDecimal(v),
+        serialize: v => v.toJSON(),
+        deserialize: v => new Decimal(v),
+      },
+      'decimal.js'
+    );
   }
 
   serialize(object: SuperJSONValue): SuperJSONResult {

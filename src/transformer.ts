@@ -16,6 +16,7 @@ import {
 } from './is.js';
 import { findArr } from './util.js';
 import SuperJSON from './index.js';
+import { Decimal } from 'decimal.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -308,7 +309,14 @@ const customRule = compositeTransformation(
   }
 );
 
-const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
+const decimalRule = compositeTransformation(
+  (value): value is Decimal => Decimal.isDecimal(value),
+  () => ['custom', 'decimal.js'],
+  (value) => value.toJSON(),
+  (value) => new Decimal(value)
+);
+
+const compositeRules = [classRule, symbolRule, customRule, typedArrayRule, decimalRule];
 
 export const transformValue = (
   value: any,
