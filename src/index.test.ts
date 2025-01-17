@@ -174,7 +174,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\\\.1.b': ['set'],
+          'a\\\\\\.1.b': ['set'],
         },
       },
     },
@@ -683,6 +683,26 @@ describe('stringify & parse', () => {
         values: {
           a: ['URL'],
           b: ['URL'],
+        },
+      },
+    },
+    'repro #310: meta path escape bug': {
+      input: {
+        a: ["/'a'[0]: string that becomes a regex/"],
+        'a.0': /'a.0': regex that becomes a string/,
+        'b.0': "/'b.0': string that becomes a regex/",
+        'b\\': [/'b\\'[0]: regex that becomes a string/],
+      },
+      output: {
+        a: ["/'a'[0]: string that becomes a regex/"],
+        'a.0': "/'a.0': regex that becomes a string/",
+        'b.0': "/'b.0': string that becomes a regex/",
+        'b\\': ["/'b\\\\'[0]: regex that becomes a string/"],
+      },
+      outputAnnotations: {
+        values: {
+          'a\\.0': ['regexp'],
+          'b\\\\.0': ['regexp'],
         },
       },
     },

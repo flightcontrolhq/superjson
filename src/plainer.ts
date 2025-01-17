@@ -239,7 +239,7 @@ export const walker = (
     transformedValue[index] = recursiveResult.transformedValue;
 
     if (isArray(recursiveResult.annotations)) {
-      innerAnnotations[index] = recursiveResult.annotations;
+      innerAnnotations[escapeKey(index)] = recursiveResult.annotations;
     } else if (isPlainObject(recursiveResult.annotations)) {
       forEach(recursiveResult.annotations, (tree, key) => {
         innerAnnotations[escapeKey(index) + '.' + key] = tree;

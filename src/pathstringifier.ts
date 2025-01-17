@@ -1,7 +1,8 @@
 export type StringifiedPath = string;
 type Path = string[];
 
-export const escapeKey = (key: string) => key.replace(/\./g, '\\.');
+export const escapeKey = (key: string) =>
+  key.replace(/\\/g, '\\\\').replace(/\./g, '\\.');
 
 export const stringifyPath = (path: Path): StringifiedPath =>
   path
@@ -15,6 +16,13 @@ export const parsePath = (string: StringifiedPath) => {
   let segment = '';
   for (let i = 0; i < string.length; i++) {
     let char = string.charAt(i);
+
+    const isEscapedBackslash = char === '\\' && string.charAt(i + 1) === '\\';
+    if (isEscapedBackslash) {
+      segment += '\\';
+      i++;
+      continue;
+    }
 
     const isEscapedDot = char === '\\' && string.charAt(i + 1) === '.';
     if (isEscapedDot) {
