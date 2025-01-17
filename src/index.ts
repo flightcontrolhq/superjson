@@ -55,6 +55,8 @@ export default class SuperJSON {
       };
     }
 
+    if (res.meta) res.meta.v = 1;
+
     return res;
   }
 
@@ -64,13 +66,14 @@ export default class SuperJSON {
     let result: T = copy(json) as any;
 
     if (meta?.values) {
-      result = applyValueAnnotations(result, meta.values, this);
+      result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this);
     }
 
     if (meta?.referentialEqualities) {
       result = applyReferentialEqualityAnnotations(
         result,
-        meta.referentialEqualities
+        meta.referentialEqualities,
+        meta.v ?? 0
       );
     }
 

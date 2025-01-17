@@ -10,18 +10,20 @@ export const stringifyPath = (path: Path): StringifiedPath =>
     .map(escapeKey)
     .join('.');
 
-export const parsePath = (string: StringifiedPath) => {
+export const parsePath = (string: StringifiedPath, legacyPaths: boolean) => {
   const result: string[] = [];
 
   let segment = '';
   for (let i = 0; i < string.length; i++) {
     let char = string.charAt(i);
 
-    const isEscapedBackslash = char === '\\' && string.charAt(i + 1) === '\\';
-    if (isEscapedBackslash) {
-      segment += '\\';
-      i++;
-      continue;
+    if (!legacyPaths) {
+      const isEscapedBackslash = char === '\\' && string.charAt(i + 1) === '\\';
+      if (isEscapedBackslash) {
+        segment += '\\';
+        i++;
+        continue;
+      }
     }
 
     const isEscapedDot = char === '\\' && string.charAt(i + 1) === '.';
