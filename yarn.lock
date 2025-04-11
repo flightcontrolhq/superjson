@@ -2592,12 +2592,12 @@ convert-source-map@^1.4.0, convert-source-map@^1.6.0, convert-source-map@^1.7.0:
   dependencies:
     safe-buffer "~5.1.1"
 
-copy-anything@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.npmjs.org/copy-anything/-/copy-anything-3.0.2.tgz"
-  integrity sha512-CzATjGXzUQ0EvuvgOCI6A4BGOo2bcVx8B+eC2nF862iv9fopnPQwlrbACakNCHRIJbCSBj+J/9JeDf60k64MkA==
+copy-anything@^4:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/copy-anything/-/copy-anything-4.0.5.tgz#16cabafd1ea4bb327a540b750f2b4df522825aea"
+  integrity sha512-7Vv6asjS4gMOuILabD3l739tsaxFQmC+a7pLZm02zyvs8p977bL3zEgq3yDk5rn9B0PbYgIv++jmHcuUab4RhA==
   dependencies:
-    is-what "^4.1.6"
+    is-what "^5.2.0"
 
 copy-descriptor@^0.1.0:
   version "0.1.1"
@@ -4126,10 +4126,10 @@ is-typedarray@^1.0.0, is-typedarray@~1.0.0:
   resolved "https://registry.npmjs.org/is-typedarray/-/is-typedarray-1.0.0.tgz"
   integrity sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=
 
-is-what@^4.1.6:
-  version "4.1.7"
-  resolved "https://registry.npmjs.org/is-what/-/is-what-4.1.7.tgz"
-  integrity sha512-DBVOQNiPKnGMxRMLIYSwERAS5MVY1B7xYiGnpgctsOFvVDz9f9PFXXxMcTOHuoqYp4NK9qFYQaIC1NRRxLMpBQ==
+is-what@^5.2.0:
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/is-what/-/is-what-5.2.1.tgz#f8c23952fa1047386784d2ea6d548860bf027642"
+  integrity sha512-FLNNgur29o+0/G6RcG3B6KRDCT6SvMfb7MlfjdydTZWPgBLfiemceChDhY0DHu50O35BDNbNp4rJLQXMt4fG0g==
 
 is-windows@^1.0.2:
   version "1.0.2"
