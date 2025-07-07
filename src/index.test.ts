@@ -212,6 +212,30 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works for Error causes': {
+      input: {
+        e: new Error('subtle fail', {
+          cause: new Error('catastrophic failure'),
+        }),
+      },
+      output: ({ e }: any) => {
+        expect(e.name).toBe('Error');
+        expect(e.message).toBe('subtle fail');
+        expect(e.cause?.name).toBe('Error');
+        expect(e.cause?.message).toBe('catastrophic failure');
+      },
+      outputAnnotations: {
+        values: {
+          e: [
+            'Error',
+            {
+              cause: ['Error'],
+            },
+          ],
+        },
+      },
+    },
+
     'works for regex': {
       input: {
         a: /hello/g,
