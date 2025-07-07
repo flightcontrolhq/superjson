@@ -1229,3 +1229,15 @@ test('dedupe=true on a large complicated schema', () => {
   expect(nondedupedOut).toEqual(deserialized);
   expect(dedupedOut).toEqual(deserialized);
 });
+
+test('doesnt iterate to keys that dont exist', () => {
+  const robbyBubble = { id: 5 };
+  const highscores = new Map([[robbyBubble, 5000]]);
+  const objectWithReferentialEquality = { highscores, topScorer: robbyBubble };
+  const res = SuperJSON.serialize(objectWithReferentialEquality);
+
+  expect(res.meta.referentialEqualities.topScorer).toEqual(['highscores.0.0']);
+  res.meta.referentialEqualities.topScorer = ['highscores.99999.0'];
+
+  expect(() => SuperJSON.deserialize(res)).toThrowError('index out of bounds');
+});
