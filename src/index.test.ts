@@ -1242,6 +1242,7 @@ test('doesnt iterate to keys that dont exist', () => {
   expect(() => SuperJSON.deserialize(res)).toThrowError('index out of bounds');
 });
 
+// https://github.com/flightcontrolhq/superjson/issues/319
 test('deserialize in place', () => {
   const serialized = SuperJSON.serialize({ a: new Date() });
   const deserializedCopy = SuperJSON.deserialize(serialized);
