@@ -6,7 +6,7 @@ jobs:
 
     strategy:
       matrix:
-        node: [20.x, 18.x, 16.x]
+        node: [24.x, 22.x, 20.x, 18.x]
 
     env:
       CI: true
@@ -20,14 +20,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-
-      - name: Use cached node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: nodeModules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            nodeModules-
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
