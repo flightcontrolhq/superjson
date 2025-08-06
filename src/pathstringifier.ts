@@ -17,12 +17,14 @@ export const parsePath = (string: StringifiedPath, legacyPaths: boolean) => {
   for (let i = 0; i < string.length; i++) {
     let char = string.charAt(i);
 
-    if (!legacyPaths) {
-      const isEscapedBackslash = char === '\\' && string.charAt(i + 1) === '\\';
-      if (isEscapedBackslash) {
+    if (!legacyPaths && char === '\\') {
+      const escaped = string.charAt(i + 1);
+      if (escaped === '\\') {
         segment += '\\';
         i++;
         continue;
+      } else if (escaped !== '.') {
+        throw Error('invalid path');
       }
     }
 
