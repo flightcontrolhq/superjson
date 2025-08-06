@@ -42,5 +42,6 @@ export interface SuperJSONResult {
   meta?: {
     values?: MinimisedTree<TypeAnnotation>;
     referentialEqualities?: ReferentialEqualityAnnotations;
+    v?: number;
   };
 }

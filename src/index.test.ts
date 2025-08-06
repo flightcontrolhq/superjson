@@ -174,7 +174,7 @@ describe('stringify & parse', () => {
       },
       outputAnnotations: {
         values: {
-          'a\\\\.1.b': ['set'],
+          'a\\\\\\.1.b': ['set'],
         },
       },
     },
@@ -686,6 +686,26 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'repro #310: meta path escape bug': {
+      input: {
+        a: ["/'a'[0]: string that becomes a regex/"],
+        'a.0': /'a.0': regex that becomes a string/,
+        'b.0': "/'b.0': string that becomes a regex/",
+        'b\\': [/'b\\'[0]: regex that becomes a string/],
+      },
+      output: {
+        a: ["/'a'[0]: string that becomes a regex/"],
+        'a.0': "/'a.0': regex that becomes a string/",
+        'b.0': "/'b.0': string that becomes a regex/",
+        'b\\': ["/'b\\\\'[0]: regex that becomes a string/"],
+      },
+      outputAnnotations: {
+        values: {
+          'a\\.0': ['regexp'],
+          'b\\\\.0': ['regexp'],
+        },
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -759,7 +779,13 @@ describe('stringify & parse', () => {
       } else {
         expect(json).toEqual(expectedOutput);
       }
-      expect(meta).toEqual(expectedOutputAnnotations);
+      if (meta) {
+        const { v, ...rest } = meta;
+        expect(v).toBe(1);
+        expect(rest).toEqual(expectedOutputAnnotations);
+      } else {
+        expect(meta).toEqual(expectedOutputAnnotations);
+      }
 
       const untransformed = SuperJSON.deserialize(
         JSON.parse(JSON.stringify({ json, meta }))
@@ -800,6 +826,7 @@ describe('stringify & parse', () => {
       });
 
       expect(meta).toEqual({
+        v: 1,
         values: {
           s7: [['class', 'Train']],
         },
@@ -863,6 +890,7 @@ describe('stringify & parse', () => {
         a: '1000',
       },
       meta: {
+        v: 1,
         values: {
           a: ['bigint'],
         },
@@ -946,7 +974,7 @@ test('regression #83: negative zero', () => {
 
   const stringified = SuperJSON.stringify(input);
   expect(stringified).toMatchInlineSnapshot(
-    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"]}}"`
+    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"],\\"v\\":1}}"`
   );
 
   const parsed: number = SuperJSON.parse(stringified);
@@ -1166,6 +1194,7 @@ test('regression #245: superjson referential equalities only use the top-most pa
           "b",
         ],
       },
+      "v": 1,
     }
   `);
 
@@ -1240,4 +1269,44 @@ test('doesnt iterate to keys that dont exist', () => {
   res.meta.referentialEqualities.topScorer = ['highscores.99999.0'];
 
   expect(() => SuperJSON.deserialize(res)).toThrowError('index out of bounds');
+});
+
+test('#310 fixes backwards compat', () => {
+  expect(
+    SuperJSON.deserialize({
+      json: {
+        'a\\.1': {
+          b: [1, 2],
+        },
+      },
+      meta: {
+        values: {
+          'a\\\\.1.b': ['set'],
+        },
+      },
+    })
+  ).toEqual({
+    'a\\.1': {
+      b: new Set([1, 2]),
+    },
+  });
+
+  expect(
+    SuperJSON.deserialize({
+      json: {
+        'a.1': {
+          b: [1, 2],
+        },
+      },
+      meta: {
+        values: {
+          'a\\.1.b': ['set'],
+        },
+      },
+    })
+  ).toEqual({
+    'a.1': {
+      b: new Set([1, 2]),
+    },
+  });
 });
