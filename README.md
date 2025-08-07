@@ -198,7 +198,7 @@ Deserializes the output of Superjson back into your original value.
 ```js
 const { json, meta } = serialize(object);
 
-deserialize({ json, meta });
+deserialize({ json, meta }, { inPlace: true });
 ```
 
 Returns **`your original value`**.
