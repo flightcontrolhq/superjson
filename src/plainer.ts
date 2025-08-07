@@ -24,18 +24,25 @@ type InnerNode<T> = [T, Record<string, Tree<T>>];
 
 export type MinimisedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
 
+const enableLegacyPaths = (version: number) => version < 1;
+
 function traverse<T>(
   tree: MinimisedTree<T>,
   walker: (v: T, path: string[]) => void,
+  version: number,
   origin: string[] = []
 ): void {
   if (!tree) {
     return;
   }
 
+  const legacyPaths = enableLegacyPaths(version);
   if (!isArray(tree)) {
     forEach(tree, (subtree, key) =>
-      traverse(subtree, walker, [...origin, ...parsePath(key)])
+      traverse(subtree, walker, version, [
+        ...origin,
+        ...parsePath(key, legacyPaths),
+      ])
     );
     return;
   }
@@ -43,7 +50,10 @@ function traverse<T>(
   const [nodeValue, children] = tree;
   if (children) {
     forEach(children, (child, key) => {
-      traverse(child, walker, [...origin, ...parsePath(key)]);
+      traverse(child, walker, version, [
+        ...origin,
+        ...parsePath(key, legacyPaths),
+      ]);
     });
   }
 
@@ -53,31 +63,44 @@ function traverse<T>(
 export function applyValueAnnotations(
   plain: any,
   annotations: MinimisedTree<TypeAnnotation>,
+  version: number,
   superJson: SuperJSON
 ) {
-  traverse(annotations, (type, path) => {
-    plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
-  });
+  traverse(
+    annotations,
+    (type, path) => {
+      plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
+    },
+    version
+  );
 
   return plain;
 }
 
 export function applyReferentialEqualityAnnotations(
   plain: any,
-  annotations: ReferentialEqualityAnnotations
+  annotations: ReferentialEqualityAnnotations,
+  version: number
 ) {
+  const legacyPaths = enableLegacyPaths(version);
   function apply(identicalPaths: string[], path: string) {
-    const object = getDeep(plain, parsePath(path));
+    const object = getDeep(plain, parsePath(path, legacyPaths));
 
-    identicalPaths.map(parsePath).forEach(identicalObjectPath => {
-      plain = setDeep(plain, identicalObjectPath, () => object);
-    });
+    identicalPaths
+      .map(path => parsePath(path, legacyPaths))
+      .forEach(identicalObjectPath => {
+        plain = setDeep(plain, identicalObjectPath, () => object);
+      });
   }
 
   if (isArray(annotations)) {
     const [root, other] = annotations;
     root.forEach(identicalPath => {
-      plain = setDeep(plain, parsePath(identicalPath), () => plain);
+      plain = setDeep(
+        plain,
+        parsePath(identicalPath, legacyPaths),
+        () => plain
+      );
     });
 
     if (other) {
@@ -239,7 +262,7 @@ export const walker = (
     transformedValue[index] = recursiveResult.transformedValue;
 
     if (isArray(recursiveResult.annotations)) {
-      innerAnnotations[index] = recursiveResult.annotations;
+      innerAnnotations[escapeKey(index)] = recursiveResult.annotations;
     } else if (isPlainObject(recursiveResult.annotations)) {
       forEach(recursiveResult.annotations, (tree, key) => {
         innerAnnotations[escapeKey(index) + '.' + key] = tree;

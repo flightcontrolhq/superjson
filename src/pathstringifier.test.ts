@@ -9,8 +9,24 @@ describe('parsePath', () => {
     ['test\\\\.a.b', ['test\\.a', 'b']],
     ['test\\a.b', ['test\\a', 'b']],
     ['test\\\\a.b', ['test\\\\a', 'b']],
+  ])('legacy parsePath(%p) === %p', (input, expectedOutput) => {
+    expect(parsePath(input, true)).toEqual(expectedOutput);
+  });
+
+  it.each([
+    ['test.a.b', ['test', 'a', 'b']],
+    ['test\\.a.b', ['test.a', 'b']],
+    ['test\\\\.a.b', ['test\\', 'a', 'b']],
+    ['test\\\\a.b', ['test\\a', 'b']],
   ])('parsePath(%p) === %p', (input, expectedOutput) => {
-    expect(parsePath(input)).toEqual(expectedOutput);
+    expect(parsePath(input, false)).toEqual(expectedOutput);
+  });
+
+  it.each([
+    'test\\a.b',
+    'foo.bar.baz\\',
+  ])('parsePath(%p) is rejected', (input) => {
+    expect(() => parsePath(input, false)).toThrowError();
   });
 });
 
