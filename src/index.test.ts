@@ -197,13 +197,44 @@ describe('stringify & parse', () => {
       },
     },
 
-    'works for Errors': {
+    'works for Errors with no cause': {
       input: {
         e: new Error('epic fail'),
       },
       output: ({ e }: any) => {
         expect(e.name).toBe('Error');
         expect(e.message).toBe('epic fail');
+      },
+      outputAnnotations: {
+        values: {
+          e: ['Error'],
+        },
+      },
+    },
+    'works for Errors with string cause': {
+      input: {
+        e: new Error('epic fail', { cause: 'no reason' }),
+      },
+      output: ({ e }: any) => {
+        expect(e.name).toBe('Error');
+        expect(e.message).toBe('epic fail');
+        expect(e.cause).toBe('no reason');
+      },
+      outputAnnotations: {
+        values: {
+          e: ['Error'],
+        },
+      },
+    },
+    'works for Errors with Error cause': {
+      input: {
+        e: new Error('epic fail', { cause: new Error('cause epic fail') }),
+      },
+      output: ({ e }: any) => {
+        expect(e.name).toBe('Error');
+        expect(e.message).toBe('epic fail');
+        expect(e.cause.name).toBe('Error');
+        expect(e.cause.message).toBe('cause epic fail');
       },
       outputAnnotations: {
         values: {
