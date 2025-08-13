@@ -198,8 +198,15 @@ Deserializes the output of Superjson back into your original value.
 ```js
 const { json, meta } = serialize(object);
 
-deserialize({ json, meta });
+deserialize({ json, meta }, { inPlace: true });
 ```
+
+Options
+
+- `inPlace: boolean`
+  - Default: `false`
+  - Mutate the input json object in place instead of returning a deep copy
+  - `inPlace: true` will be much more performant on large objects if it's safe to mutate it
 
 Returns **`your original value`**.
 

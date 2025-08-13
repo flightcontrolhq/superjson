@@ -1271,6 +1271,16 @@ test('doesnt iterate to keys that dont exist', () => {
   expect(() => SuperJSON.deserialize(res)).toThrowError('index out of bounds');
 });
 
+// https://github.com/flightcontrolhq/superjson/issues/319
+test('deserialize in place', () => {
+  const serialized = SuperJSON.serialize({ a: new Date() });
+  const deserializedCopy = SuperJSON.deserialize(serialized);
+  const deserializedInPlace = SuperJSON.deserialize(serialized, { inPlace: true });
+  expect(deserializedInPlace).toBe(serialized.json);
+  expect(deserializedCopy).not.toBe(serialized.json);
+  expect(deserializedCopy).toEqual(deserializedInPlace);
+});
+
 test('#310 fixes backwards compat', () => {
   expect(
     SuperJSON.deserialize({
