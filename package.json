@@ -12,6 +12,7 @@
     "dist",
     "dist-cjs"
   ],
+  "sideEffects": false,
   "engines": {
     "node": ">=16"
   },
