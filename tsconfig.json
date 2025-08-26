@@ -5,7 +5,7 @@
     "target": "ES2020",
     "module": "ES6",
     "moduleResolution": "node",
-    "lib": ["esnext"],
+    "lib": ["ES2020"],
     "importHelpers": false,
     "declaration": true,
     "sourceMap": true,

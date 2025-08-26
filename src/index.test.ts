@@ -1,6 +1,3 @@
-/* eslint-disable es5/no-for-of */
-/* eslint-disable es5/no-es6-methods */
-
 import * as fs from 'fs';
 
 import SuperJSON from './index.js';
@@ -875,43 +872,10 @@ describe('stringify & parse', () => {
     it.todo('has undefined behaviour');
   });
 
-  test('regression #65: BigInt on Safari v13', () => {
-    const oldBigInt = global.BigInt;
-    // @ts-ignore
-    delete global.BigInt;
-
-    const input = {
-      a: oldBigInt('1000'),
-    };
-
-    const superJSONed = SuperJSON.serialize(input);
-    expect(superJSONed).toEqual({
-      json: {
-        a: '1000',
-      },
-      meta: {
-        v: 1,
-        values: {
-          a: ['bigint'],
-        },
-      },
-    });
-
-    const deserialised = SuperJSON.deserialize(
-      JSON.parse(JSON.stringify(superJSONed))
-    );
-    expect(deserialised).toEqual({
-      a: '1000',
-    });
-
-    global.BigInt = oldBigInt;
-  });
-
   test('regression #80: Custom error serialisation isnt overriden', () => {
     class CustomError extends Error {
       constructor(public readonly customProperty: number) {
         super("I'm a custom error");
-        // eslint-disable-next-line es5/no-es6-static-methods
         Object.setPrototypeOf(this, CustomError.prototype);
       }
     }
@@ -1275,7 +1239,9 @@ test('doesnt iterate to keys that dont exist', () => {
 test('deserialize in place', () => {
   const serialized = SuperJSON.serialize({ a: new Date() });
   const deserializedCopy = SuperJSON.deserialize(serialized);
-  const deserializedInPlace = SuperJSON.deserialize(serialized, { inPlace: true });
+  const deserializedInPlace = SuperJSON.deserialize(serialized, {
+    inPlace: true,
+  });
   expect(deserializedInPlace).toBe(serialized.json);
   expect(deserializedCopy).not.toBe(serialized.json);
   expect(deserializedCopy).toEqual(deserializedInPlace);

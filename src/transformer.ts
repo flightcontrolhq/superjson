@@ -66,15 +66,7 @@ const simpleRules = [
     isBigint,
     'bigint',
     v => v.toString(),
-    v => {
-      if (typeof BigInt !== 'undefined') {
-        return BigInt(v);
-      }
-
-      console.error('Please add a BigInt polyfill.');
-
-      return v as any;
-    }
+    v => BigInt(v)
   ),
   simpleTransformation(
     isDate,
@@ -125,8 +117,6 @@ const simpleRules = [
   simpleTransformation(
     isSet,
     'set',
-    // (sets only exist in es6+)
-    // eslint-disable-next-line es5/no-es6-methods
     v => [...v.values()],
     v => new Set(v)
   ),
