@@ -5,17 +5,14 @@ export const escapeKey = (key: string) =>
   key.replace(/\\/g, '\\\\').replace(/\./g, '\\.');
 
 export const stringifyPath = (path: Path): StringifiedPath =>
-  path
-    .map(String)
-    .map(escapeKey)
-    .join('.');
+  path.map(String).map(escapeKey).join('.');
 
 export const parsePath = (string: StringifiedPath, legacyPaths: boolean) => {
   const result: string[] = [];
 
   let segment = '';
   for (let i = 0; i < string.length; i++) {
-    let char = string.charAt(i);
+    const char = string.charAt(i);
 
     if (!legacyPaths && char === '\\') {
       const escaped = string.charAt(i + 1);

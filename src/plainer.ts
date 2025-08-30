@@ -166,9 +166,8 @@ export function generateReferentialEqualityAnnotations(
     if (representativePath.length === 0) {
       rootEqualityPaths = identicalPaths.map(stringifyPath);
     } else {
-      result[stringifyPath(representativePath)] = identicalPaths.map(
-        stringifyPath
-      );
+      result[stringifyPath(representativePath)] =
+        identicalPaths.map(stringifyPath);
     }
   });
 
