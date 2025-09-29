@@ -19,19 +19,14 @@ import SuperJSON from './index.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
-type LeafTypeAnnotation =
-  | PrimitiveTypeAnnotation
-  | 'regexp'
-  | 'Date'
-  | 'Error'
-  | 'URL';
+type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'URL';
 
 type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
 
-type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set';
+type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error';
 
 type CompositeTypeAnnotation =
   | TypedArrayAnnotation
@@ -92,6 +87,10 @@ const simpleRules = [
         message: v.message,
       };
 
+      if ('cause' in v) {
+        baseError.cause = v.cause;
+      }
+
       superJson.allowedErrorProps.forEach(prop => {
         baseError[prop] = (v as any)[prop];
       });
@@ -99,7 +98,7 @@ const simpleRules = [
       return baseError;
     },
     (v, superJson) => {
-      const e = new Error(v.message);
+      const e = new Error(v.message, { cause: v.cause });
       e.name = v.name;
       e.stack = v.stack;
 
