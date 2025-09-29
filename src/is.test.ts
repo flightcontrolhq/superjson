@@ -36,7 +36,7 @@ test('Basic true tests', () => {
   expect(isTypedArray(new Uint8Array())).toBe(true);
   expect(isURL(new URL('https://example.com'))).toBe(true);
   expect(isPlainObject({})).toBe(true);
-  // eslint-disable-next-line no-new-object
+  // eslint-disable-next-line no-object-constructor
   expect(isPlainObject(new Object())).toBe(true);
 });
 
@@ -78,7 +78,7 @@ test('Primitive tests', () => {
   expect(isPrimitive([])).toBe(false);
   expect(isPrimitive([])).toBe(false);
   expect(isPrimitive({})).toBe(false);
-  // eslint-disable-next-line no-new-object
+  // eslint-disable-next-line no-object-constructor
   expect(isPrimitive(new Object())).toBe(false);
   expect(isPrimitive(new Date())).toBe(false);
   expect(isPrimitive(() => {})).toBe(false);

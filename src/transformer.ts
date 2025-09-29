@@ -125,7 +125,6 @@ const simpleRules = [
     isSet,
     'set',
     // (sets only exist in es6+)
-    // eslint-disable-next-line es5/no-es6-methods
     v => [...v.values()],
     v => new Set(v)
   ),
@@ -287,15 +286,13 @@ const customRule = compositeTransformation(
     return !!superJson.customTransformerRegistry.findApplicable(value);
   },
   (value, superJson) => {
-    const transformer = superJson.customTransformerRegistry.findApplicable(
-      value
-    )!;
+    const transformer =
+      superJson.customTransformerRegistry.findApplicable(value)!;
     return ['custom', transformer.name];
   },
   (value, superJson) => {
-    const transformer = superJson.customTransformerRegistry.findApplicable(
-      value
-    )!;
+    const transformer =
+      superJson.customTransformerRegistry.findApplicable(value)!;
     return transformer.serialize(value);
   },
   (v, a, superJson) => {
@@ -337,7 +334,7 @@ export const transformValue = (
   return undefined;
 };
 
-const simpleRulesByAnnotation: Record<string, typeof simpleRules[0]> = {};
+const simpleRulesByAnnotation: Record<string, (typeof simpleRules)[0]> = {};
 simpleRules.forEach(rule => {
   simpleRulesByAnnotation[rule.annotation] = rule;
 });

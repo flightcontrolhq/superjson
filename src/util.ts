@@ -1,6 +1,6 @@
 function valuesOfObj<T>(record: Record<string, T>): T[] {
   if ('values' in Object) {
-    // eslint-disable-next-line es5/no-es6-methods
+    // eslint-disable-next-line es-x/no-object-values
     return Object.values(record);
   }
 
@@ -22,7 +22,7 @@ export function find<T>(
 ): T | undefined {
   const values = valuesOfObj(record);
   if ('find' in values) {
-    // eslint-disable-next-line es5/no-es6-methods
+    // eslint-disable-next-line es-x/no-array-prototype-find
     return values.find(predicate);
   }
 
@@ -42,6 +42,7 @@ export function forEach<T>(
   record: Record<string, T>,
   run: (v: T, key: string) => void
 ) {
+  // eslint-disable-next-line es-x/no-object-entries
   Object.entries(record).forEach(([key, value]) => run(value, key));
 }
 

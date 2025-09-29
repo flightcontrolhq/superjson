@@ -2,25 +2,31 @@
   "version": "2.2.2",
   "license": "MIT",
   "type": "module",
-  "typings": "dist/index.d.ts",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-      "import": "./dist/index.js",
-      "require": "./dist-cjs/index.cjs"
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
   },
   "files": [
-    "dist",
-    "dist-cjs"
+    "dist"
   ],
   "engines": {
     "node": ">=16"
   },
   "scripts": {
-    "build": "yarn run build:esm && yarn run build:cjs",
-    "build:esm": "tsc -p tsconfig.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json && node commonjs.js",
+    "build": "tsup",
     "test": "vitest run",
-    "lint": "tsdx lint",
+    "lint": "eslint src --ext .ts",
     "prepack": "yarn build",
     "prepare": "husky install",
     "publish-please": "publish-please",
@@ -35,7 +41,8 @@
     "printWidth": 80,
     "semi": true,
     "singleQuote": true,
-    "trailingComma": "es5"
+    "trailingComma": "es5",
+    "arrowParens": "avoid"
   },
   "name": "superjson",
   "author": {
@@ -63,21 +70,24 @@
     "@types/debug": "^4.1.5",
     "@types/mongodb": "^3.6.12",
     "@types/node": "^18.7.18",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
     "benchmark": "^2.1.4",
     "decimal.js": "^10.3.1",
-    "eslint-plugin-es5": "^1.5.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-es-x": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "husky": "^6.0.0",
     "mongodb": "^3.6.6",
+    "prettier": "^3.6.2",
     "publish-please": "^5.5.2",
-    "tsdx": "^0.14.1",
-    "typescript": "^4.2.4",
+    "tsup": "^8.5.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.41.0",
     "vitest": "^0.34.6"
   },
   "dependencies": {
     "copy-anything": "^4"
-  },
-  "resolutions": {
-    "**/@typescript-eslint/eslint-plugin": "^4.11.1",
-    "**/@typescript-eslint/parser": "^4.11.1"
   }
 }

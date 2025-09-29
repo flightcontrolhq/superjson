@@ -1,5 +1,6 @@
-/* eslint-disable es5/no-for-of */
-/* eslint-disable es5/no-es6-methods */
+/* eslint-disable es-x/no-for-of-loops */
+/* eslint-disable es-x/no-object-values */
+/* eslint-disable es-x/no-object-entries */
 
 import * as fs from 'fs';
 
@@ -348,25 +349,26 @@ describe('stringify & parse', () => {
       },
     },
 
-    'works for Maps with two keys that serialize to the same string but have a different reference': {
-      input: new Map([
-        [/a/g, 'foo'],
-        [/a/g, 'bar'],
-      ]),
-      output: [
-        ['/a/g', 'foo'],
-        ['/a/g', 'bar'],
-      ],
-      outputAnnotations: {
-        values: [
-          'map',
-          {
-            '0.0': ['regexp'],
-            '1.0': ['regexp'],
-          },
+    'works for Maps with two keys that serialize to the same string but have a different reference':
+      {
+        input: new Map([
+          [/a/g, 'foo'],
+          [/a/g, 'bar'],
+        ]),
+        output: [
+          ['/a/g', 'foo'],
+          ['/a/g', 'bar'],
         ],
+        outputAnnotations: {
+          values: [
+            'map',
+            {
+              '0.0': ['regexp'],
+              '1.0': ['regexp'],
+            },
+          ],
+        },
       },
-    },
 
     "works for Maps with a key that's referentially equal to another field": {
       input: () => {
@@ -614,7 +616,10 @@ describe('stringify & parse', () => {
     'works with custom allowedProps': {
       input: () => {
         class User {
-          constructor(public username: string, public password: string) {}
+          constructor(
+            public username: string,
+            public password: string
+          ) {}
         }
         SuperJSON.registerClass(User, { allowProps: ['username'] });
         return new User('bongocat', 'supersecurepassword');
@@ -935,7 +940,7 @@ describe('stringify & parse', () => {
     class CustomError extends Error {
       constructor(public readonly customProperty: number) {
         super("I'm a custom error");
-        // eslint-disable-next-line es5/no-es6-static-methods
+        // eslint-disable-next-line es-x/no-object-setprototypeof
         Object.setPrototypeOf(this, CustomError.prototype);
       }
     }
@@ -1033,8 +1038,8 @@ test('regression https://github.com/blitz-js/babel-plugin-superjson-next/issues/
 test('performance regression', () => {
   const data: any[] = [];
   for (let i = 0; i < 100; i++) {
-    let nested1 = [];
-    let nested2 = [];
+    const nested1 = [];
+    const nested2 = [];
     for (let j = 0; j < 10; j++) {
       nested1[j] = {
         createdAt: new Date(),
@@ -1299,7 +1304,9 @@ test('doesnt iterate to keys that dont exist', () => {
 test('deserialize in place', () => {
   const serialized = SuperJSON.serialize({ a: new Date() });
   const deserializedCopy = SuperJSON.deserialize(serialized);
-  const deserializedInPlace = SuperJSON.deserialize(serialized, { inPlace: true });
+  const deserializedInPlace = SuperJSON.deserialize(serialized, {
+    inPlace: true,
+  });
   expect(deserializedInPlace).toBe(serialized.json);
   expect(deserializedCopy).not.toBe(serialized.json);
   expect(deserializedCopy).toEqual(deserializedInPlace);
