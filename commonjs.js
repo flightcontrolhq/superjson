@@ -12,6 +12,17 @@ function convertToCommonJs(filePath) {
   fs.renameSync(filePath, commonJsPath);
 }
 
+function convertToCommonJsDeclaration(filePath) {
+  // update imports
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const updatedContent = content.replace(/(from ['"])(.*)(\.js)(['"];?)/g, '$1$2.cjs$4');
+  fs.writeFileSync(filePath, updatedContent, 'utf-8');
+
+  // update file extension
+  const commonJsDeclPath = filePath.replace(/\.d\.ts$/, '.d.cts');
+  fs.renameSync(filePath, commonJsDeclPath);
+}
+
 function walk(dir) {
   fs.readdirSync(dir).forEach(file => {
     const fullPath = path.join(dir, file);
@@ -19,6 +30,8 @@ function walk(dir) {
       walk(fullPath);
     } else if (file.endsWith('.js')) {
       convertToCommonJs(fullPath);
+    } else if (file.endsWith('.d.ts')) {
+      convertToCommonJsDeclaration(fullPath);
     }
   });
 }
