@@ -823,11 +823,17 @@ describe('stringify & parse', () => {
 
   describe('when serializing custom class instances', () => {
     it('revives them to their original class', () => {
+      class Carriage {
+        constructor(public name: string) {}
+      }
+      SuperJSON.registerClass(Carriage);
+
       class Train {
         constructor(
           private topSpeed: number,
           private color: 'red' | 'blue' | 'yellow',
-          private brand: string
+          private brand: string,
+          public carriages: Set<Carriage>,
         ) {}
 
         public brag() {
@@ -838,21 +844,25 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier') as any,
+        s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
       });
-
+      
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
           color: 'yellow',
           brand: 'Bombardier',
+          carriages: [
+            { name: 'front' },
+            { name: 'back' },
+          ],
         },
       });
 
       expect(meta).toEqual({
         v: 1,
         values: {
-          s7: [['class', 'Train']],
+          s7: [['class', 'Train'], { carriages: ["set", { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] }] }],
         },
       });
 
@@ -860,6 +870,9 @@ describe('stringify & parse', () => {
         JSON.parse(JSON.stringify({ json, meta }))
       );
       expect(deserialized.s7).toBeInstanceOf(Train);
+      expect(deserialized.s7.carriages).toBeInstanceOf(Set);
+      expect([...deserialized.s7.carriages][0]).toBeInstanceOf(Carriage);
+      expect([...deserialized.s7.carriages][1]).toBeInstanceOf(Carriage);
       expect(typeof deserialized.s7.brag()).toBe('string');
     });
 
