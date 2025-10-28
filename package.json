@@ -1,8 +1,8 @@
 {
-  "version": "2.2.3",
+  "version": "2.2.5",
   "license": "MIT",
   "type": "module",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/index.d.cts",
   "main": "./dist/index.js",
   "exports": {
     "import": "./dist/index.js",
