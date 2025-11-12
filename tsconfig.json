@@ -4,7 +4,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ES6",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "lib": ["esnext"],
     "importHelpers": false,
     "declaration": true,
@@ -17,6 +17,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
-    "downlevelIteration": true
+    "skipLibCheck": true
   }
 }
