@@ -2,23 +2,19 @@
   "version": "2.2.5",
   "license": "MIT",
   "type": "module",
-  "typings": "dist/index.d.cts",
+  "typings": "dist/index.d.ts",
   "main": "./dist/index.js",
   "exports": {
-    "import": "./dist/index.js",
-    "require": "./dist-cjs/index.cjs"
+    ".": "./dist/index.js"
   },
   "files": [
-    "dist",
-    "dist-cjs"
+    "dist"
   ],
   "engines": {
     "node": ">=16"
   },
   "scripts": {
-    "build": "yarn run build:esm && yarn run build:cjs",
-    "build:esm": "tsc -p tsconfig.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json && node commonjs.js",
+    "build": "tsc",
     "test": "vitest run",
     "lint": "tsdx lint",
     "prepack": "yarn build",
