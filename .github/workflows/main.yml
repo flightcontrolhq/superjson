@@ -10,28 +10,21 @@ jobs:
 
     env:
       CI: true
-      YARN_IGNORE_ENGINES: true
 
     steps:
-      - name: Begin CI...
-        uses: actions/checkout@v2
-
-      - name: Use Node
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Lint
-        run: yarn lint
+        run: npm ci
 
       - name: Test
-        run: yarn test
+        run: npm test
     
       - name: Build
-        run: yarn build
+        run: npm run build
 
       - name: Run benchmark
         run: node benchmark.js | tee output.txt

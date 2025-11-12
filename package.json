@@ -16,16 +16,7 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "lint": "tsdx lint",
-    "prepack": "yarn build",
-    "prepare": "husky install",
-    "publish-please": "publish-please",
-    "prepublishOnly": "publish-please guard"
-  },
-  "importSort": {
-    ".ts": {
-      "style": "module"
-    }
+    "prepack": "npm run build"
   },
   "prettier": {
     "printWidth": 80,
@@ -58,15 +49,12 @@
   "devDependencies": {
     "@types/debug": "^4.1.5",
     "@types/mongodb": "^3.6.12",
-    "@types/node": "^18.7.18",
+    "@types/node": "^24.10.1",
     "benchmark": "^2.1.4",
     "decimal.js": "^10.3.1",
-    "eslint-plugin-es5": "^1.5.0",
-    "husky": "^6.0.0",
     "mongodb": "^3.6.6",
-    "publish-please": "^5.5.2",
     "tsdx": "^0.14.1",
-    "typescript": "^4.2.4",
+    "typescript": "^5.9.3",
     "vitest": "^0.34.6"
   },
   "dependencies": {
