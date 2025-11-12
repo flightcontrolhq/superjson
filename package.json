@@ -59,9 +59,5 @@
   },
   "dependencies": {
     "copy-anything": "^4"
-  },
-  "resolutions": {
-    "**/@typescript-eslint/eslint-plugin": "^4.11.1",
-    "**/@typescript-eslint/parser": "^4.11.1"
   }
 }
