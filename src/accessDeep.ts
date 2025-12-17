@@ -1,15 +1,33 @@
+import { IndexedListAVL } from './avlTree.js';
 import { isMap, isArray, isPlainObject, isSet } from './is.js';
 import { includes } from './util.js';
 
-const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
-  if (n > value.size) throw new Error('index out of bounds');
-  const keys = value.keys();
-  while (n > 0) {
-    keys.next();
-    n--;
+export type AccessDeepContext = WeakMap<object, IndexedListAVL<any>>;
+
+function getIndexed(
+  value: Map<any, any> | Set<any>,
+  context: AccessDeepContext
+) {
+  const cached = context.get(value);
+  if (cached) return cached;
+
+  const created: IndexedListAVL<any> = new IndexedListAVL(value.keys());
+
+  context.set(value, created);
+  return created;
+}
+
+const getNthKey = (
+  value: Map<any, any> | Set<any>,
+  n: number,
+  context: AccessDeepContext
+): any => {
+  if (!Number.isInteger(n) || n < 0 || n >= value.size) {
+    throw new Error('index out of bounds');
   }
 
-  return keys.next().value;
+  const indexed = getIndexed(value, context);
+  return indexed.get(n);
 };
 
 function validatePath(path: (string | number)[]) {
@@ -24,18 +42,22 @@ function validatePath(path: (string | number)[]) {
   }
 }
 
-export const getDeep = (object: object, path: (string | number)[]): object => {
+export const getDeep = (
+  object: object,
+  path: (string | number)[],
+  context: AccessDeepContext
+): object => {
   validatePath(path);
 
   for (let i = 0; i < path.length; i++) {
     const key = path[i];
     if (isSet(object)) {
-      object = getNthKey(object, +key);
+      object = getNthKey(object, +key, context);
     } else if (isMap(object)) {
       const row = +key;
       const type = +path[++i] === 0 ? 'key' : 'value';
 
-      const keyOfRow = getNthKey(object, row);
+      const keyOfRow = getNthKey(object, row, context);
       switch (type) {
         case 'key':
           object = keyOfRow;
@@ -55,7 +77,8 @@ export const getDeep = (object: object, path: (string | number)[]): object => {
 export const setDeep = (
   object: any,
   path: (string | number)[],
-  mapper: (v: any) => any
+  mapper: (v: any) => any,
+  context: AccessDeepContext
 ): any => {
   validatePath(path);
 
@@ -75,7 +98,7 @@ export const setDeep = (
       parent = parent[key];
     } else if (isSet(parent)) {
       const row = +key;
-      parent = getNthKey(parent, row);
+      parent = getNthKey(parent, row, context);
     } else if (isMap(parent)) {
       const isEnd = i === path.length - 2;
       if (isEnd) {
@@ -85,7 +108,7 @@ export const setDeep = (
       const row = +key;
       const type = +path[++i] === 0 ? 'key' : 'value';
 
-      const keyOfRow = getNthKey(parent, row);
+      const keyOfRow = getNthKey(parent, row, context);
       switch (type) {
         case 'key':
           parent = keyOfRow;
@@ -106,26 +129,45 @@ export const setDeep = (
   }
 
   if (isSet(parent)) {
-    const oldValue = getNthKey(parent, +lastKey);
+    const row = +lastKey;
+    const oldValue = getNthKey(parent, row, context);
     const newValue = mapper(oldValue);
+    const hadNewValue = parent.has(newValue);
     if (oldValue !== newValue) {
       parent.delete(oldValue);
       parent.add(newValue);
+
+      const currentContext = context.get(parent);
+      if (currentContext) {
+        currentContext.delete(row);
+        if (!hadNewValue) {
+          currentContext.insertAtEnd(newValue);
+        }
+      }
     }
   }
 
   if (isMap(parent)) {
     const row = +path[path.length - 2];
-    const keyToRow = getNthKey(parent, row);
+    const keyToRow = getNthKey(parent, row, context);
 
     const type = +lastKey === 0 ? 'key' : 'value';
     switch (type) {
       case 'key': {
         const newKey = mapper(keyToRow);
+        const hadNewKey = parent.has(newKey);
         parent.set(newKey, parent.get(keyToRow));
 
         if (newKey !== keyToRow) {
           parent.delete(keyToRow);
+
+          const currentContext = context.get(parent);
+          if (currentContext) {
+            currentContext.delete(row);
+            if (!hadNewKey) {
+              currentContext.insertAtEnd(newKey);
+            }
+          }
         }
         break;
       }
