@@ -495,6 +495,35 @@ describe('stringify & parse', () => {
       },
     },
 
+    'maintains referential equality between Set elements and master array': {
+      input: () => {
+        const objA = { name: 'A' };
+        const objB = { name: 'B' };
+        return {
+          master: [objA, objB],
+          testSet: new Set([objA, objB])
+        };
+      },
+      output: {
+        master: [{ name: 'A' }, { name: 'B' }],
+        testSet: [{ name: 'A' }, { name: 'B' }],
+      },
+      outputAnnotations: {
+        values: {
+          testSet: ['set'],
+        },
+        referentialEqualities: {
+          'master.0': ['testSet.0'],
+          'master.1': ['testSet.1'],
+        },
+      },
+      customExpectations: value => {
+        const setArr = Array.from(value.testSet);
+        expect(setArr[0]).toBe(value.master[0]);
+        expect(setArr[1]).toBe(value.master[1]);
+      },
+    },
+
     'works for symbols': {
       skipOnNode10: true,
       input: () => {

@@ -1,33 +1,24 @@
-import { IndexedListAVL } from './avlTree.js';
 import { isMap, isArray, isPlainObject, isSet } from './is.js';
 import { includes } from './util.js';
 
-export type AccessDeepContext = WeakMap<object, IndexedListAVL<any>>;
-
-function getIndexed(
-  value: Map<any, any> | Set<any>,
-  context: AccessDeepContext
-) {
-  const cached = context.get(value);
-  if (cached) return cached;
-
-  const created: IndexedListAVL<any> = new IndexedListAVL(value.keys());
-
-  context.set(value, created);
-  return created;
-}
+export type AccessDeepContext = WeakMap<object, any[]>;
 
 const getNthKey = (
   value: Map<any, any> | Set<any>,
   n: number,
   context: AccessDeepContext
 ): any => {
-  if (!Number.isInteger(n) || n < 0 || n >= value.size) {
+  let indexed = context.get(value);
+  if (!indexed) {
+    indexed = Array.from(value.keys());
+    context.set(value, indexed);
+  }
+
+  if (!Number.isInteger(n) || n < 0 || n >= indexed.length) {
     throw new Error('index out of bounds');
   }
 
-  const indexed = getIndexed(value, context);
-  return indexed.get(n);
+  return indexed[n];
 };
 
 function validatePath(path: (string | number)[]) {
@@ -132,17 +123,14 @@ export const setDeep = (
     const row = +lastKey;
     const oldValue = getNthKey(parent, row, context);
     const newValue = mapper(oldValue);
-    const hadNewValue = parent.has(newValue);
+    
     if (oldValue !== newValue) {
       parent.delete(oldValue);
       parent.add(newValue);
 
       const currentContext = context.get(parent);
       if (currentContext) {
-        currentContext.delete(row);
-        if (!hadNewValue) {
-          currentContext.insertAtEnd(newValue);
-        }
+        currentContext[row] = newValue;
       }
     }
   }
@@ -155,7 +143,6 @@ export const setDeep = (
     switch (type) {
       case 'key': {
         const newKey = mapper(keyToRow);
-        const hadNewKey = parent.has(newKey);
         parent.set(newKey, parent.get(keyToRow));
 
         if (newKey !== keyToRow) {
@@ -163,10 +150,7 @@ export const setDeep = (
 
           const currentContext = context.get(parent);
           if (currentContext) {
-            currentContext.delete(row);
-            if (!hadNewKey) {
-              currentContext.insertAtEnd(newKey);
-            }
+            currentContext[row] = newKey;
           }
         }
         break;
