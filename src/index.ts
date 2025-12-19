@@ -65,16 +65,16 @@ export default class SuperJSON {
 
     let result: T = options?.inPlace ? json : copy(json) as any;
 
-    if (meta?.values) {
-      result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this);
-    }
-
     if (meta?.referentialEqualities) {
       result = applyReferentialEqualityAnnotations(
         result,
         meta.referentialEqualities,
         meta.v ?? 0
       );
+    }
+
+    if (meta?.values) {
+      result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this);
     }
 
     return result;

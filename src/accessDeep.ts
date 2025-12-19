@@ -73,27 +73,6 @@ export const setDeep = (
       parent = parent[index];
     } else if (isPlainObject(parent)) {
       parent = parent[key];
-    } else if (isSet(parent)) {
-      const row = +key;
-      parent = getNthKey(parent, row);
-    } else if (isMap(parent)) {
-      const isEnd = i === path.length - 2;
-      if (isEnd) {
-        break;
-      }
-
-      const row = +key;
-      const type = +path[++i] === 0 ? 'key' : 'value';
-
-      const keyOfRow = getNthKey(parent, row);
-      switch (type) {
-        case 'key':
-          parent = keyOfRow;
-          break;
-        case 'value':
-          parent = parent.get(keyOfRow);
-          break;
-      }
     }
   }
 
@@ -103,38 +82,6 @@ export const setDeep = (
     parent[+lastKey] = mapper(parent[+lastKey]);
   } else if (isPlainObject(parent)) {
     parent[lastKey] = mapper(parent[lastKey]);
-  }
-
-  if (isSet(parent)) {
-    const oldValue = getNthKey(parent, +lastKey);
-    const newValue = mapper(oldValue);
-    if (oldValue !== newValue) {
-      parent.delete(oldValue);
-      parent.add(newValue);
-    }
-  }
-
-  if (isMap(parent)) {
-    const row = +path[path.length - 2];
-    const keyToRow = getNthKey(parent, row);
-
-    const type = +lastKey === 0 ? 'key' : 'value';
-    switch (type) {
-      case 'key': {
-        const newKey = mapper(keyToRow);
-        parent.set(newKey, parent.get(keyToRow));
-
-        if (newKey !== keyToRow) {
-          parent.delete(keyToRow);
-        }
-        break;
-      }
-
-      case 'value': {
-        parent.set(keyToRow, mapper(parent.get(keyToRow)));
-        break;
-      }
-    }
   }
 
   return object;

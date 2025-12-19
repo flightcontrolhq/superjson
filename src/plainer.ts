@@ -67,10 +67,22 @@ export function applyValueAnnotations(
   version: number,
   superJson: SuperJSON
 ) {
+  const transformedCache = new Map<any, any>();
+
   traverse(
     annotations,
     (type, path) => {
-      plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
+      plain = setDeep(plain, path, v => {
+        const isPrimitive = v !== Object(v);
+        if (!isPrimitive && transformedCache.has(v)) {
+          return transformedCache.get(v);
+        }
+        const transformed = untransformValue(v, type, superJson);
+        if (!isPrimitive) {
+          transformedCache.set(v, transformed);
+        }
+        return transformed;
+      });
     },
     version
   );
