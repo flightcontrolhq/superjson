@@ -1,16 +1,5 @@
-import { isMap, isArray, isPlainObject, isSet } from './is.js';
+import { isArray, isPlainObject } from './is.js';
 import { includes } from './util.js';
-
-const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
-  if (n > value.size) throw new Error('index out of bounds');
-  const keys = value.keys();
-  while (n > 0) {
-    keys.next();
-    n--;
-  }
-
-  return keys.next().value;
-};
 
 function validatePath(path: (string | number)[]) {
   if (includes(path, '__proto__')) {
@@ -29,24 +18,7 @@ export const getDeep = (object: object, path: (string | number)[]): object => {
 
   for (let i = 0; i < path.length; i++) {
     const key = path[i];
-    if (isSet(object)) {
-      object = getNthKey(object, +key);
-    } else if (isMap(object)) {
-      const row = +key;
-      const type = +path[++i] === 0 ? 'key' : 'value';
-
-      const keyOfRow = getNthKey(object, row);
-      switch (type) {
-        case 'key':
-          object = keyOfRow;
-          break;
-        case 'value':
-          object = object.get(keyOfRow);
-          break;
-      }
-    } else {
-      object = (object as any)[key];
-    }
+    object = (object as any)[key];
   }
 
   return object;
