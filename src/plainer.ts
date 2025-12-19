@@ -64,24 +64,23 @@ function traverse<T>(
 export function applyValueAnnotations(
   plain: any,
   annotations: MinimisedTree<TypeAnnotation>,
+  byproduct: Map<any, { value: any, empty: boolean }>,
   version: number,
   superJson: SuperJSON
 ) {
-  const transformedCache = new Map<any, any>();
-
   traverse(
     annotations,
     (type, path) => {
       plain = setDeep(plain, path, v => {
-        const isPrimitive = v !== Object(v);
-        if (!isPrimitive && transformedCache.has(v)) {
-          return transformedCache.get(v);
+        if (byproduct.has(stringifyPath(path))) {
+          const store = byproduct.get(stringifyPath(path))!;
+          if (store.empty) {
+            store.value = untransformValue(v, type, superJson);
+            store.empty = false;
+          }
+          return store.value;
         }
-        const transformed = untransformValue(v, type, superJson);
-        if (!isPrimitive) {
-          transformedCache.set(v, transformed);
-        }
-        return transformed;
+        return untransformValue(v, type, superJson)
       });
     },
     version
@@ -93,15 +92,20 @@ export function applyValueAnnotations(
 export function applyReferentialEqualityAnnotations(
   plain: any,
   annotations: ReferentialEqualityAnnotations,
+  byproduct: Map<any, { value: any, empty: boolean }>,
   version: number
 ) {
   const legacyPaths = enableLegacyPaths(version);
   function apply(identicalPaths: string[], path: string) {
+    const byproductStore = { value: null, empty: true };
+    byproduct.set(path, byproductStore);
+
     const object = getDeep(plain, parsePath(path, legacyPaths));
 
     identicalPaths
-      .map(path => parsePath(path, legacyPaths))
-      .forEach(identicalObjectPath => {
+      .forEach(path => {
+        byproduct.set(path, byproductStore);
+        const identicalObjectPath = parsePath(path, legacyPaths)
         plain = setDeep(plain, identicalObjectPath, () => object);
       });
   }
