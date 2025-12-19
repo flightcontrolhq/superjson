@@ -72,6 +72,7 @@ export function applyValueAnnotations(
     annotations,
     (type, path) => {
       plain = setDeep(plain, path, v => {
+        // TODO: also check legacy path
         if (byproduct.has(stringifyPath(path))) {
           const store = byproduct.get(stringifyPath(path))!;
           if (store.empty) {
