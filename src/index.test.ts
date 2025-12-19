@@ -730,6 +730,54 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'regression #347: shared regex': {
+      input: () => {
+        const regex = /shared-regex/g;
+        return {
+          a: regex,
+          b: regex,
+        };
+      },
+      output: {
+        a: '/shared-regex/g',
+        b: '/shared-regex/g',
+      },
+      outputAnnotations: {
+        values: {
+          a: ['regexp'],
+          b: ['regexp'],
+        },
+        referentialEqualities: {
+          a: ['b'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a).toBe(output.b);
+      },
+    },
+    'regression #347: circular set': {
+      input: () => {
+        const set = new Set<any>();
+        set.add(set);
+        return {
+          a: set,
+        };
+      },
+      output: {
+        a: [null],
+      },
+      outputAnnotations: {
+        values: {
+          a: ['set'],
+        },
+        referentialEqualities: {
+          'a': ['a.0'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a.values().next().value).toBe(output.a);
+      },
+    }
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
