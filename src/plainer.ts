@@ -64,69 +64,100 @@ function traverse<T>(
 export function applyValueAnnotations(
   plain: any,
   annotations: MinimisedTree<TypeAnnotation>,
-  byproduct: Map<any, { value: any, empty: boolean }>,
+  referentialEqualityAnnotations: ReferentialEqualityAnnotations | undefined,
   version: number,
   superJson: SuperJSON
 ) {
+  const byproduct = new Map<any, string[]>;
+
+  if (referentialEqualityAnnotations !== undefined) {
+    const legacyPaths = enableLegacyPaths(version);
+    function apply(identicalPaths: string[], path: string) {
+      byproduct.set(path, identicalPaths);
+    }
+
+    if (isArray(referentialEqualityAnnotations)) {
+      const [root, other] = referentialEqualityAnnotations;
+      root.forEach(identicalPath => {
+        plain = setDeep(
+          plain,
+          parsePath(identicalPath, legacyPaths),
+          () => plain
+        );
+      });
+
+      if (other) {
+        forEach(other, apply);
+      }
+    } else {
+      forEach(referentialEqualityAnnotations, apply);
+    }
+  }
+
+  const seen = byproduct.size ? new Set<string>() : undefined;
+
+  const pathsWithValueAnnotation = new Set<string>();
+  traverse(
+    annotations,
+    (type, path) => pathsWithValueAnnotation.add(stringifyPath(path)),
+    version
+  )
+
+  for (const [path, identicalPaths] of byproduct) {
+    if (pathsWithValueAnnotation.has(path))
+      continue;
+    const original = getDeep(plain, parsePath(path, true)) as any;
+    for (const other of identicalPaths)
+      plain = setDeep(plain, parsePath(other, true), () => original)
+  }
+
   traverse(
     annotations,
     (type, path) => {
-      plain = setDeep(plain, path, v => {
-        // TODO: also check legacy path
-        if (byproduct.has(stringifyPath(path))) {
-          const store = byproduct.get(stringifyPath(path))!;
-          if (store.empty) {
-            store.value = untransformValue(v, type, superJson);
-            store.empty = false;
+      if (seen?.has(stringifyPath(path)))
+        return;
+
+      const identical = byproduct.get(stringifyPath(path));
+      if (identical) {
+        identical.forEach(p => seen?.add(p));
+        if (type === 'set') {
+          const oldValue = getDeep(plain, path) as any[];
+          const newValue = new Set();
+          for (const other of identical) {
+            plain = setDeep(plain, parsePath(other, false), () => newValue);
           }
-          return store.value;
+          for (const value of oldValue) {
+            newValue.add(value);
+          }
+          plain = setDeep(plain, path, () => newValue);
+          return;
         }
-        return untransformValue(v, type, superJson)
-      });
+
+        if (type === 'map') {
+          const oldValue = getDeep(plain, path) as [any, any][];
+          const newValue = new Map();
+          for (const other of identical) {
+            plain = setDeep(plain, parsePath(other, false), () => newValue);
+          }
+          for (const [key, value] of oldValue) {
+            newValue.set(key, value);
+          }
+          plain = setDeep(plain, path, () => newValue);
+          return;
+        }
+
+        const oldValue = getDeep(plain, path);
+        const newValue = untransformValue(oldValue, type, superJson);
+        plain = setDeep(plain, path, () => newValue);
+        for (const other of identical) {
+          plain = setDeep(plain, parsePath(other, false), () => newValue)
+        }
+      } else {
+        plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
+      }
     },
     version
   );
-
-  return plain;
-}
-
-export function applyReferentialEqualityAnnotations(
-  plain: any,
-  annotations: ReferentialEqualityAnnotations,
-  byproduct: Map<any, { value: any, empty: boolean }>,
-  version: number
-) {
-  const legacyPaths = enableLegacyPaths(version);
-  function apply(identicalPaths: string[], path: string) {
-    const byproductStore = { value: null, empty: true };
-    byproduct.set(path, byproductStore);
-
-    const object = getDeep(plain, parsePath(path, legacyPaths));
-
-    identicalPaths
-      .forEach(path => {
-        byproduct.set(path, byproductStore);
-        const identicalObjectPath = parsePath(path, legacyPaths)
-        plain = setDeep(plain, identicalObjectPath, () => object);
-      });
-  }
-
-  if (isArray(annotations)) {
-    const [root, other] = annotations;
-    root.forEach(identicalPath => {
-      plain = setDeep(
-        plain,
-        parsePath(identicalPath, legacyPaths),
-        () => plain
-      );
-    });
-
-    if (other) {
-      forEach(other, apply);
-    }
-  } else {
-    forEach(annotations, apply);
-  }
 
   return plain;
 }

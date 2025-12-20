@@ -755,27 +755,55 @@ describe('stringify & parse', () => {
         expect(output.a).toBe(output.b);
       },
     },
-    'regression #347: circular set': {
+    'regression #347: circular set and map': {
       input: () => {
         const set = new Set<any>();
         set.add(set);
+
+        const map = new Map<any, any>();
+        map.set(map, map);
         return {
           a: set,
+          b: map,
         };
       },
       output: {
         a: [null],
+        b: [[null, null]]
       },
       outputAnnotations: {
         values: {
           a: ['set'],
+          b: ['map'],
         },
         referentialEqualities: {
           'a': ['a.0'],
+          'b': ['b.0.0', 'b.0.1']
         },
       },
       customExpectations: output => {
         expect(output.a.values().next().value).toBe(output.a);
+        expect(output.b.values().next().value).toBe(output.b);
+      },
+    },
+    'regression #347: onyl referential equalities': {
+      input: () => {
+        const a = {};
+        a['a'] = a;
+        return {
+          a: a,
+        };
+      },
+      output: {
+        a: { a: null },
+      },
+      outputAnnotations: {
+        referentialEqualities: {
+          'a': ['a.a'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a).toBe(output.a.a);
       },
     }
   };
@@ -894,7 +922,7 @@ describe('stringify & parse', () => {
       const { json, meta } = SuperJSON.serialize({
         s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
       });
-      
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,

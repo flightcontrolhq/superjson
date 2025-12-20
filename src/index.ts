@@ -6,7 +6,6 @@ import {
   CustomTransformerRegistry,
 } from './custom-transformer-registry.js';
 import {
-  applyReferentialEqualityAnnotations,
   applyValueAnnotations,
   generateReferentialEqualityAnnotations,
   walker,
@@ -65,21 +64,7 @@ export default class SuperJSON {
 
     let result: T = options?.inPlace ? json : copy(json) as any;
 
-    // TODO: figure out proper naming
-    const byproduct = new Map<any, any>();
-
-    if (meta?.referentialEqualities) {
-      result = applyReferentialEqualityAnnotations(
-        result,
-        meta.referentialEqualities,
-        byproduct,
-        meta.v ?? 0
-      );
-    }
-
-    if (meta?.values) {
-      result = applyValueAnnotations(result, meta.values, byproduct, meta.v ?? 0, this);
-    }
+    result = applyValueAnnotations(result, meta?.values, meta?.referentialEqualities, meta?.v ?? 0, this);
 
     return result;
   }
