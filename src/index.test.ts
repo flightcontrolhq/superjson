@@ -786,6 +786,37 @@ describe('stringify & parse', () => {
         expect(output.b.values().next().value).toBe(output.b);
       },
     },
+    'regression #347: circular set in root': {
+      input: () => {
+        const set = new Set<any>();
+        set.add(set);
+        return set;
+      },
+      output: [null],
+      outputAnnotations: {
+        values: ['set'],
+        referentialEqualities: [['0']],
+      },
+      customExpectations: output => {
+        expect(output.values().next().value).toBe(output);
+      },
+    },
+    'regression #347: circular map in root': {
+      input: () => {
+        const map = new Map<any, any>();
+        map.set(map, map);
+        return map;
+      },
+      output: [[null, null]],
+      outputAnnotations: {
+        values: ['map'],
+        referentialEqualities: [['0.0', '0.1']],
+      },
+      customExpectations: output => {
+        expect(output.values().next().value).toBe(output);
+        expect(output.keys().next().value).toBe(output);
+      },
+    },
     'regression #347: onyl referential equalities': {
       input: () => {
         const a = {};

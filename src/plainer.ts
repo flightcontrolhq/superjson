@@ -69,23 +69,16 @@ export function applyValueAnnotations(
   superJson: SuperJSON
 ) {
   const byproduct = new Map<any, string[]>;
+  let rootIdentities: string[] | undefined;
 
   if (referentialEqualityAnnotations !== undefined) {
-    const legacyPaths = enableLegacyPaths(version);
     function apply(identicalPaths: string[], path: string) {
       byproduct.set(path, identicalPaths);
     }
 
     if (isArray(referentialEqualityAnnotations)) {
       const [root, other] = referentialEqualityAnnotations;
-      root.forEach(identicalPath => {
-        plain = setDeep(
-          plain,
-          parsePath(identicalPath, legacyPaths),
-          () => plain
-        );
-      });
-
+      rootIdentities = root;
       if (other) {
         forEach(other, apply);
       }
@@ -97,9 +90,15 @@ export function applyValueAnnotations(
   const seen = byproduct.size ? new Set<string>() : undefined;
 
   const pathsWithValueAnnotation = new Set<string>();
+  let rootValueAnnotation: TypeAnnotation | undefined = undefined;
   traverse(
     annotations,
-    (type, path) => pathsWithValueAnnotation.add(stringifyPath(path)),
+    (type, path) => {
+      if (path.length === 0)
+        rootValueAnnotation = type;
+      else
+        pathsWithValueAnnotation.add(stringifyPath(path))
+    },
     version
   )
 
@@ -110,10 +109,51 @@ export function applyValueAnnotations(
     for (const other of identicalPaths)
       plain = setDeep(plain, parsePath(other, true), () => original)
   }
+  if (false && rootIdentities && !rootValueAnnotation) {
+    for (const other of rootIdentities)
+      plain = setDeep(plain, parsePath(other, true), () => plain)
+  }
 
   traverse(
     annotations,
     (type, path) => {
+      if (path.length === 0) {
+        if (rootIdentities) {
+          if (type === 'set') {
+            const newValue = new Set();
+            for (const other of rootIdentities) {
+              plain = setDeep(plain, parsePath(other, false), () => newValue);
+            }
+            for (const value of plain) {
+              newValue.add(value)
+            }
+            plain = newValue;
+            return;
+          }
+          if (type === 'map') {
+            const newValue = new Map();
+            for (const other of rootIdentities) {
+              plain = setDeep(plain, parsePath(other, false), () => newValue);
+            }
+            for (const [key, value] of plain) {
+              newValue.set(key, value);
+            }
+            plain = newValue;
+            return;
+          }
+
+          const oldValue = getDeep(plain, path);
+          const newValue = untransformValue(oldValue, type, superJson);
+          plain = setDeep(plain, path, () => newValue);
+          for (const other of rootIdentities) {
+            plain = setDeep(plain, parsePath(other, false), () => newValue)
+          }
+        } else {
+          plain = untransformValue(plain, type, superJson)
+        }
+        return;
+      }
+
       if (seen?.has(stringifyPath(path)))
         return;
 
