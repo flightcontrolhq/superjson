@@ -109,7 +109,7 @@ export function applyValueAnnotations(
     for (const other of identicalPaths)
       plain = setDeep(plain, parsePath(other, true), () => original)
   }
-  if (false && rootIdentities && !rootValueAnnotation) {
+  if (rootIdentities && !rootValueAnnotation) {
     for (const other of rootIdentities)
       plain = setDeep(plain, parsePath(other, true), () => plain)
   }
@@ -142,12 +142,7 @@ export function applyValueAnnotations(
             return;
           }
 
-          const oldValue = getDeep(plain, path);
-          const newValue = untransformValue(oldValue, type, superJson);
-          plain = setDeep(plain, path, () => newValue);
-          for (const other of rootIdentities) {
-            plain = setDeep(plain, parsePath(other, false), () => newValue)
-          }
+          throw new Error("If my understanding of the code is correct, this is unreachable")
         } else {
           plain = untransformValue(plain, type, superJson)
         }
