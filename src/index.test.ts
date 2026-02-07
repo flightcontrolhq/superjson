@@ -649,6 +649,33 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works with NaN and Infinity in Float64Array, issue #292': {
+      input: {
+        a: new Float64Array([NaN, 0, NaN, 1]),
+        b: new Float64Array([Infinity, -Infinity, NaN, 0]),
+        c: new Float32Array([NaN, Infinity, -Infinity]),
+      },
+      output: {
+        a: ['NaN', 0, 'NaN', 1],
+        b: ['Infinity', '-Infinity', 'NaN', 0],
+        c: ['NaN', 'Infinity', '-Infinity'],
+      },
+      outputAnnotations: {
+        values: {
+          a: [['typed-array', 'Float64Array']],
+          b: [['typed-array', 'Float64Array']],
+          c: [['typed-array', 'Float32Array']],
+        },
+      },
+      customExpectations: (value: any) => {
+        expect(Number.isNaN(value.a[0])).toBe(true);
+        expect(Number.isNaN(value.a[2])).toBe(true);
+        expect(value.b[0]).toBe(Infinity);
+        expect(value.b[1]).toBe(-Infinity);
+        expect(Number.isNaN(value.b[2])).toBe(true);
+      },
+    },
+
     'works for undefined, issue #48': {
       input: undefined,
       output: null,
