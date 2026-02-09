@@ -759,6 +759,113 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'regression #347: shared regex': {
+      input: () => {
+        const regex = /shared-regex/g;
+        return {
+          a: regex,
+          b: regex,
+        };
+      },
+      output: {
+        a: '/shared-regex/g',
+        b: '/shared-regex/g',
+      },
+      outputAnnotations: {
+        values: {
+          a: ['regexp'],
+          b: ['regexp'],
+        },
+        referentialEqualities: {
+          a: ['b'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a).toBe(output.b);
+      },
+    },
+    'regression #347: circular set and map': {
+      input: () => {
+        const set = new Set<any>();
+        set.add(set);
+
+        const map = new Map<any, any>();
+        map.set(map, map);
+        return {
+          a: set,
+          b: map,
+        };
+      },
+      output: {
+        a: [null],
+        b: [[null, null]]
+      },
+      outputAnnotations: {
+        values: {
+          a: ['set'],
+          b: ['map'],
+        },
+        referentialEqualities: {
+          'a': ['a.0'],
+          'b': ['b.0.0', 'b.0.1']
+        },
+      },
+      customExpectations: output => {
+        expect(output.a.values().next().value).toBe(output.a);
+        expect(output.b.values().next().value).toBe(output.b);
+      },
+    },
+    'regression #347: circular set in root': {
+      input: () => {
+        const set = new Set<any>();
+        set.add(set);
+        return set;
+      },
+      output: [null],
+      outputAnnotations: {
+        values: ['set'],
+        referentialEqualities: [['0']],
+      },
+      customExpectations: output => {
+        expect(output.values().next().value).toBe(output);
+      },
+    },
+    'regression #347: circular map in root': {
+      input: () => {
+        const map = new Map<any, any>();
+        map.set(map, map);
+        return map;
+      },
+      output: [[null, null]],
+      outputAnnotations: {
+        values: ['map'],
+        referentialEqualities: [['0.0', '0.1']],
+      },
+      customExpectations: output => {
+        expect(output.values().next().value).toBe(output);
+        expect(output.keys().next().value).toBe(output);
+      },
+    },
+    'regression #347: only referential equalities': {
+      input: () => {
+        const a = {};
+        a['a'] = a;
+        return {
+          a: a,
+        };
+      },
+      output: {
+        a: { a: null },
+      },
+      outputAnnotations: {
+        referentialEqualities: {
+          'a': ['a.a'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a).toBe(output.a.a);
+      },
+    }
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
