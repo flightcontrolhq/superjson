@@ -224,7 +224,15 @@ const constructorToName = [
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
-  v => [...v],
+  v => [...v].map(n => {
+    // Handle special float values that JSON.stringify converts to null
+    if (typeof n === 'number') {
+      if (Number.isNaN(n)) return 'NaN';
+      if (n === Infinity) return 'Infinity';
+      if (n === -Infinity) return '-Infinity';
+    }
+    return n;
+  }),
   (v, a) => {
     const ctor = constructorToName[a[1]];
 
@@ -232,7 +240,15 @@ const typedArrayRule = compositeTransformation(
       throw new Error('Trying to deserialize unknown typed array');
     }
 
-    return new ctor(v);
+    // Convert string representations back to special float values
+    const values = v.map((n: number | string): number => {
+      if (n === 'NaN') return NaN;
+      if (n === 'Infinity') return Infinity;
+      if (n === '-Infinity') return -Infinity;
+      return n as number;
+    });
+
+    return new ctor(values as number[]);
   }
 );
 
