@@ -3,22 +3,53 @@ import { includes } from './util.js';
 
 export type AccessDeepContext = WeakMap<object, any[]>;
 
-const getNthKey = (
+const getIndexedKeys = (
   value: Map<any, any> | Set<any>,
-  n: number,
   context: AccessDeepContext
-): any => {
+): any[] => {
   let indexed = context.get(value);
   if (!indexed) {
     indexed = Array.from(value.keys());
     context.set(value, indexed);
   }
 
+  return indexed;
+};
+
+const getNthKey = (
+  value: Map<any, any> | Set<any>,
+  n: number,
+  context: AccessDeepContext
+): any => {
+  const indexed = getIndexedKeys(value, context);
+
   if (!Number.isInteger(n) || n < 0 || n >= indexed.length) {
     throw new Error('index out of bounds');
   }
 
   return indexed[n];
+};
+
+const rememberIndexedCollectionKeys = (
+  before: unknown,
+  after: unknown,
+  context: AccessDeepContext
+) => {
+  if (!isArray(before)) {
+    return;
+  }
+
+  if (isSet(after)) {
+    context.set(after, before.slice());
+    return;
+  }
+
+  if (isMap(after)) {
+    context.set(
+      after,
+      before.map(entry => (isArray(entry) ? entry[0] : undefined))
+    );
+  }
 };
 
 function validatePath(path: (string | number)[]) {
@@ -74,7 +105,9 @@ export const setDeep = (
   validatePath(path);
 
   if (path.length === 0) {
-    return mapper(object);
+    const mapped = mapper(object);
+    rememberIndexedCollectionKeys(object, mapped, context);
+    return mapped;
   }
 
   let parent = object;
@@ -114,50 +147,67 @@ export const setDeep = (
   const lastKey = path[path.length - 1];
 
   if (isArray(parent)) {
-    parent[+lastKey] = mapper(parent[+lastKey]);
+    const oldValue = parent[+lastKey];
+    const newValue = mapper(oldValue);
+    parent[+lastKey] = newValue;
+    rememberIndexedCollectionKeys(oldValue, newValue, context);
   } else if (isPlainObject(parent)) {
-    parent[lastKey] = mapper(parent[lastKey]);
+    const oldValue = parent[lastKey];
+    const newValue = mapper(oldValue);
+    parent[lastKey] = newValue;
+    rememberIndexedCollectionKeys(oldValue, newValue, context);
   }
 
   if (isSet(parent)) {
     const row = +lastKey;
-    const oldValue = getNthKey(parent, row, context);
-    const newValue = mapper(oldValue);
-    
-    if (oldValue !== newValue) {
-      parent.delete(oldValue);
-      parent.add(newValue);
+    const indexed = getIndexedKeys(parent, context);
+    if (!Number.isInteger(row) || row < 0 || row >= indexed.length) {
+      throw new Error('index out of bounds');
+    }
+    const oldValue = indexed[row];
 
-      const currentContext = context.get(parent);
-      if (currentContext) {
-        currentContext[row] = newValue;
+    const newValue = mapper(oldValue);
+    rememberIndexedCollectionKeys(oldValue, newValue, context);
+
+    if (oldValue !== newValue) {
+      if (row < parent.size) {
+        parent.delete(oldValue);
       }
+      parent.add(newValue);
+      indexed[row] = newValue;
     }
   }
 
   if (isMap(parent)) {
     const row = +path[path.length - 2];
-    const keyToRow = getNthKey(parent, row, context);
+    const indexed = getIndexedKeys(parent, context);
+    if (!Number.isInteger(row) || row < 0 || row >= indexed.length) {
+      throw new Error('index out of bounds');
+    }
 
     const type = +lastKey === 0 ? 'key' : 'value';
+    const keyToRow = indexed[row];
+    const isVirtualRow = row >= parent.size;
+
     switch (type) {
       case 'key': {
         const newKey = mapper(keyToRow);
+        rememberIndexedCollectionKeys(keyToRow, newKey, context);
         parent.set(newKey, parent.get(keyToRow));
 
-        if (newKey !== keyToRow) {
+        if (!isVirtualRow && newKey !== keyToRow) {
           parent.delete(keyToRow);
-
-          const currentContext = context.get(parent);
-          if (currentContext) {
-            currentContext[row] = newKey;
-          }
         }
+
+        indexed[row] = newKey;
         break;
       }
 
       case 'value': {
-        parent.set(keyToRow, mapper(parent.get(keyToRow)));
+        const oldValue = parent.get(keyToRow);
+        const newValue = mapper(oldValue);
+        rememberIndexedCollectionKeys(oldValue, newValue, context);
+        parent.set(keyToRow, newValue);
         break;
       }
     }
