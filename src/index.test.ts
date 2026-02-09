@@ -874,8 +874,8 @@ describe('stringify & parse', () => {
 
       const { json, meta } = SuperJSON.serialize({
         s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
-      });
-      
+});
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
@@ -933,8 +933,8 @@ describe('stringify & parse', () => {
         const price: Currency = result.price;
 
         expect(price.inUSD).toBe(100);
-      });
-    });
+  });
+});
   });
 
   describe('when given a non-SuperJSON object', () => {
@@ -1071,6 +1071,31 @@ test('regression https://github.com/blitz-js/babel-plugin-superjson-next/issues/
   SuperJSON.deserialize(serialized);
   expect(typeof (serialized.json as any).topics[0].post_count).toBe('string');
 });
+
+
+test('handles Set with circular reference that collapses', () => {
+  const set = new Set();
+  const root = { back: set };
+  set.add(null);
+  set.add(root);
+
+  const serialized = SuperJSON.serialize(root);
+  const deserialized = SuperJSON.deserialize(serialized);
+
+  expect(deserialized).toEqual(root);
+});
+
+test('handles Map with circular reference that collapses', () => {
+  const map = new Map();
+  map.set(null, undefined);
+  map.set(map, undefined);
+
+  const serialized = SuperJSON.serialize(map);
+  const deserialized = SuperJSON.deserialize(serialized);
+
+  expect(deserialized).toEqual(map);
+});
+
 
 test('performance regression', () => {
   const data: any[] = [];
