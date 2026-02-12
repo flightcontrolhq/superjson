@@ -495,6 +495,35 @@ describe('stringify & parse', () => {
       },
     },
 
+    'maintains referential equality between Set elements and master array': {
+      input: () => {
+        const objA = { name: 'A' };
+        const objB = { name: 'B' };
+        return {
+          master: [objA, objB],
+          testSet: new Set([objA, objB])
+        };
+      },
+      output: {
+        master: [{ name: 'A' }, { name: 'B' }],
+        testSet: [{ name: 'A' }, { name: 'B' }],
+      },
+      outputAnnotations: {
+        values: {
+          testSet: ['set'],
+        },
+        referentialEqualities: {
+          'master.0': ['testSet.0'],
+          'master.1': ['testSet.1'],
+        },
+      },
+      customExpectations: value => {
+        const setArr = Array.from(value.testSet);
+        expect(setArr[0]).toBe(value.master[0]);
+        expect(setArr[1]).toBe(value.master[1]);
+      },
+    },
+
     'works for symbols': {
       skipOnNode10: true,
       input: () => {
@@ -757,6 +786,113 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'regression #347: shared regex': {
+      input: () => {
+        const regex = /shared-regex/g;
+        return {
+          a: regex,
+          b: regex,
+        };
+      },
+      output: {
+        a: '/shared-regex/g',
+        b: '/shared-regex/g',
+      },
+      outputAnnotations: {
+        values: {
+          a: ['regexp'],
+          b: ['regexp'],
+        },
+        referentialEqualities: {
+          a: ['b'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a).toBe(output.b);
+      },
+    },
+    'regression #347: circular set and map': {
+      input: () => {
+        const set = new Set<any>();
+        set.add(set);
+
+        const map = new Map<any, any>();
+        map.set(map, map);
+        return {
+          a: set,
+          b: map,
+        };
+      },
+      output: {
+        a: [null],
+        b: [[null, null]]
+      },
+      outputAnnotations: {
+        values: {
+          a: ['set'],
+          b: ['map'],
+        },
+        referentialEqualities: {
+          'a': ['a.0'],
+          'b': ['b.0.0', 'b.0.1']
+        },
+      },
+      customExpectations: output => {
+        expect(output.a.values().next().value).toBe(output.a);
+        expect(output.b.values().next().value).toBe(output.b);
+      },
+    },
+    'regression #347: circular set in root': {
+      input: () => {
+        const set = new Set<any>();
+        set.add(set);
+        return set;
+      },
+      output: [null],
+      outputAnnotations: {
+        values: ['set'],
+        referentialEqualities: [['0']],
+      },
+      customExpectations: output => {
+        expect(output.values().next().value).toBe(output);
+      },
+    },
+    'regression #347: circular map in root': {
+      input: () => {
+        const map = new Map<any, any>();
+        map.set(map, map);
+        return map;
+      },
+      output: [[null, null]],
+      outputAnnotations: {
+        values: ['map'],
+        referentialEqualities: [['0.0', '0.1']],
+      },
+      customExpectations: output => {
+        expect(output.values().next().value).toBe(output);
+        expect(output.keys().next().value).toBe(output);
+      },
+    },
+    'regression #347: only referential equalities': {
+      input: () => {
+        const a = {};
+        a['a'] = a;
+        return {
+          a: a,
+        };
+      },
+      output: {
+        a: { a: null },
+      },
+      outputAnnotations: {
+        referentialEqualities: {
+          'a': ['a.a'],
+        },
+      },
+      customExpectations: output => {
+        expect(output.a).toBe(output.a.a);
+      },
+    }
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -872,8 +1008,8 @@ describe('stringify & parse', () => {
 
       const { json, meta } = SuperJSON.serialize({
         s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
-      });
-      
+});
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
@@ -931,8 +1067,8 @@ describe('stringify & parse', () => {
         const price: Currency = result.price;
 
         expect(price.inUSD).toBe(100);
-      });
-    });
+  });
+});
   });
 
   describe('when given a non-SuperJSON object', () => {
@@ -1068,6 +1204,41 @@ test('regression https://github.com/blitz-js/babel-plugin-superjson-next/issues/
 
   SuperJSON.deserialize(serialized);
   expect(typeof (serialized.json as any).topics[0].post_count).toBe('string');
+});
+
+
+test('handles Set with circular reference that collapses', () => {
+  const set = new Set();
+  const root = { back: set };
+  set.add(null);
+  set.add(root);
+
+  const serialized = SuperJSON.serialize(root);
+  const deserialized = SuperJSON.deserialize(serialized);
+
+  expect(deserialized).toEqual(root);
+});
+
+test('handles Map with circular reference mapping to undefined', () => {
+  const map = new Map();
+  map.set(null, undefined);
+  map.set(map, undefined);
+
+  const serialized = SuperJSON.serialize(map);
+  const deserialized = SuperJSON.deserialize(serialized);
+
+  expect(deserialized).toEqual(map);
+});
+
+test('handles Map with circular reference mapping to null', () => {
+  const map = new Map();
+  map.set(null, undefined);
+  map.set(map, null);
+
+  const serialized = SuperJSON.serialize(map);
+  const deserialized = SuperJSON.deserialize(serialized);
+
+  expect(deserialized).toEqual(map);
 });
 
 test('performance regression', () => {

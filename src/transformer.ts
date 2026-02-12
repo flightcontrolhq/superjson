@@ -16,6 +16,7 @@ import {
 } from './is.js';
 import { findArr } from './util.js';
 import SuperJSON from './index.js';
+import type { AccessDeepContext } from './accessDeep.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -40,7 +41,11 @@ function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
   isApplicable: (v: any, superJson: SuperJSON) => v is I,
   annotation: A,
   transform: (v: I, superJson: SuperJSON) => O,
-  untransform: (v: O, superJson: SuperJSON) => I
+  untransform: (
+    v: O,
+    superJson: SuperJSON,
+    context: AccessDeepContext
+  ) => I
 ) {
   return {
     isApplicable,
@@ -127,13 +132,24 @@ const simpleRules = [
     // (sets only exist in es6+)
     // eslint-disable-next-line es5/no-es6-methods
     v => [...v.values()],
-    v => new Set(v)
+    (v, _, context) => {
+      const untransformed = new Set(v);
+      context?.set(untransformed, v.slice());
+      return untransformed;
+    }
   ),
   simpleTransformation(
     isMap,
     'map',
     v => [...v.entries()],
-    v => new Map(v)
+    (v, _, context) => {
+      const untransformed = new Map(v);
+      context?.set(
+        untransformed,
+        v.map(entry => (isArray(entry) ? entry[0] : undefined))
+      );
+      return untransformed;
+    }
   ),
 
   simpleTransformation<number, 'NaN' | 'Infinity' | '-Infinity', 'number'>(
@@ -361,7 +377,8 @@ simpleRules.forEach(rule => {
 export const untransformValue = (
   json: any,
   type: TypeAnnotation,
-  superJson: SuperJSON
+  superJson: SuperJSON,
+  context: AccessDeepContext
 ) => {
   if (isArray(type)) {
     switch (type[0]) {
@@ -382,6 +399,6 @@ export const untransformValue = (
       throw new Error('Unknown transformation: ' + type);
     }
 
-    return transformation.untransform(json as never, superJson);
+    return transformation.untransform(json as never, superJson, context);
   }
 };
