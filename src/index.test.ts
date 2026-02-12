@@ -1192,7 +1192,7 @@ test('handles Set with circular reference that collapses', () => {
   expect(deserialized).toEqual(root);
 });
 
-test('handles Map with circular reference that collapses', () => {
+test('handles Map with circular reference mapping to undefined', () => {
   const map = new Map();
   map.set(null, undefined);
   map.set(map, undefined);
@@ -1203,6 +1203,16 @@ test('handles Map with circular reference that collapses', () => {
   expect(deserialized).toEqual(map);
 });
 
+test('handles Map with circular reference mapping to null', () => {
+  const map = new Map();
+  map.set(null, undefined);
+  map.set(map, null);
+
+  const serialized = SuperJSON.serialize(map);
+  const deserialized = SuperJSON.deserialize(serialized);
+
+  expect(deserialized).toEqual(map);
+});
 
 test('performance regression', () => {
   const data: any[] = [];
