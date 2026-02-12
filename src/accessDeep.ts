@@ -30,28 +30,6 @@ const getNthKey = (
   return indexed[n];
 };
 
-const rememberIndexedCollectionKeys = (
-  before: unknown,
-  after: unknown,
-  context: AccessDeepContext
-) => {
-  if (!isArray(before)) {
-    return;
-  }
-
-  if (isSet(after)) {
-    context.set(after, before.slice());
-    return;
-  }
-
-  if (isMap(after)) {
-    context.set(
-      after,
-      before.map(entry => (isArray(entry) ? entry[0] : undefined))
-    );
-  }
-};
-
 function validatePath(path: (string | number)[]) {
   if (includes(path, '__proto__')) {
     throw new Error('__proto__ is not allowed as a property');
@@ -99,15 +77,13 @@ export const getDeep = (
 export const setDeep = (
   object: any,
   path: (string | number)[],
-  mapper: (v: any) => any,
+  mapper: (v: any, context: AccessDeepContext) => any,
   context: AccessDeepContext
 ): any => {
   validatePath(path);
 
   if (path.length === 0) {
-    const mapped = mapper(object);
-    rememberIndexedCollectionKeys(object, mapped, context);
-    return mapped;
+    return mapper(object, context);
   }
 
   let parent = object;
@@ -148,14 +124,12 @@ export const setDeep = (
 
   if (isArray(parent)) {
     const oldValue = parent[+lastKey];
-    const newValue = mapper(oldValue);
+    const newValue = mapper(oldValue, context);
     parent[+lastKey] = newValue;
-    rememberIndexedCollectionKeys(oldValue, newValue, context);
   } else if (isPlainObject(parent)) {
     const oldValue = parent[lastKey];
-    const newValue = mapper(oldValue);
+    const newValue = mapper(oldValue, context);
     parent[lastKey] = newValue;
-    rememberIndexedCollectionKeys(oldValue, newValue, context);
   }
 
   if (isSet(parent)) {
@@ -166,8 +140,7 @@ export const setDeep = (
     }
     const oldValue = indexed[row];
 
-    const newValue = mapper(oldValue);
-    rememberIndexedCollectionKeys(oldValue, newValue, context);
+    const newValue = mapper(oldValue, context);
 
     if (oldValue !== newValue) {
       if (row < parent.size) {
@@ -191,8 +164,7 @@ export const setDeep = (
 
     switch (type) {
       case 'key': {
-        const newKey = mapper(keyToRow);
-        rememberIndexedCollectionKeys(keyToRow, newKey, context);
+        const newKey = mapper(keyToRow, context);
         parent.set(newKey, parent.get(keyToRow));
 
         if (!isVirtualRow && newKey !== keyToRow) {
@@ -205,8 +177,7 @@ export const setDeep = (
 
       case 'value': {
         const oldValue = parent.get(keyToRow);
-        const newValue = mapper(oldValue);
-        rememberIndexedCollectionKeys(oldValue, newValue, context);
+        const newValue = mapper(oldValue, context);
         parent.set(keyToRow, newValue);
         break;
       }

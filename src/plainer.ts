@@ -71,7 +71,13 @@ export function applyValueAnnotations(
   traverse(
     annotations,
     (type, path) => {
-      plain = setDeep(plain, path, v => untransformValue(v, type, superJson), context);
+      plain = setDeep(
+        plain,
+        path,
+        (v, mapperContext) =>
+          untransformValue(v, type, superJson, mapperContext),
+        context
+      );
     },
     version
   );
