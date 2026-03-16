@@ -10,6 +10,7 @@ import {
 import { escapeKey, stringifyPath } from './pathstringifier.js';
 import {
   isInstanceOfRegisteredClass,
+  isInstanceOfSerializableClass,
   transformValue,
   TypeAnnotation,
   untransformValue,
@@ -120,7 +121,8 @@ const isDeep = (object: any, superJson: SuperJSON): boolean =>
   isMap(object) ||
   isSet(object) ||
   isError(object) ||
-  isInstanceOfRegisteredClass(object, superJson);
+  isInstanceOfRegisteredClass(object, superJson) ||
+  isInstanceOfSerializableClass(object, superJson);
 
 function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
   const existingSet = identities.get(object);

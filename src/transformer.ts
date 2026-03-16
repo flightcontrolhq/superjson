@@ -15,6 +15,7 @@ import {
   isURL,
 } from './is.js';
 import { findArr } from './util.js';
+import { SerializableClass } from './serializable-class-registry.js';
 import SuperJSON from './index.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
@@ -25,6 +26,7 @@ type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
+type SerializableClassTypeAnnotation = ['serializable-class', string];
 
 type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error';
 
@@ -32,7 +34,8 @@ type CompositeTypeAnnotation =
   | TypedArrayAnnotation
   | ClassTypeAnnotation
   | SymbolTypeAnnotation
-  | CustomTypeAnnotation;
+  | CustomTypeAnnotation
+  | SerializableClassTypeAnnotation;
 
 export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
 
@@ -224,15 +227,16 @@ const constructorToName = [
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
-  v => [...v].map(n => {
-    // Handle special float values that JSON.stringify converts to null
-    if (typeof n === 'number') {
-      if (Number.isNaN(n)) return 'NaN';
-      if (n === Infinity) return 'Infinity';
-      if (n === -Infinity) return '-Infinity';
-    }
-    return n;
-  }),
+  v =>
+    [...v].map(n => {
+      // Handle special float values that JSON.stringify converts to null
+      if (typeof n === 'number') {
+        if (Number.isNaN(n)) return 'NaN';
+        if (n === Infinity) return 'Infinity';
+        if (n === -Infinity) return '-Infinity';
+      }
+      return n;
+    }),
   (v, a) => {
     const ctor = constructorToName[a[1]];
 
@@ -298,6 +302,42 @@ const classRule = compositeTransformation(
   }
 );
 
+export function isInstanceOfSerializableClass(
+  potentialClass: any,
+  superJson: SuperJSON
+): potentialClass is InstanceType<SerializableClass> {
+  if (potentialClass?.constructor) {
+    const isRegistered = !!superJson.serializableClassRegistry.getIdentifier(
+      potentialClass.constructor
+    );
+    return isRegistered;
+  }
+  return false;
+}
+const serializableClassRule = compositeTransformation(
+  isInstanceOfSerializableClass,
+  (clazz, superJson) => {
+    const identifier = superJson.serializableClassRegistry.getIdentifier(
+      clazz.constructor as any
+    );
+    return ['serializable-class', identifier!];
+  },
+  (clazz, superJson) => {
+    return clazz.toSuperJSON();
+  },
+  (v, a, superJson) => {
+    const clazz = superJson.serializableClassRegistry.getValue(a[1]);
+
+    if (!clazz) {
+      throw new Error(
+        `Trying to deserialize unknown class '${a[1]}' - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`
+      );
+    }
+
+    return clazz.fromSuperJSON(v);
+  }
+);
+
 const customRule = compositeTransformation(
   (value, superJson): value is any => {
     return !!superJson.customTransformerRegistry.findApplicable(value);
@@ -323,7 +363,18 @@ const customRule = compositeTransformation(
   }
 );
 
-const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
+// --------------
+// This array is order sensitive
+// if same class is passed to both class registry and
+// serializable class registry 'classRule' is applied
+// --------------
+const compositeRules = [
+  classRule,
+  serializableClassRule,
+  symbolRule,
+  customRule,
+  typedArrayRule,
+];
 
 export const transformValue = (
   value: any,
@@ -369,6 +420,8 @@ export const untransformValue = (
         return symbolRule.untransform(json, type, superJson);
       case 'class':
         return classRule.untransform(json, type, superJson);
+      case 'serializable-class':
+        return serializableClassRule.untransform(json, type, superJson);
       case 'custom':
         return customRule.untransform(json, type, superJson);
       case 'typed-array':

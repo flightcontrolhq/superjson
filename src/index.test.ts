@@ -757,6 +757,91 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'works for serializable class': {
+      input: () => {
+        class User {
+          constructor(public name: string, public added: Date) {}
+          static fromSuperJSON(json: any) {
+            return new User(json.name, json.added);
+          }
+          toSuperJSON() {
+            return {
+              name: this.name,
+              added: this.added,
+            };
+          }
+        }
+        SuperJSON.registerSerializableClass(User);
+        return new User('superjson', new Date(2020, 1, 1));
+      },
+      output: {
+        name: 'superjson',
+        added: new Date(2020, 1, 1).toISOString(),
+      },
+      outputAnnotations: {
+        values: [
+          ['serializable-class', 'User'],
+          {
+            added: ['Date'],
+          },
+        ],
+      },
+    },
+    'works for nested serializable class': {
+      input: () => {
+        class User {
+          constructor(public name: string, public added: Date) {}
+          static fromSuperJSON(json: any) {
+            return new User(json.name, json.added);
+          }
+          toSuperJSON() {
+            return {
+              name: this.name,
+              added: this.added,
+            };
+          }
+        }
+        class Admin {
+          constructor(public adminId: string, public user: User) {}
+          static fromSuperJSON(json: any) {
+            return new Admin(json.adminId, json.user);
+          }
+          toSuperJSON() {
+            return {
+              adminId: this.adminId,
+              user: this.user,
+            };
+          }
+        }
+        SuperJSON.registerSerializableClass(User);
+        SuperJSON.registerSerializableClass(Admin);
+
+        const user = new User('superjson', new Date(2020, 1, 1));
+        const admin = new Admin('some id', user);
+
+        return admin;
+      },
+      output: {
+        adminId: 'some id',
+        user: {
+          name: 'superjson',
+          added: new Date(2020, 1, 1).toISOString(),
+        },
+      },
+      outputAnnotations: {
+        values: [
+          ['serializable-class', 'Admin'],
+          {
+            user: [
+              ['serializable-class', 'User'],
+              {
+                added: ['Date'],
+              },
+            ],
+          },
+        ],
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -860,7 +945,7 @@ describe('stringify & parse', () => {
           private topSpeed: number,
           private color: 'red' | 'blue' | 'yellow',
           private brand: string,
-          public carriages: Set<Carriage>,
+          public carriages: Set<Carriage>
         ) {}
 
         public brag() {
@@ -871,25 +956,35 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
+        s7: new Train(
+          100,
+          'yellow',
+          'Bombardier',
+          new Set([new Carriage('front'), new Carriage('back')])
+        ) as any,
       });
-      
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
           color: 'yellow',
           brand: 'Bombardier',
-          carriages: [
-            { name: 'front' },
-            { name: 'back' },
-          ],
+          carriages: [{ name: 'front' }, { name: 'back' }],
         },
       });
 
       expect(meta).toEqual({
         v: 1,
         values: {
-          s7: [['class', 'Train'], { carriages: ["set", { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] }] }],
+          s7: [
+            ['class', 'Train'],
+            {
+              carriages: [
+                'set',
+                { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] },
+              ],
+            },
+          ],
         },
       });
 
@@ -1339,7 +1434,9 @@ test('doesnt iterate to keys that dont exist', () => {
 test('deserialize in place', () => {
   const serialized = SuperJSON.serialize({ a: new Date() });
   const deserializedCopy = SuperJSON.deserialize(serialized);
-  const deserializedInPlace = SuperJSON.deserialize(serialized, { inPlace: true });
+  const deserializedInPlace = SuperJSON.deserialize(serialized, {
+    inPlace: true,
+  });
   expect(deserializedInPlace).toBe(serialized.json);
   expect(deserializedCopy).not.toBe(serialized.json);
   expect(deserializedCopy).toEqual(deserializedInPlace);
@@ -1383,4 +1480,77 @@ test('#310 fixes backwards compat', () => {
       b: new Set([1, 2]),
     },
   });
+});
+
+test('constructor side-effects & initialization', () => {
+  let objectsCreated = 0;
+
+  class User {
+    constructor(public name: string, public added: Date) {
+      objectsCreated++;
+    }
+    static fromSuperJSON(json: any) {
+      return new User(json.name, json.added);
+    }
+    toSuperJSON() {
+      return {
+        name: this.name,
+        added: this.added,
+      };
+    }
+  }
+  SuperJSON.registerSerializableClass(User);
+
+  const user = new User('superjson', new Date());
+
+  expect(objectsCreated).toBe(1);
+
+  SuperJSON.parse(SuperJSON.stringify(user));
+
+  expect(objectsCreated).toBe(2);
+});
+
+test('external json props in serializable classes', () => {
+  class User {
+    constructor(public name: string, public added: Date) {}
+
+    static fromSuperJSON(json: any) {
+      const { data } = json;
+      return new User(data.name, data.added);
+    }
+
+    toSuperJSON() {
+      return {
+        label: 'USER',
+        created: new Date(),
+        data: {
+          name: this.name,
+          added: this.added,
+        },
+      };
+    }
+  }
+  SuperJSON.registerSerializableClass(User);
+
+  expect(
+    SuperJSON.parse(
+      SuperJSON.stringify(new User('superjson', new Date(2020, 1, 1)))
+    )
+  ).toEqual(new User('superjson', new Date(2020, 1, 1)));
+});
+
+test('throw if non-serializable class is passed to registerSerializableClass', () => {
+  // Missing static fromSuperJSON
+  class NonSerializable {
+    toSuperJSON() {
+      return '';
+    }
+  }
+
+  expect(() => {
+    // @ts-expect-error Passed class is not serializable and will throw
+    SuperJSON.registerSerializableClass(NonSerializable);
+  }).toThrow(
+    "Class 'NonSerializable' must define static 'fromJSON()' and instance 'toJSON()' methods"
+  );
 });

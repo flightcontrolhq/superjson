@@ -1,5 +1,9 @@
 import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
 import { ClassRegistry, RegisterOptions } from './class-registry.js';
+import {
+  SerializableClassRegistry,
+  SerializableClass,
+} from './serializable-class-registry.js';
 import { Registry } from './registry.js';
 import {
   CustomTransfomer,
@@ -60,10 +64,13 @@ export default class SuperJSON {
     return res;
   }
 
-  deserialize<T = unknown>(payload: SuperJSONResult, options?: { inPlace?: boolean }): T {
+  deserialize<T = unknown>(
+    payload: SuperJSONResult,
+    options?: { inPlace?: boolean }
+  ): T {
     const { json, meta } = payload;
 
-    let result: T = options?.inPlace ? json : copy(json) as any;
+    let result: T = options?.inPlace ? json : (copy(json) as any);
 
     if (meta?.values) {
       result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this);
@@ -91,6 +98,11 @@ export default class SuperJSON {
   readonly classRegistry = new ClassRegistry();
   registerClass(v: Class, options?: RegisterOptions | string) {
     this.classRegistry.register(v, options);
+  }
+
+  readonly serializableClassRegistry = new SerializableClassRegistry();
+  registerSerializableClass(v: SerializableClass, identifier?: string) {
+    this.serializableClassRegistry.register(v, identifier);
   }
 
   readonly symbolRegistry = new Registry<Symbol>(s => s.description ?? '');
@@ -130,6 +142,9 @@ export default class SuperJSON {
   static registerClass = SuperJSON.defaultInstance.registerClass.bind(
     SuperJSON.defaultInstance
   );
+  static registerSerializableClass = SuperJSON.defaultInstance.registerSerializableClass.bind(
+    SuperJSON.defaultInstance
+  );
   static registerSymbol = SuperJSON.defaultInstance.registerSymbol.bind(
     SuperJSON.defaultInstance
   );
@@ -150,6 +165,7 @@ export const stringify = SuperJSON.stringify;
 export const parse = SuperJSON.parse;
 
 export const registerClass = SuperJSON.registerClass;
+export const registerSerializableClass = SuperJSON.registerSerializableClass;
 export const registerCustom = SuperJSON.registerCustom;
 export const registerSymbol = SuperJSON.registerSymbol;
 export const allowErrorProps = SuperJSON.allowErrorProps;
