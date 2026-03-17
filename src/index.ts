@@ -2,7 +2,7 @@ import { Class, JSONValue, SuperJSONResult, SuperJSONValue } from './types.js';
 import { ClassRegistry, RegisterOptions } from './class-registry.js';
 import {
   SerializableClassRegistry,
-  SerializableClass,
+  RegisterSerializableOptions,
 } from './serializable-class-registry.js';
 import { Registry } from './registry.js';
 import {
@@ -101,8 +101,11 @@ export default class SuperJSON {
   }
 
   readonly serializableClassRegistry = new SerializableClassRegistry();
-  registerSerializableClass(v: SerializableClass, identifier?: string) {
-    this.serializableClassRegistry.register(v, identifier);
+  registerSerializableClass(
+    v: Class,
+    options?: RegisterSerializableOptions | string
+  ) {
+    this.serializableClassRegistry.register(v, options);
   }
 
   readonly symbolRegistry = new Registry<Symbol>(s => s.description ?? '');

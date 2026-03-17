@@ -15,8 +15,11 @@ import {
   isURL,
 } from './is.js';
 import { findArr } from './util.js';
-import { SerializableClass } from './serializable-class-registry.js';
 import SuperJSON from './index.js';
+import {
+  DEFAULT_SERIALIZE_METHOD_NAMES,
+  SerializationMethodNames,
+} from './serializable-class-registry.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -305,7 +308,7 @@ const classRule = compositeTransformation(
 export function isInstanceOfSerializableClass(
   potentialClass: any,
   superJson: SuperJSON
-): potentialClass is InstanceType<SerializableClass> {
+): potentialClass is any {
   if (potentialClass?.constructor) {
     const isRegistered = !!superJson.serializableClassRegistry.getIdentifier(
       potentialClass.constructor
@@ -314,6 +317,30 @@ export function isInstanceOfSerializableClass(
   }
   return false;
 }
+
+function getMethodName(
+  clazz: any,
+  superJson: SuperJSON,
+  method: keyof SerializationMethodNames
+) {
+  const ctor = method === 'serialize' ? clazz.constructor : clazz;
+
+  const methodNames =
+    superJson.serializableClassRegistry.getMethodNames(ctor) ??
+    DEFAULT_SERIALIZE_METHOD_NAMES;
+
+  const name = methodNames[method];
+
+  if (typeof clazz[name] !== 'function') {
+    const id = superJson.serializableClassRegistry.getIdentifier(ctor);
+    throw new Error(
+      `Class ${id} has no ${method} method (must provide ${name})`
+    );
+  }
+
+  return name;
+}
+
 const serializableClassRule = compositeTransformation(
   isInstanceOfSerializableClass,
   (clazz, superJson) => {
@@ -323,7 +350,8 @@ const serializableClassRule = compositeTransformation(
     return ['serializable-class', identifier!];
   },
   (clazz, superJson) => {
-    return clazz.toSuperJSON();
+    const methodName = getMethodName(clazz, superJson, 'serialize');
+    return clazz[methodName]();
   },
   (v, a, superJson) => {
     const clazz = superJson.serializableClassRegistry.getValue(a[1]);
@@ -334,7 +362,8 @@ const serializableClassRule = compositeTransformation(
       );
     }
 
-    return clazz.fromSuperJSON(v);
+    const methodName = getMethodName(clazz, superJson, 'deserialize');
+    return (clazz as any)[methodName](v);
   }
 );
 

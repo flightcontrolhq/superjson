@@ -1,25 +1,41 @@
 import { Registry } from './registry.js';
-import { SuperJSONValue } from './types.js';
+import { Class } from './types.js';
 
-export interface SerializableClass {
-  fromSuperJSON(json: SuperJSONValue): InstanceType<this>;
-  new (...args: any[]): { toSuperJSON(): SuperJSONValue };
+export type SerializationMethodNames = {
+  serialize: string;
+  deserialize: string;
+};
+
+export interface RegisterSerializableOptions {
+  identifier?: string;
+  methodNames?: SerializationMethodNames;
 }
 
-export class SerializableClassRegistry extends Registry<SerializableClass> {
+export const DEFAULT_SERIALIZE_METHOD_NAMES: SerializationMethodNames = {
+  serialize: 'toSuperJSON',
+  deserialize: 'fromSuperJSON',
+};
+
+export class SerializableClassRegistry extends Registry<Class> {
+  private classToMethods: Map<Class, SerializationMethodNames> = new Map();
+
   constructor() {
     super(c => c.name);
   }
-  register(value: SerializableClass, identifier?: string): void {
-    const id = identifier ?? value.name;
-    if (
-      typeof value?.fromSuperJSON !== 'function' ||
-      typeof value?.prototype.toSuperJSON !== 'function'
-    ) {
-      throw new Error(
-        `Class '${id}' must define static 'fromJSON()' and instance 'toJSON()' methods`
-      );
+
+  register(value: Class, options?: RegisterSerializableOptions | string): void {
+    if (typeof options === 'object') {
+      if (options.methodNames) {
+        this.classToMethods.set(value, options.methodNames);
+      }
+
+      super.register(value, options.identifier);
+    } else {
+      super.register(value, options);
     }
-    super.register(value, id);
+  }
+
+  getMethodNames(value: Class): SerializationMethodNames | undefined {
+    return this.classToMethods.get(value);
   }
 }

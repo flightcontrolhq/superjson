@@ -842,6 +842,27 @@ describe('stringify & parse', () => {
         ],
       },
     },
+    'works for custom serialization method names': {
+      input: () => {
+        class User {
+          constructor(public name: string) {}
+          static deserialize(json: any) {
+            return new User(json);
+          }
+          serialize() {
+            return this.name;
+          }
+        }
+
+        SuperJSON.registerSerializableClass(User, {
+          methodNames: { serialize: 'serialize', deserialize: 'deserialize' },
+        });
+
+        return new User('superjson');
+      },
+      output: 'superjson',
+      outputAnnotations: { values: [['serializable-class', 'User']] },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -1539,18 +1560,22 @@ test('external json props in serializable classes', () => {
   ).toEqual(new User('superjson', new Date(2020, 1, 1)));
 });
 
-test('throw if non-serializable class is passed to registerSerializableClass', () => {
-  // Missing static fromSuperJSON
-  class NonSerializable {
-    toSuperJSON() {
-      return '';
-    }
-  }
+test('throw if serilization/deserialization method is missing', () => {
+  class NonSerializable {}
+  SuperJSON.registerSerializableClass(NonSerializable);
 
   expect(() => {
-    // @ts-expect-error Passed class is not serializable and will throw
-    SuperJSON.registerSerializableClass(NonSerializable);
+    SuperJSON.serialize(new NonSerializable());
   }).toThrow(
-    "Class 'NonSerializable' must define static 'fromJSON()' and instance 'toJSON()' methods"
+    'Class NonSerializable has no serialize method (must provide toSuperJSON)'
+  );
+
+  expect(() => {
+    SuperJSON.deserialize({
+      json: {},
+      meta: { values: [['serializable-class', 'NonSerializable']], v: 1 },
+    });
+  }).toThrow(
+    'Class NonSerializable has no deserialize method (must provide fromSuperJSON)'
   );
 });

@@ -239,6 +239,20 @@ export const walker = (
   const transformationResult = transformValue(object, superJson);
   const transformed = transformationResult?.value ?? object;
 
+  // Serializable class may return non-serializable values
+  if (!isDeep(transformed, superJson)) {
+    const type = transformationResult?.type;
+    const result: Result = type
+      ? {
+          transformedValue: transformed,
+          annotations: [type],
+        }
+      : {
+          transformedValue: transformed,
+        };
+    return result;
+  }
+
   const transformedValue: any = isArray(transformed) ? [] : {};
   const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
 
