@@ -1,16 +1,6 @@
-import {
-  isArray,
-  isEmptyObject,
-  isError,
-  isMap,
-  isPlainObject,
-  isPrimitive,
-  isSet,
-} from './is.js';
+import { isArray, isEmptyObject, isPlainObject, isPrimitive } from './is.js';
 import { escapeKey, stringifyPath } from './pathstringifier.js';
 import {
-  isInstanceOfRegisteredClass,
-  isInstanceOfSerializableClass,
   transformValue,
   TypeAnnotation,
   untransformValue,
@@ -22,7 +12,7 @@ import SuperJSON from './index.js';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
-type InnerNode<T> = [T, Record<string, Tree<T>>];
+type InnerNode<T> = [T, Tree<T> | Record<string, Tree<T>>];
 
 export type MinimisedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
 
@@ -51,12 +41,16 @@ function traverse<T>(
 
   const [nodeValue, children] = tree;
   if (children) {
-    forEach(children, (child, key) => {
-      traverse(child, walker, version, [
-        ...origin,
-        ...parsePath(key, legacyPaths),
-      ]);
-    });
+    if (isArray(children)) {
+      traverse(children, walker, version, origin);
+    } else {
+      forEach(children, (child, key) => {
+        traverse(child, walker, version, [
+          ...origin,
+          ...parsePath(key, legacyPaths),
+        ]);
+      });
+    }
   }
 
   walker(nodeValue, origin);
@@ -114,15 +108,6 @@ export function applyReferentialEqualityAnnotations(
 
   return plain;
 }
-
-const isDeep = (object: any, superJson: SuperJSON): boolean =>
-  isPlainObject(object) ||
-  isArray(object) ||
-  isMap(object) ||
-  isSet(object) ||
-  isError(object) ||
-  isInstanceOfRegisteredClass(object, superJson) ||
-  isInstanceOfSerializableClass(object, superJson);
 
 function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
   const existingSet = identities.get(object);
@@ -187,6 +172,9 @@ export function generateReferentialEqualityAnnotations(
   }
 }
 
+const isPlainObjectOrArray = (object: any) =>
+  isPlainObject(object) || isArray(object);
+
 export const walker = (
   object: any,
   identities: Map<any, any[][]>,
@@ -212,23 +200,6 @@ export const walker = (
     }
   }
 
-  if (!isDeep(object, superJson)) {
-    const transformed = transformValue(object, superJson);
-
-    const result: Result = transformed
-      ? {
-          transformedValue: transformed.value,
-          annotations: [transformed.type],
-        }
-      : {
-          transformedValue: object,
-        };
-    if (!primitive) {
-      seenObjects.set(object, result);
-    }
-    return result;
-  }
-
   if (includes(objectsInThisPath, object)) {
     // prevent circular references
     return {
@@ -236,74 +207,102 @@ export const walker = (
     };
   }
 
+  // Try to tansform object (apply composite or simple rule if applicable)
   const transformationResult = transformValue(object, superJson);
-  const transformed = transformationResult?.value ?? object;
 
-  // Serializable class may return non-serializable values
-  if (!isDeep(transformed, superJson)) {
-    const type = transformationResult?.type;
-    const result: Result = type
-      ? {
-          transformedValue: transformed,
-          annotations: [type],
-        }
-      : {
-          transformedValue: transformed,
-        };
-    return result;
-  }
+  // Handle value if transformed
+  if (transformationResult) {
+    const { value, type, isDeep } = transformationResult;
 
-  const transformedValue: any = isArray(transformed) ? [] : {};
-  const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
-
-  forEach(transformed, (value, index) => {
-    if (
-      index === '__proto__' ||
-      index === 'constructor' ||
-      index === 'prototype'
-    ) {
-      throw new Error(
-        `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
-      );
+    // If transformer mark value as non deep return it
+    if (!isDeep) {
+      const result: Result = {
+        transformedValue: value,
+        annotations: [type],
+      };
+      if (!primitive) seenObjects.set(object, result);
+      return result;
     }
 
+    // recurse if transformer mark value as deep
     const recursiveResult = walker(
       value,
       identities,
       superJson,
       dedupe,
-      [...path, index],
+      path,
       [...objectsInThisPath, object],
       seenObjects
     );
 
-    transformedValue[index] = recursiveResult.transformedValue;
+    const result: Result = recursiveResult.annotations
+      ? {
+          transformedValue: recursiveResult.transformedValue,
+          annotations: [type, recursiveResult.annotations],
+        }
+      : {
+          transformedValue: recursiveResult.transformedValue,
+          annotations: [type],
+        };
 
-    if (isArray(recursiveResult.annotations)) {
-      innerAnnotations[escapeKey(index)] = recursiveResult.annotations;
-    } else if (isPlainObject(recursiveResult.annotations)) {
-      forEach(recursiveResult.annotations, (tree, key) => {
-        innerAnnotations[escapeKey(index) + '.' + key] = tree;
-      });
-    }
-  });
-
-  const result: Result = isEmptyObject(innerAnnotations)
-    ? {
-        transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type]
-          : undefined,
-      }
-    : {
-        transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type, innerAnnotations]
-          : innerAnnotations,
-      };
-  if (!primitive) {
-    seenObjects.set(object, result);
+    if (!primitive) seenObjects.set(object, result);
+    return result;
   }
 
+  // Handle value if plain object or array
+  if (isPlainObjectOrArray(object)) {
+    const transformedValue: any = isArray(object) ? [] : {};
+    const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
+
+    forEach(object, (value, index) => {
+      if (
+        index === '__proto__' ||
+        index === 'constructor' ||
+        index === 'prototype'
+      ) {
+        throw new Error(
+          `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
+        );
+      }
+
+      const recursiveResult = walker(
+        value,
+        identities,
+        superJson,
+        dedupe,
+        [...path, index],
+        [...objectsInThisPath, object],
+        seenObjects
+      );
+
+      transformedValue[index] = recursiveResult.transformedValue;
+
+      if (isArray(recursiveResult.annotations)) {
+        innerAnnotations[escapeKey(index)] = recursiveResult.annotations;
+      } else if (isPlainObject(recursiveResult.annotations)) {
+        forEach(recursiveResult.annotations, (tree, key) => {
+          innerAnnotations[escapeKey(index) + '.' + key] = tree;
+        });
+      }
+    });
+
+    const result: Result = isEmptyObject(innerAnnotations)
+      ? {
+          transformedValue,
+        }
+      : {
+          transformedValue,
+          annotations: innerAnnotations,
+        };
+
+    if (!primitive) seenObjects.set(object, result);
+    return result;
+  }
+
+  // Return value as is
+  const result = {
+    transformedValue: object,
+  };
+  if (!primitive) seenObjects.set(object, result);
   return result;
 };

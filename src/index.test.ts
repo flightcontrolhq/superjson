@@ -847,10 +847,10 @@ describe('stringify & parse', () => {
         class User {
           constructor(public name: string) {}
           static deserialize(json: any) {
-            return new User(json);
+            return new User(json.name);
           }
           serialize() {
-            return this.name;
+            return { name: this.name };
           }
         }
 
@@ -860,8 +860,31 @@ describe('stringify & parse', () => {
 
         return new User('superjson');
       },
-      output: 'superjson',
-      outputAnnotations: { values: [['serializable-class', 'User']] },
+      output: { name: 'superjson' },
+      outputAnnotations: {
+        values: [['serializable-class', 'User']],
+      },
+    },
+    'works for recrusive custom registry': {
+      input: () => {
+        class Custom {
+          constructor(public date: Date) {}
+        }
+        SuperJSON.registerCustom(
+          {
+            isApplicable: v => v instanceof Custom,
+            serialize: (v: Custom) => v.date,
+            deserialize: (v: any) => new Custom(v),
+            recursive: true,
+          },
+          'OurCustom'
+        );
+        return new Custom(new Date(2020, 1, 1));
+      },
+      output: new Date(2020, 1, 1).toISOString(),
+      outputAnnotations: {
+        values: [['custom', 'OurCustom'], ['Date']],
+      },
     },
   };
 
@@ -1578,4 +1601,35 @@ test('throw if serilization/deserialization method is missing', () => {
   }).toThrow(
     'Class NonSerializable has no deserialize method (must provide fromSuperJSON)'
   );
+});
+
+test('Handles recrusive primitives and non-serilizable classes', () => {
+  class PrimitiveTest {
+    constructor(public name: string = 'superjson') {}
+    toSuperJSON() {
+      return this.name;
+    }
+  }
+
+  SuperJSON.registerSerializableClass(PrimitiveTest);
+
+  expect(SuperJSON.serialize(new PrimitiveTest())).toEqual({
+    json: 'superjson',
+    meta: { values: [['serializable-class', 'PrimitiveTest']], v: 1 },
+  });
+
+  class NonSerializable {}
+  class ClassTest {
+    constructor(public cls: NonSerializable = new NonSerializable()) {}
+    toSuperJSON() {
+      return this.cls;
+    }
+  }
+
+  SuperJSON.registerSerializableClass(ClassTest);
+
+  expect(SuperJSON.serialize(new ClassTest())).toEqual({
+    json: new NonSerializable(),
+    meta: { values: [['serializable-class', 'ClassTest']], v: 1 },
+  });
 });
