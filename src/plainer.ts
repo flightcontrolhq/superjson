@@ -182,11 +182,12 @@ export const walker = (
   dedupe: boolean,
   path: any[] = [],
   objectsInThisPath: any[] = [],
-  seenObjects = new Map<unknown, Result>()
+  seenObjects = new Map<unknown, Result>(),
+  isRecursive: boolean = false // Prevent overwrite of original object of identities map in recursive transformtion
 ): Result => {
   const primitive = isPrimitive(object);
 
-  if (!primitive) {
+  if (!primitive && !isRecursive) {
     addIdentity(object, path, identities);
 
     const seen = seenObjects.get(object);
@@ -232,7 +233,8 @@ export const walker = (
       dedupe,
       path,
       [...objectsInThisPath, object],
-      seenObjects
+      seenObjects,
+      true
     );
 
     const result: Result = recursiveResult.annotations
