@@ -183,12 +183,12 @@ export const walker = (
   path: any[] = [],
   objectsInThisPath: any[] = [],
   seenObjects = new Map<unknown, Result>(),
-  isRecursive: boolean = false // Prevent overwrite of original object of identities map in recursive transformtion
+  isTransformation: boolean = false // Prevent overwrite of original object in identities map in recursive transformtion
 ): Result => {
   const primitive = isPrimitive(object);
 
-  if (!primitive && !isRecursive) {
-    addIdentity(object, path, identities);
+  if (!primitive) {
+    if (!isTransformation) addIdentity(object, path, identities);
 
     const seen = seenObjects.get(object);
     if (seen) {
