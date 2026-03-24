@@ -58,7 +58,7 @@ function traverse<T>(
   const [nodeValue, children] = tree;
   if (children) {
     if (isArray(children)) {
-      traverse(children, walker, legacyPaths, origin);
+      traverse(children, walker, legacyPaths, origin, strOrigin);
     } else {
       traverseObject(children, walker, legacyPaths, origin, strOrigin);
     }
