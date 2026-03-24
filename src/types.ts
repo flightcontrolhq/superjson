@@ -1,5 +1,4 @@
-import { TypeAnnotation } from './transformer.js';
-import { MinimisedTree, ReferentialEqualityAnnotations } from './plainer.js';
+import { MetaObject } from './plainer.js';
 
 export type Class = { new (...args: any[]): any };
 
@@ -39,9 +38,5 @@ export interface SuperJSONObject {
 
 export interface SuperJSONResult {
   json: JSONValue;
-  meta?: {
-    values?: MinimisedTree<TypeAnnotation>;
-    referentialEqualities?: ReferentialEqualityAnnotations;
-    v?: number;
-  };
+  meta?: MetaObject;
 }

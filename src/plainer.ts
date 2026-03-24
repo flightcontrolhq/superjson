@@ -12,101 +12,174 @@ import SuperJSON from './index.js';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
-type InnerNode<T> = [T, Tree<T> | Record<string, Tree<T>>];
+type InnerNode<T> = [T, MinimisedTree<T>];
 
-export type MinimisedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
+export type MinimisedTree<T> =
+  | Tree<T>
+  | { [k: string]: MinimisedTree<T> }
+  | undefined;
 
 const enableLegacyPaths = (version: number) => version < 1;
 
+function traverseObject<T>(
+  tree: { [k: string]: MinimisedTree<T> },
+  walker: (type: any, path: string[], strPath?: string) => void,
+  legacyPaths: boolean,
+  origin: string[],
+  strOrigin: string | undefined = undefined
+) {
+  forEach(tree, (subtree, key) => {
+    traverse(
+      subtree,
+      walker,
+      legacyPaths,
+      [...origin, ...parsePath(key, legacyPaths)],
+      strOrigin !== undefined ? strOrigin + '.' + key : key
+    );
+  });
+}
+
 function traverse<T>(
   tree: MinimisedTree<T>,
-  walker: (v: T, path: string[]) => void,
-  version: number,
-  origin: string[] = []
+  walker: (type: any, path: string[], strPath?: string) => void,
+  legacyPaths: boolean,
+  origin: string[] = [],
+  strOrigin: string | undefined = undefined
 ): void {
   if (!tree) {
     return;
   }
 
-  const legacyPaths = enableLegacyPaths(version);
   if (!isArray(tree)) {
-    forEach(tree, (subtree, key) =>
-      traverse(subtree, walker, version, [
-        ...origin,
-        ...parsePath(key, legacyPaths),
-      ])
-    );
+    traverseObject(tree, walker, legacyPaths, origin, strOrigin);
     return;
   }
 
   const [nodeValue, children] = tree;
   if (children) {
     if (isArray(children)) {
-      traverse(children, walker, version, origin);
+      traverse(children, walker, legacyPaths, origin);
     } else {
-      forEach(children, (child, key) => {
-        traverse(child, walker, version, [
-          ...origin,
-          ...parsePath(key, legacyPaths),
-        ]);
-      });
+      traverseObject(children, walker, legacyPaths, origin, strOrigin);
     }
   }
 
-  walker(nodeValue, origin);
+  walker(nodeValue, origin, strOrigin);
 }
 
-export function applyValueAnnotations(
-  plain: any,
-  annotations: MinimisedTree<TypeAnnotation>,
-  version: number,
-  superJson: SuperJSON
+/**
+ * Function to parse referential equalities object into:
+ *  - root: Array of root referential equalities to loop and apply them at the end
+ *  - other: Map of 'representative paths' -> 'parsed duplicate paths'
+ *  - duplicate: Set of all duplicate (non-representative) paths to skip them in walker
+ *    when applying value annotations
+ */
+function parseReferentialEqualities(
+  referentialEqualities: ReferentialEqualityAnnotations | undefined,
+  legacyPaths: boolean
 ) {
-  traverse(
-    annotations,
-    (type, path) => {
-      plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
-    },
-    version
+  // Extract root and other from referentialEqualities
+  let root: string[] | undefined;
+  let other: Record<string, string[]> | undefined;
+  if (isArray(referentialEqualities)) {
+    const [r, o] = referentialEqualities;
+    root = r;
+    other = o;
+  } else {
+    other = referentialEqualities;
+  }
+
+  const rootArray = root?.map(p => parsePath(p, legacyPaths)) ?? [];
+
+  const otherMap = new Map<string, string[][]>();
+  const duplicateSet = new Set<string>();
+  if (other) {
+    for (const [rep, iden] of Object.entries(other)) {
+      otherMap.set(
+        rep,
+        iden.map(p => parsePath(p, legacyPaths))
+      );
+      for (const p of iden) duplicateSet.add(p);
+    }
+  }
+
+  // Return root array and other map
+  return { root: rootArray, other: otherMap, duplicate: duplicateSet };
+}
+
+export type MetaObject = {
+  values?: MinimisedTree<TypeAnnotation>;
+  referentialEqualities?: ReferentialEqualityAnnotations;
+  v?: number;
+};
+
+/**
+ * This function apply meta object (value and referential equalities annotations) to JSON input.
+ *
+ * Behavior:
+ *  - 1. Apply all non-root referential equalities first so recursive value annotations get proper input even with dedupe=true
+ *  - 2. Apply value annotations, while also check referential equality:
+ *    - A. If node is duplicate skip the annotation
+ *    - B. If node is representative update all duplicate nodes
+ *    - C. If not referentially equal to any other node apply annotation normally
+ *  - 3. Apply root referential equalities
+ *
+ * @returns Modified JSON after applying value and referential equalities annotations
+ */
+export function applyMeta(
+  json: any,
+  meta: MetaObject,
+  superJson: SuperJSON
+): any {
+  // Handle version
+  const version = meta.v ?? 0;
+  const legacyPaths = enableLegacyPaths(version);
+
+  // Parse referenial equality object (parsed once for performance)
+  const { root, other, duplicate } = parseReferentialEqualities(
+    meta.referentialEqualities,
+    legacyPaths
   );
 
-  return plain;
-}
+  // Function to set referential equality
+  const setReferentialEqualityFn = (
+    representativePath: string[],
+    identicalPaths: string[][]
+  ) => {
+    const object = getDeep(json, representativePath);
+    for (const p of identicalPaths) json = setDeep(json, p, () => object);
+  };
 
-export function applyReferentialEqualityAnnotations(
-  plain: any,
-  annotations: ReferentialEqualityAnnotations,
-  version: number
-) {
-  const legacyPaths = enableLegacyPaths(version);
-  function apply(identicalPaths: string[], path: string) {
-    const object = getDeep(plain, parsePath(path, legacyPaths));
+  // Function to set value annotation, It also update referential equality if needed
+  const setValueAnnotationsFn = (
+    type: any,
+    path: string[],
+    strPath?: string
+  ) => {
+    // Skip on duplicate paths (Will be updated by representative path)
+    if (strPath && duplicate.has(strPath)) return;
+    // Update json
+    json = setDeep(json, path, v => untransformValue(v, type, superJson));
+    // If node is representative update all duplicate paths
+    const refPaths = strPath && other.get(strPath);
+    if (refPaths) setReferentialEqualityFn(path, refPaths);
+  };
 
-    identicalPaths
-      .map(path => parsePath(path, legacyPaths))
-      .forEach(identicalObjectPath => {
-        plain = setDeep(plain, identicalObjectPath, () => object);
-      });
+  // Apply other referential equality
+  for (const [rep, iden] of other) {
+    setReferentialEqualityFn(parsePath(rep, legacyPaths), iden);
   }
 
-  if (isArray(annotations)) {
-    const [root, other] = annotations;
-    root.forEach(identicalPath => {
-      plain = setDeep(
-        plain,
-        parsePath(identicalPath, legacyPaths),
-        () => plain
-      );
-    });
+  // Apply value annotations and in-place referential equality if node is updated
+  traverse(meta.values, setValueAnnotationsFn, legacyPaths);
 
-    if (other) {
-      forEach(other, apply);
-    }
-  } else {
-    forEach(annotations, apply);
+  // Apply root referential equalities
+  for (const p of root) {
+    json = setDeep(json, p, () => json);
   }
 
-  return plain;
+  // return modified json
+  return json;
 }
 
 function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
@@ -175,20 +248,31 @@ export function generateReferentialEqualityAnnotations(
 const isPlainObjectOrArray = (object: any) =>
   isPlainObject(object) || isArray(object);
 
+/**
+ * Walker to serialize input. It supports recursive custom transformations so 'walker' also applied to return
+ * of transformations if needed.
+ *
+ * Known limitation:
+ *  - Return of recursive custom will always be considered new object even if defined in the tree else where (referential
+ * equality is blocked on the same path) so it will be linked in referential equality nor be deduped, This limitation is
+ * intentional to avoid making code too complex where we need to store and compare depths if multple objects are defined
+ * at the same path during transformation.
+ */
 export const walker = (
   object: any,
   identities: Map<any, any[][]>,
   superJson: SuperJSON,
   dedupe: boolean,
-  path: any[] = [],
+  path: string[] = [],
   objectsInThisPath: any[] = [],
   seenObjects = new Map<unknown, Result>(),
-  isTransformation: boolean = false // Prevent overwrite of original object in identities map in recursive transformtion
+  isSamePath: boolean = false
 ): Result => {
   const primitive = isPrimitive(object);
+  const registerSeen = !primitive && !isSamePath;
 
-  if (!primitive) {
-    if (!isTransformation) addIdentity(object, path, identities);
+  if (registerSeen) {
+    addIdentity(object, path, identities);
 
     const seen = seenObjects.get(object);
     if (seen) {
@@ -221,21 +305,23 @@ export const walker = (
         transformedValue: value,
         annotations: [type],
       };
-      if (!primitive) seenObjects.set(object, result);
+      if (registerSeen) seenObjects.set(object, result);
       return result;
     }
 
     // recurse if transformer mark value as deep
+    objectsInThisPath.push(object);
     const recursiveResult = walker(
       value,
       identities,
       superJson,
       dedupe,
       path,
-      [...objectsInThisPath, object],
+      objectsInThisPath,
       seenObjects,
       true
     );
+    objectsInThisPath.pop();
 
     const result: Result = recursiveResult.annotations
       ? {
@@ -247,14 +333,14 @@ export const walker = (
           annotations: [type],
         };
 
-    if (!primitive) seenObjects.set(object, result);
+    if (registerSeen) seenObjects.set(object, result);
     return result;
   }
 
   // Handle value if plain object or array
   if (isPlainObjectOrArray(object)) {
     const transformedValue: any = isArray(object) ? [] : {};
-    const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
+    const innerAnnotations: Record<string, MinimisedTree<TypeAnnotation>> = {};
 
     forEach(object, (value, index) => {
       if (
@@ -267,15 +353,18 @@ export const walker = (
         );
       }
 
+      objectsInThisPath.push(object);
       const recursiveResult = walker(
         value,
         identities,
         superJson,
         dedupe,
         [...path, index],
-        [...objectsInThisPath, object],
-        seenObjects
+        objectsInThisPath,
+        seenObjects,
+        false
       );
+      objectsInThisPath.pop();
 
       transformedValue[index] = recursiveResult.transformedValue;
 
@@ -297,7 +386,7 @@ export const walker = (
           annotations: innerAnnotations,
         };
 
-    if (!primitive) seenObjects.set(object, result);
+    if (registerSeen) seenObjects.set(object, result);
     return result;
   }
 
@@ -305,6 +394,6 @@ export const walker = (
   const result = {
     transformedValue: object,
   };
-  if (!primitive) seenObjects.set(object, result);
+  if (registerSeen) seenObjects.set(object, result);
   return result;
 };

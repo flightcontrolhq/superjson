@@ -16,10 +16,6 @@ import {
 } from './is.js';
 import { findArr } from './util.js';
 import SuperJSON from './index.js';
-import {
-  DEFAULT_SERIALIZE_METHOD_NAMES,
-  SerializationMethodNames,
-} from './serializable-class-registry.js';
 
 export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 
@@ -29,7 +25,6 @@ type TypedArrayAnnotation = ['typed-array', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
-type SerializableClassTypeAnnotation = ['serializable-class', string];
 
 type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error';
 
@@ -37,8 +32,7 @@ type CompositeTypeAnnotation =
   | TypedArrayAnnotation
   | ClassTypeAnnotation
   | SymbolTypeAnnotation
-  | CustomTypeAnnotation
-  | SerializableClassTypeAnnotation;
+  | CustomTypeAnnotation;
 
 export type TypeAnnotation = SimpleTypeAnnotation | CompositeTypeAnnotation;
 
@@ -322,69 +316,6 @@ const classRule = compositeTransformation(
   () => true
 );
 
-export function isInstanceOfSerializableClass(
-  potentialClass: any,
-  superJson: SuperJSON
-): potentialClass is any {
-  if (potentialClass?.constructor) {
-    const isRegistered = !!superJson.serializableClassRegistry.getIdentifier(
-      potentialClass.constructor
-    );
-    return isRegistered;
-  }
-  return false;
-}
-
-function getMethodName(
-  clazz: any,
-  superJson: SuperJSON,
-  method: keyof SerializationMethodNames
-) {
-  const ctor = method === 'serialize' ? clazz.constructor : clazz;
-
-  const methodNames =
-    superJson.serializableClassRegistry.getMethodNames(ctor) ??
-    DEFAULT_SERIALIZE_METHOD_NAMES;
-
-  const name = methodNames[method];
-
-  if (typeof clazz[name] !== 'function') {
-    const id = superJson.serializableClassRegistry.getIdentifier(ctor);
-    throw new Error(
-      `Class ${id} has no ${method} method (must provide ${name})`
-    );
-  }
-
-  return name;
-}
-
-const serializableClassRule = compositeTransformation(
-  isInstanceOfSerializableClass,
-  (clazz, superJson) => {
-    const identifier = superJson.serializableClassRegistry.getIdentifier(
-      clazz.constructor as any
-    );
-    return ['serializable-class', identifier!];
-  },
-  (clazz, superJson) => {
-    const methodName = getMethodName(clazz, superJson, 'serialize');
-    return clazz[methodName]();
-  },
-  (v, a, superJson) => {
-    const clazz = superJson.serializableClassRegistry.getValue(a[1]);
-
-    if (!clazz) {
-      throw new Error(
-        `Trying to deserialize unknown class '${a[1]}' - check https://github.com/blitz-js/superjson/issues/116#issuecomment-773996564`
-      );
-    }
-
-    const methodName = getMethodName(clazz, superJson, 'deserialize');
-    return (clazz as any)[methodName](v);
-  },
-  () => true
-);
-
 const customRule = compositeTransformation(
   (value, superJson): value is any => {
     return !!superJson.customTransformerRegistry.findApplicable(value);
@@ -416,18 +347,7 @@ const customRule = compositeTransformation(
   }
 );
 
-// --------------
-// This array is order sensitive
-// if same class is passed to both class registry and
-// serializable class registry 'classRule' is applied
-// --------------
-const compositeRules = [
-  classRule,
-  serializableClassRule,
-  symbolRule,
-  customRule,
-  typedArrayRule,
-];
+const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
 
 export const transformValue = (
   value: any,
@@ -475,8 +395,6 @@ export const untransformValue = (
         return symbolRule.untransform(json, type, superJson);
       case 'class':
         return classRule.untransform(json, type, superJson);
-      case 'serializable-class':
-        return serializableClassRule.untransform(json, type, superJson);
       case 'custom':
         return customRule.untransform(json, type, superJson);
       case 'typed-array':

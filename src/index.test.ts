@@ -757,114 +757,6 @@ describe('stringify & parse', () => {
         },
       },
     },
-    'works for serializable class': {
-      input: () => {
-        class User {
-          constructor(public name: string, public added: Date) {}
-          static fromSuperJSON(json: any) {
-            return new User(json.name, json.added);
-          }
-          toSuperJSON() {
-            return {
-              name: this.name,
-              added: this.added,
-            };
-          }
-        }
-        SuperJSON.registerSerializableClass(User);
-        return new User('superjson', new Date(2020, 1, 1));
-      },
-      output: {
-        name: 'superjson',
-        added: new Date(2020, 1, 1).toISOString(),
-      },
-      outputAnnotations: {
-        values: [
-          ['serializable-class', 'User'],
-          {
-            added: ['Date'],
-          },
-        ],
-      },
-    },
-    'works for nested serializable class': {
-      input: () => {
-        class User {
-          constructor(public name: string, public added: Date) {}
-          static fromSuperJSON(json: any) {
-            return new User(json.name, json.added);
-          }
-          toSuperJSON() {
-            return {
-              name: this.name,
-              added: this.added,
-            };
-          }
-        }
-        class Admin {
-          constructor(public adminId: string, public user: User) {}
-          static fromSuperJSON(json: any) {
-            return new Admin(json.adminId, json.user);
-          }
-          toSuperJSON() {
-            return {
-              adminId: this.adminId,
-              user: this.user,
-            };
-          }
-        }
-        SuperJSON.registerSerializableClass(User);
-        SuperJSON.registerSerializableClass(Admin);
-
-        const user = new User('superjson', new Date(2020, 1, 1));
-        const admin = new Admin('some id', user);
-
-        return admin;
-      },
-      output: {
-        adminId: 'some id',
-        user: {
-          name: 'superjson',
-          added: new Date(2020, 1, 1).toISOString(),
-        },
-      },
-      outputAnnotations: {
-        values: [
-          ['serializable-class', 'Admin'],
-          {
-            user: [
-              ['serializable-class', 'User'],
-              {
-                added: ['Date'],
-              },
-            ],
-          },
-        ],
-      },
-    },
-    'works for custom serialization method names': {
-      input: () => {
-        class User {
-          constructor(public name: string) {}
-          static deserialize(json: any) {
-            return new User(json.name);
-          }
-          serialize() {
-            return { name: this.name };
-          }
-        }
-
-        SuperJSON.registerSerializableClass(User, {
-          methodNames: { serialize: 'serialize', deserialize: 'deserialize' },
-        });
-
-        return new User('superjson');
-      },
-      output: { name: 'superjson' },
-      outputAnnotations: {
-        values: [['serializable-class', 'User']],
-      },
-    },
     'works for recrusive custom registry': {
       input: () => {
         class Custom {
@@ -1526,110 +1418,48 @@ test('#310 fixes backwards compat', () => {
   });
 });
 
-test('constructor side-effects & initialization', () => {
-  let objectsCreated = 0;
-
-  class User {
-    constructor(public name: string, public added: Date) {
-      objectsCreated++;
-    }
-    static fromSuperJSON(json: any) {
-      return new User(json.name, json.added);
-    }
-    toSuperJSON() {
-      return {
-        name: this.name,
-        added: this.added,
-      };
-    }
+test('recursive custom transformer does NOT preserve external referential equality (known limitation)', () => {
+  class Box {
+    constructor(public value: any) {}
   }
-  SuperJSON.registerSerializableClass(User);
 
-  const user = new User('superjson', new Date());
+  const shared = { when: new Date('2024-01-01T00:00:00.000Z') };
+  const input = {
+    a: new Box(shared),
+    b: shared,
+  };
 
-  expect(objectsCreated).toBe(1);
+  const serialized = SuperJSON.serialize(input);
+  const result: any = SuperJSON.deserialize(serialized);
 
-  SuperJSON.parse(SuperJSON.stringify(user));
-
-  expect(objectsCreated).toBe(2);
+  expect(result.a.value).toEqual(result.b); // Same value
+  expect(result.a.value).not.toBe(result.b); // Not same reference
 });
 
-test('external json props in serializable classes', () => {
-  class User {
-    constructor(public name: string, public added: Date) {}
-
-    static fromSuperJSON(json: any) {
-      const { data } = json;
-      return new User(data.name, data.added);
-    }
-
-    toSuperJSON() {
-      return {
-        label: 'USER',
-        created: new Date(),
-        data: {
-          name: this.name,
-          added: this.added,
-        },
-      };
-    }
+test('dedupe=true with recursive custom transformer', () => {
+  class Box {
+    constructor(public value: any) {}
   }
-  SuperJSON.registerSerializableClass(User);
 
-  expect(
-    SuperJSON.parse(
-      SuperJSON.stringify(new User('superjson', new Date(2020, 1, 1)))
-    )
-  ).toEqual(new User('superjson', new Date(2020, 1, 1)));
-});
-
-test('throw if serilization/deserialization method is missing', () => {
-  class NonSerializable {}
-  SuperJSON.registerSerializableClass(NonSerializable);
-
-  expect(() => {
-    SuperJSON.serialize(new NonSerializable());
-  }).toThrow(
-    'Class NonSerializable has no serialize method (must provide toSuperJSON)'
+  SuperJSON.registerCustom(
+    {
+      isApplicable: (v): v is Box => v instanceof Box,
+      serialize: (v: Box) => v.value,
+      deserialize: (v: any) => new Box(v),
+      recursive: true,
+    },
+    'box-dedupe'
   );
 
-  expect(() => {
-    SuperJSON.deserialize({
-      json: {},
-      meta: { values: [['serializable-class', 'NonSerializable']], v: 1 },
-    });
-  }).toThrow(
-    'Class NonSerializable has no deserialize method (must provide fromSuperJSON)'
-  );
-});
+  const shared = { date: new Date('2024-01-01T00:00:00.000Z') };
+  const input = {
+    first: new Box(shared),
+    second: new Box(shared),
+  };
 
-test('Handles recrusive primitives and non-serilizable classes', () => {
-  class PrimitiveTest {
-    constructor(public name: string = 'superjson') {}
-    toSuperJSON() {
-      return this.name;
-    }
-  }
+  const instance = new SuperJSON({ dedupe: true });
+  const serialized = instance.serialize(input);
+  const result: any = instance.deserialize(serialized);
 
-  SuperJSON.registerSerializableClass(PrimitiveTest);
-
-  expect(SuperJSON.serialize(new PrimitiveTest())).toEqual({
-    json: 'superjson',
-    meta: { values: [['serializable-class', 'PrimitiveTest']], v: 1 },
-  });
-
-  class NonSerializable {}
-  class ClassTest {
-    constructor(public cls: NonSerializable = new NonSerializable()) {}
-    toSuperJSON() {
-      return this.cls;
-    }
-  }
-
-  SuperJSON.registerSerializableClass(ClassTest);
-
-  expect(SuperJSON.serialize(new ClassTest())).toEqual({
-    json: new NonSerializable(),
-    meta: { values: [['serializable-class', 'ClassTest']], v: 1 },
-  });
+  expect(result.first.value).toBe(result.second.value);
 });
