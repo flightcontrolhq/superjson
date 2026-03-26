@@ -124,6 +124,23 @@ describe('Referential equality tests', () => {
     equalityTest(input);
   });
 
+  test('Intermediate-path equality resolution does not drop child annotations', () => {
+    const sharedDate = new Date('2024-01-01');
+    const shared = {
+      date1: sharedDate,
+      date2: new Date('2025-01-01'),
+      date3: sharedDate,
+      regexp: /test/gi,
+    };
+
+    const input = {
+      a: shared,
+      b: shared,
+    };
+
+    equalityTest(input);
+  });
+
   test('root shared reference', () => {
     const input: any = { when: new Date() };
     input.ref = input;

@@ -55,23 +55,41 @@ function traverse<T>(
   }
 
   if (!isArray(tree)) {
+    // Map to store each path and resolved state when looping forEach
+    const seenPaths = new Map<string, boolean>();
+    // Loop tree
     forEach(tree, (subtree, key) => {
+      // parse key
       const parsedKey = parsePath(key, legacyPaths, depthSegment);
 
+      // initiate child path
       const childPath = [...origin];
+
+      // As keys can be 'key1.key2.key3' loop parsed key and ensure to path is duplicate and so should be skipped
+      // We skip last key as it will be handled separetly in next traverse function
       for (let i = 0; i < parsedKey.length - 1; i++) {
+        // Update child path and stringify it
         childPath.push(parsedKey[i]);
+        const path = stringifyPathWithDepth([childPath, 0]);
 
-        const equalityGroup = equalityGroups.get(
-          stringifyPathWithDepth([childPath, 0])
-        );
+        // check if path already seen, if yes handle according to already stored value
+        let resolved;
+        if ((resolved = seenPaths.get(path)) !== undefined) {
+          if (resolved) return;
+          continue;
+        }
 
+        // check if path is in equality group, if yes handle it and stored resolved state in seen paths
+        const equalityGroup = equalityGroups.get(path);
         if (equalityGroup) {
-          if (equalityGroup.resolved) return;
+          const resolved = equalityGroup.resolved;
           equalityGroup.resolved = true;
+          seenPaths.set(path, resolved);
+          if (resolved) return;
         }
       }
 
+      // Add last key to the child path
       childPath.push(parsedKey[parsedKey.length - 1]);
 
       traverse(
@@ -84,6 +102,7 @@ function traverse<T>(
         0
       );
     });
+
     return;
   }
 
