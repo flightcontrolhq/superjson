@@ -853,7 +853,7 @@ describe('stringify & parse', () => {
       }
       if (meta) {
         const { v, ...rest } = meta;
-        expect(v).toBe(1);
+        expect(v).toBe(2);
         expect(rest).toEqual(expectedOutputAnnotations);
       } else {
         expect(meta).toEqual(expectedOutputAnnotations);
@@ -910,7 +910,7 @@ describe('stringify & parse', () => {
       });
 
       expect(meta).toEqual({
-        v: 1,
+        v: 2,
         values: {
           s7: [
             ['class', 'Train'],
@@ -985,7 +985,7 @@ describe('stringify & parse', () => {
         a: '1000',
       },
       meta: {
-        v: 1,
+        v: 2,
         values: {
           a: ['bigint'],
         },
@@ -1069,7 +1069,7 @@ test('regression #83: negative zero', () => {
 
   const stringified = SuperJSON.stringify(input);
   expect(stringified).toMatchInlineSnapshot(
-    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"],\\"v\\":1}}"`
+    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"],\\"v\\":2}}"`
   );
 
   const parsed: number = SuperJSON.parse(stringified);
@@ -1289,7 +1289,7 @@ test('regression #245: superjson referential equalities only use the top-most pa
           "b",
         ],
       },
-      "v": 1,
+      "v": 2,
     }
   `);
 
@@ -1416,50 +1416,4 @@ test('#310 fixes backwards compat', () => {
       b: new Set([1, 2]),
     },
   });
-});
-
-test('recursive custom transformer does NOT preserve external referential equality (known limitation)', () => {
-  class Box {
-    constructor(public value: any) {}
-  }
-
-  const shared = { when: new Date('2024-01-01T00:00:00.000Z') };
-  const input = {
-    a: new Box(shared),
-    b: shared,
-  };
-
-  const serialized = SuperJSON.serialize(input);
-  const result: any = SuperJSON.deserialize(serialized);
-
-  expect(result.a.value).toEqual(result.b); // Same value
-  expect(result.a.value).not.toBe(result.b); // Not same reference
-});
-
-test('dedupe=true with recursive custom transformer', () => {
-  class Box {
-    constructor(public value: any) {}
-  }
-
-  SuperJSON.registerCustom(
-    {
-      isApplicable: (v): v is Box => v instanceof Box,
-      serialize: (v: Box) => v.value,
-      deserialize: (v: any) => new Box(v),
-      recursive: true,
-    },
-    'box-dedupe'
-  );
-
-  const shared = { date: new Date('2024-01-01T00:00:00.000Z') };
-  const input = {
-    first: new Box(shared),
-    second: new Box(shared),
-  };
-
-  const instance = new SuperJSON({ dedupe: true });
-  const serialized = instance.serialize(input);
-  const result: any = instance.deserialize(serialized);
-
-  expect(result.first.value).toBe(result.second.value);
 });

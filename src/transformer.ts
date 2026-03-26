@@ -187,7 +187,7 @@ function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(
   annotation: (v: I, superJson: SuperJSON) => A,
   transform: (v: I, superJson: SuperJSON) => O,
   untransform: (v: O, a: A, superJson: SuperJSON) => I,
-  isDeep: (v: O, superJson: SuperJSON) => boolean
+  isDeep: (v: I, superJson: SuperJSON) => boolean
 ) {
   return {
     isApplicable,

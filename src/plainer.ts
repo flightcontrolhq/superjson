@@ -20,91 +20,151 @@ export type MinimisedTree<T> =
   | undefined;
 
 const enableLegacyPaths = (version: number) => version < 1;
+const enableDepthSegment = (version: number) => version > 1;
 
-function traverseObject<T>(
-  tree: { [k: string]: MinimisedTree<T> },
-  walker: (type: any, path: string[], strPath?: string) => void,
-  legacyPaths: boolean,
-  origin: string[],
-  strOrigin: string | undefined = undefined
-) {
-  forEach(tree, (subtree, key) => {
-    traverse(
-      subtree,
-      walker,
-      legacyPaths,
-      [...origin, ...parsePath(key, legacyPaths)],
-      strOrigin !== undefined ? strOrigin + '.' + key : key
-    );
-  });
+function stringifyPathWithDepth(value: [any[], number]) {
+  const path = value[0];
+  const depth = value[1];
+  return stringifyPath(path) + (depth ? '.$' + depth : '');
 }
 
 function traverse<T>(
   tree: MinimisedTree<T>,
-  walker: (type: any, path: string[], strPath?: string) => void,
+  walker: (
+    type: any,
+    path: string[],
+    equalityGroup: ReferentialEqualityGroup | undefined
+  ) => void,
+  equalityGroups: Map<string, ReferentialEqualityGroup>,
   legacyPaths: boolean,
+  depthSegment: boolean,
   origin: string[] = [],
-  strOrigin: string | undefined = undefined
+  samePathDepth: number = 0
 ): void {
   if (!tree) {
     return;
   }
 
+  const equalityGroup = equalityGroups.get(
+    stringifyPathWithDepth([origin, samePathDepth])
+  );
+
+  if (equalityGroup) {
+    if (equalityGroup.resolved) return;
+    equalityGroup.resolved = true;
+  }
+
   if (!isArray(tree)) {
-    traverseObject(tree, walker, legacyPaths, origin, strOrigin);
+    forEach(tree, (subtree, key) => {
+      const parsedKey = parsePath(key, legacyPaths, depthSegment);
+
+      const childPath = [...origin];
+      for (let i = 0; i < parsedKey.length - 1; i++) {
+        childPath.push(parsedKey[i]);
+
+        const equalityGroup = equalityGroups.get(
+          stringifyPathWithDepth([childPath, 0])
+        );
+
+        if (equalityGroup) {
+          if (equalityGroup.resolved) return;
+          equalityGroup.resolved = true;
+        }
+      }
+
+      childPath.push(parsedKey[parsedKey.length - 1]);
+
+      traverse(
+        subtree,
+        walker,
+        equalityGroups,
+        legacyPaths,
+        depthSegment,
+        childPath,
+        0
+      );
+    });
     return;
   }
 
   const [nodeValue, children] = tree;
   if (children) {
-    if (isArray(children)) {
-      traverse(children, walker, legacyPaths, origin, strOrigin);
-    } else {
-      traverseObject(children, walker, legacyPaths, origin, strOrigin);
-    }
+    traverse(
+      children,
+      walker,
+      equalityGroups,
+      legacyPaths,
+      depthSegment,
+      origin,
+      samePathDepth + 1
+    );
   }
 
-  walker(nodeValue, origin, strOrigin);
+  walker(nodeValue, origin, equalityGroup);
 }
 
-/**
- * Function to parse referential equalities object into:
- *  - root: Array of root referential equalities to loop and apply them at the end
- *  - other: Map of 'representative paths' -> 'parsed duplicate paths'
- *  - duplicate: Set of all duplicate (non-representative) paths to skip them in walker
- *    when applying value annotations
- */
+type ReferentialEqualityGroup = {
+  representative: string[];
+  duplicates: string[][];
+  resolved: boolean;
+};
+
 function parseReferentialEqualities(
   referentialEqualities: ReferentialEqualityAnnotations | undefined,
-  legacyPaths: boolean
+  legacyPaths: boolean,
+  depthSegment: boolean
 ) {
-  // Extract root and other from referentialEqualities
-  let root: string[] | undefined;
-  let other: Record<string, string[]> | undefined;
+  let rootEqualityPaths: string[] | undefined;
+  let nonRootGroups: Record<string, string[]> | undefined;
   if (isArray(referentialEqualities)) {
-    const [r, o] = referentialEqualities;
-    root = r;
-    other = o;
+    const [root, nonRoot] = referentialEqualities;
+    rootEqualityPaths = root;
+    nonRootGroups = nonRoot;
   } else {
-    other = referentialEqualities;
+    nonRootGroups = referentialEqualities;
   }
 
-  const rootArray = root?.map(p => parsePath(p, legacyPaths)) ?? [];
+  const parsedRootPaths =
+    rootEqualityPaths?.map(path =>
+      parsePath(path, legacyPaths, depthSegment)
+    ) ?? [];
 
-  const otherMap = new Map<string, string[][]>();
-  const duplicateSet = new Set<string>();
-  if (other) {
-    for (const [rep, iden] of Object.entries(other)) {
-      otherMap.set(
-        rep,
-        iden.map(p => parsePath(p, legacyPaths))
+  const equalityGroupsByPath = new Map<string, ReferentialEqualityGroup>();
+  const representativePaths = new Set<string>();
+
+  if (nonRootGroups) {
+    for (const [representativePath, duplicateOriginalPaths] of Object.entries(
+      nonRootGroups
+    )) {
+      const parsedRepresentative = parsePath(
+        representativePath,
+        legacyPaths,
+        depthSegment
       );
-      for (const p of iden) duplicateSet.add(p);
+
+      const group: ReferentialEqualityGroup = {
+        representative: parsedRepresentative,
+        duplicates: [parsedRepresentative],
+        resolved: false,
+      };
+
+      equalityGroupsByPath.set(representativePath, group);
+      representativePaths.add(representativePath);
+
+      for (const duplicateOriginalPath of duplicateOriginalPaths) {
+        group.duplicates.push(
+          parsePath(duplicateOriginalPath, legacyPaths, depthSegment)
+        );
+        equalityGroupsByPath.set(duplicateOriginalPath, group);
+      }
     }
   }
 
-  // Return root array and other map
-  return { root: rootArray, other: otherMap, duplicate: duplicateSet };
+  return {
+    rootEqualities: parsedRootPaths,
+    equalityGroups: equalityGroupsByPath,
+    representatives: representativePaths,
+  };
 }
 
 export type MetaObject = {
@@ -118,10 +178,7 @@ export type MetaObject = {
  *
  * Behavior:
  *  - 1. Apply all non-root referential equalities first so recursive value annotations get proper input even with dedupe=true
- *  - 2. Apply value annotations, while also check referential equality:
- *    - A. If node is duplicate skip the annotation
- *    - B. If node is representative update all duplicate nodes
- *    - C. If not referentially equal to any other node apply annotation normally
+ *  - 2. Apply value annotations, while also updating referential equality nodes
  *  - 3. Apply root referential equalities
  *
  * @returns Modified JSON after applying value and referential equalities annotations
@@ -134,11 +191,17 @@ export function applyMeta(
   // Handle version
   const version = meta.v ?? 0;
   const legacyPaths = enableLegacyPaths(version);
+  const depthSegment = enableDepthSegment(version);
 
   // Parse referenial equality object (parsed once for performance)
-  const { root, other, duplicate } = parseReferentialEqualities(
+  const {
+    rootEqualities,
+    equalityGroups,
+    representatives,
+  } = parseReferentialEqualities(
     meta.referentialEqualities,
-    legacyPaths
+    legacyPaths,
+    depthSegment
   );
 
   // Function to set referential equality
@@ -154,27 +217,35 @@ export function applyMeta(
   const setValueAnnotationsFn = (
     type: any,
     path: string[],
-    strPath?: string
+    equalityGroup: ReferentialEqualityGroup | undefined
   ) => {
-    // Skip on duplicate paths (Will be updated by representative path)
-    if (strPath && duplicate.has(strPath)) return;
-    // Update json
     json = setDeep(json, path, v => untransformValue(v, type, superJson));
-    // If node is representative update all duplicate paths
-    const refPaths = strPath && other.get(strPath);
-    if (refPaths) setReferentialEqualityFn(path, refPaths);
+
+    // Set other referential equalities if present
+    if (!equalityGroup) return;
+    setReferentialEqualityFn(path, [...equalityGroup.duplicates]);
   };
 
   // Apply other referential equality
-  for (const [rep, iden] of other) {
-    setReferentialEqualityFn(parsePath(rep, legacyPaths), iden);
+  for (const path of representatives) {
+    const equalityGroup = equalityGroups.get(path)!;
+    setReferentialEqualityFn(
+      equalityGroup.representative,
+      equalityGroup.duplicates
+    );
   }
 
   // Apply value annotations and in-place referential equality if node is updated
-  traverse(meta.values, setValueAnnotationsFn, legacyPaths);
+  traverse(
+    meta.values,
+    setValueAnnotationsFn,
+    equalityGroups,
+    legacyPaths,
+    depthSegment
+  );
 
   // Apply root referential equalities
-  for (const p of root) {
+  for (const p of rootEqualities) {
     json = setDeep(json, p, () => json);
   }
 
@@ -182,13 +253,18 @@ export function applyMeta(
   return json;
 }
 
-function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
+function addIdentity(
+  object: any,
+  path: any[],
+  samePathDepth: number,
+  identities: Map<any, [any[], number][]>
+) {
   const existingSet = identities.get(object);
 
   if (existingSet) {
-    existingSet.push(path);
+    existingSet.push([path, samePathDepth]);
   } else {
-    identities.set(object, [path]);
+    identities.set(object, [[path, samePathDepth]]);
   }
 }
 
@@ -203,13 +279,13 @@ export type ReferentialEqualityAnnotations =
   | [string[], Record<string, string[]>];
 
 export function generateReferentialEqualityAnnotations(
-  identitites: Map<any, any[][]>,
+  identitities: Map<any, [any[], number][]>,
   dedupe: boolean
 ): ReferentialEqualityAnnotations | undefined {
   const result: Record<string, string[]> = {};
   let rootEqualityPaths: string[] | undefined = undefined;
 
-  identitites.forEach(paths => {
+  identitities.forEach(paths => {
     if (paths.length <= 1) {
       return;
     }
@@ -218,18 +294,19 @@ export function generateReferentialEqualityAnnotations(
     // putting the shortest path first makes it easier to parse for humans
     // if we're deduping though, only the first entry will still exist, so we can't do this optimisation.
     if (!dedupe) {
-      paths = paths
-        .map(path => path.map(String))
-        .sort((a, b) => a.length - b.length);
+      paths = paths.sort((a, b) => {
+        if (a[1] !== b[1]) return a[1] - b[1]; // prefer depth 0
+        return a[0].length - b[0].length;
+      });
     }
 
     const [representativePath, ...identicalPaths] = paths;
 
-    if (representativePath.length === 0) {
-      rootEqualityPaths = identicalPaths.map(stringifyPath);
+    if (representativePath[0].length === 0) {
+      rootEqualityPaths = identicalPaths.map(stringifyPathWithDepth);
     } else {
-      result[stringifyPath(representativePath)] = identicalPaths.map(
-        stringifyPath
+      result[stringifyPathWithDepth(representativePath)] = identicalPaths.map(
+        stringifyPathWithDepth
       );
     }
   });
@@ -248,31 +325,20 @@ export function generateReferentialEqualityAnnotations(
 const isPlainObjectOrArray = (object: any) =>
   isPlainObject(object) || isArray(object);
 
-/**
- * Walker to serialize input. It supports recursive custom transformations so 'walker' also applied to return
- * of transformations if needed.
- *
- * Known limitation:
- *  - Return of recursive custom will always be considered new object even if defined in the tree else where (referential
- * equality is blocked on the same path) so it will be linked in referential equality nor be deduped, This limitation is
- * intentional to avoid making code too complex where we need to store and compare depths if multple objects are defined
- * at the same path during transformation.
- */
 export const walker = (
   object: any,
-  identities: Map<any, any[][]>,
+  identities: Map<any, [any[], number][]>,
   superJson: SuperJSON,
   dedupe: boolean,
   path: string[] = [],
   objectsInThisPath: any[] = [],
   seenObjects = new Map<unknown, Result>(),
-  isSamePath: boolean = false
+  samePathDepth: number = 0
 ): Result => {
   const primitive = isPrimitive(object);
-  const registerSeen = !primitive && !isSamePath;
 
-  if (registerSeen) {
-    addIdentity(object, path, identities);
+  if (!primitive) {
+    addIdentity(object, path, samePathDepth, identities);
 
     const seen = seenObjects.get(object);
     if (seen) {
@@ -305,7 +371,7 @@ export const walker = (
         transformedValue: value,
         annotations: [type],
       };
-      if (registerSeen) seenObjects.set(object, result);
+      if (!primitive) seenObjects.set(object, result);
       return result;
     }
 
@@ -319,7 +385,7 @@ export const walker = (
       path,
       objectsInThisPath,
       seenObjects,
-      true
+      samePathDepth + 1
     );
     objectsInThisPath.pop();
 
@@ -333,7 +399,7 @@ export const walker = (
           annotations: [type],
         };
 
-    if (registerSeen) seenObjects.set(object, result);
+    if (!primitive) seenObjects.set(object, result);
     return result;
   }
 
@@ -362,7 +428,7 @@ export const walker = (
         [...path, index],
         objectsInThisPath,
         seenObjects,
-        false
+        0
       );
       objectsInThisPath.pop();
 
@@ -386,7 +452,7 @@ export const walker = (
           annotations: innerAnnotations,
         };
 
-    if (registerSeen) seenObjects.set(object, result);
+    if (!primitive) seenObjects.set(object, result);
     return result;
   }
 
@@ -394,6 +460,6 @@ export const walker = (
   const result = {
     transformedValue: object,
   };
-  if (registerSeen) seenObjects.set(object, result);
+  if (!primitive) seenObjects.set(object, result);
   return result;
 };

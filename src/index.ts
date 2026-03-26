@@ -32,7 +32,7 @@ export default class SuperJSON {
   }
 
   serialize(object: SuperJSONValue): SuperJSONResult {
-    const identities = new Map<any, (string | number)[][]>();
+    const identities = new Map<any, [any[], number][]>();
     const output = walker(object, identities, this, this.dedupe);
     const res: SuperJSONResult = {
       json: output.transformedValue,
@@ -57,7 +57,7 @@ export default class SuperJSON {
       };
     }
 
-    if (res.meta) res.meta.v = 1;
+    if (res.meta) res.meta.v = 2;
 
     return res;
   }
