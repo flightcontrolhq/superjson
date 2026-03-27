@@ -22,10 +22,9 @@ export type MinimisedTree<T> =
 const enableLegacyPaths = (version: number) => version < 1;
 const enableDepthSegment = (version: number) => version > 1;
 
-function stringifyPathWithDepth(value: [any[], number]) {
-  const path = value[0];
-  const depth = value[1];
-  return stringifyPath(path) + (depth ? '.$' + depth : '');
+function stringifyPathWithDepth(path: string[], depth: number) {
+  if (!depth) return stringifyPath(path);
+  return stringifyPath(path) + '.$' + depth;
 }
 
 function traverse<T>(
@@ -35,9 +34,8 @@ function traverse<T>(
     path: string[],
     equalityGroup: ReferentialEqualityGroup | undefined
   ) => void,
-  equalityGroups: Map<string, ReferentialEqualityGroup>,
-  legacyPaths: boolean,
-  depthSegment: boolean,
+  equalityGroupsByPath: Map<string, ReferentialEqualityGroup>,
+  version: number,
   origin: string[] = [],
   samePathDepth: number = 0
 ): void {
@@ -45,8 +43,8 @@ function traverse<T>(
     return;
   }
 
-  const equalityGroup = equalityGroups.get(
-    stringifyPathWithDepth([origin, samePathDepth])
+  const equalityGroup = equalityGroupsByPath.get(
+    stringifyPathWithDepth(origin, samePathDepth)
   );
 
   if (equalityGroup) {
@@ -56,51 +54,40 @@ function traverse<T>(
 
   if (!isArray(tree)) {
     // Map to store each path and resolved state when looping forEach
-    const seenPaths = new Map<string, boolean>();
-    // Loop tree
-    forEach(tree, (subtree, key) => {
-      // parse key
-      const parsedKey = parsePath(key, legacyPaths, depthSegment);
+    const seenPathsResolvedState = new Map<string, boolean>();
 
-      // initiate child path
+    forEach(tree, (subtree, key) => {
+      const parsedKey = parsePath(
+        key,
+        enableLegacyPaths(version),
+        enableDepthSegment(version)
+      );
+
       const childPath = [...origin];
 
-      // As keys can be 'key1.key2.key3' loop parsed key and ensure to path is duplicate and so should be skipped
-      // We skip last key as it will be handled separetly in next traverse function
       for (let i = 0; i < parsedKey.length - 1; i++) {
-        // Update child path and stringify it
         childPath.push(parsedKey[i]);
-        const path = stringifyPathWithDepth([childPath, 0]);
+        const path = stringifyPathWithDepth(childPath, 0);
 
-        // check if path already seen, if yes handle according to already stored value
         let resolved;
-        if ((resolved = seenPaths.get(path)) !== undefined) {
+
+        if ((resolved = seenPathsResolvedState.get(path)) !== undefined) {
           if (resolved) return;
           continue;
         }
 
-        // check if path is in equality group, if yes handle it and stored resolved state in seen paths
-        const equalityGroup = equalityGroups.get(path);
+        const equalityGroup = equalityGroupsByPath.get(path);
         if (equalityGroup) {
-          const resolved = equalityGroup.resolved;
+          resolved = equalityGroup.resolved;
           equalityGroup.resolved = true;
-          seenPaths.set(path, resolved);
+          seenPathsResolvedState.set(path, resolved);
           if (resolved) return;
         }
       }
 
-      // Add last key to the child path
       childPath.push(parsedKey[parsedKey.length - 1]);
 
-      traverse(
-        subtree,
-        walker,
-        equalityGroups,
-        legacyPaths,
-        depthSegment,
-        childPath,
-        0
-      );
+      traverse(subtree, walker, equalityGroupsByPath, version, childPath, 0);
     });
 
     return;
@@ -111,15 +98,76 @@ function traverse<T>(
     traverse(
       children,
       walker,
-      equalityGroups,
-      legacyPaths,
-      depthSegment,
+      equalityGroupsByPath,
+      version,
       origin,
       samePathDepth + 1
     );
   }
 
   walker(nodeValue, origin, equalityGroup);
+}
+
+export type MetaObject = {
+  values?: MinimisedTree<TypeAnnotation>;
+  referentialEqualities?: ReferentialEqualityAnnotations;
+  v?: number;
+};
+
+export function applyMeta(
+  json: any,
+  meta: MetaObject,
+  superJson: SuperJSON
+): any {
+  //
+  // Parsing and function declarations
+  //
+  const version = meta.v ?? 0;
+
+  const {
+    rootEqualities,
+    equalityGroupsByPath,
+    representativePaths,
+  } = parseReferentialEqualities(meta.referentialEqualities, version);
+
+  const setReferentialEquality = (
+    representativePath: string[],
+    identicalPaths: string[][]
+  ) => {
+    const object = getDeep(json, representativePath);
+    for (const p of identicalPaths) json = setDeep(json, p, () => object);
+  };
+
+  const setValueAnnotations = (
+    type: any,
+    path: string[],
+    equalityGroup: ReferentialEqualityGroup | undefined
+  ) => {
+    json = setDeep(json, path, v => untransformValue(v, type, superJson));
+    if (equalityGroup) {
+      setReferentialEquality(path, [...equalityGroup.duplicates]);
+    }
+  };
+
+  //
+  // Applying referential equalities and value annotations
+  //
+
+  for (const path of representativePaths) {
+    const equalityGroup = equalityGroupsByPath.get(path)!;
+    setReferentialEquality(
+      equalityGroup.representative,
+      equalityGroup.duplicates
+    );
+  }
+
+  traverse(meta.values, setValueAnnotations, equalityGroupsByPath, version);
+
+  for (const p of rootEqualities) {
+    json = setDeep(json, p, () => json);
+  }
+
+  return json;
 }
 
 type ReferentialEqualityGroup = {
@@ -130,9 +178,11 @@ type ReferentialEqualityGroup = {
 
 function parseReferentialEqualities(
   referentialEqualities: ReferentialEqualityAnnotations | undefined,
-  legacyPaths: boolean,
-  depthSegment: boolean
+  version: number
 ) {
+  const legacyPaths = enableLegacyPaths(version);
+  const depthSegment = enableDepthSegment(version);
+
   let rootEqualityPaths: string[] | undefined;
   let nonRootGroups: Record<string, string[]> | undefined;
   if (isArray(referentialEqualities)) {
@@ -143,7 +193,7 @@ function parseReferentialEqualities(
     nonRootGroups = referentialEqualities;
   }
 
-  const parsedRootPaths =
+  const rootEqualities =
     rootEqualityPaths?.map(path =>
       parsePath(path, legacyPaths, depthSegment)
     ) ?? [];
@@ -179,97 +229,7 @@ function parseReferentialEqualities(
     }
   }
 
-  return {
-    rootEqualities: parsedRootPaths,
-    equalityGroups: equalityGroupsByPath,
-    representatives: representativePaths,
-  };
-}
-
-export type MetaObject = {
-  values?: MinimisedTree<TypeAnnotation>;
-  referentialEqualities?: ReferentialEqualityAnnotations;
-  v?: number;
-};
-
-/**
- * This function apply meta object (value and referential equalities annotations) to JSON input.
- *
- * Behavior:
- *  - 1. Apply all non-root referential equalities first so recursive value annotations get proper input even with dedupe=true
- *  - 2. Apply value annotations, while also updating referential equality nodes
- *  - 3. Apply root referential equalities
- *
- * @returns Modified JSON after applying value and referential equalities annotations
- */
-export function applyMeta(
-  json: any,
-  meta: MetaObject,
-  superJson: SuperJSON
-): any {
-  // Handle version
-  const version = meta.v ?? 0;
-  const legacyPaths = enableLegacyPaths(version);
-  const depthSegment = enableDepthSegment(version);
-
-  // Parse referenial equality object (parsed once for performance)
-  const {
-    rootEqualities,
-    equalityGroups,
-    representatives,
-  } = parseReferentialEqualities(
-    meta.referentialEqualities,
-    legacyPaths,
-    depthSegment
-  );
-
-  // Function to set referential equality
-  const setReferentialEqualityFn = (
-    representativePath: string[],
-    identicalPaths: string[][]
-  ) => {
-    const object = getDeep(json, representativePath);
-    for (const p of identicalPaths) json = setDeep(json, p, () => object);
-  };
-
-  // Function to set value annotation, It also update referential equality if needed
-  const setValueAnnotationsFn = (
-    type: any,
-    path: string[],
-    equalityGroup: ReferentialEqualityGroup | undefined
-  ) => {
-    json = setDeep(json, path, v => untransformValue(v, type, superJson));
-
-    // Set other referential equalities if present
-    if (!equalityGroup) return;
-    setReferentialEqualityFn(path, [...equalityGroup.duplicates]);
-  };
-
-  // Apply other referential equality
-  for (const path of representatives) {
-    const equalityGroup = equalityGroups.get(path)!;
-    setReferentialEqualityFn(
-      equalityGroup.representative,
-      equalityGroup.duplicates
-    );
-  }
-
-  // Apply value annotations and in-place referential equality if node is updated
-  traverse(
-    meta.values,
-    setValueAnnotationsFn,
-    equalityGroups,
-    legacyPaths,
-    depthSegment
-  );
-
-  // Apply root referential equalities
-  for (const p of rootEqualities) {
-    json = setDeep(json, p, () => json);
-  }
-
-  // return modified json
-  return json;
+  return { rootEqualities, equalityGroupsByPath, representativePaths };
 }
 
 function addIdentity(
@@ -313,19 +273,20 @@ export function generateReferentialEqualityAnnotations(
     // putting the shortest path first makes it easier to parse for humans
     // if we're deduping though, only the first entry will still exist, so we can't do this optimisation.
     if (!dedupe) {
-      paths = paths.sort((a, b) => {
-        if (a[1] !== b[1]) return a[1] - b[1]; // prefer depth 0
-        return a[0].length - b[0].length;
-      });
+      paths = paths.sort((a, b) => a[1] - b[1] || a[0].length - b[0].length);
     }
 
     const [representativePath, ...identicalPaths] = paths;
 
     if (representativePath[0].length === 0) {
-      rootEqualityPaths = identicalPaths.map(stringifyPathWithDepth);
+      rootEqualityPaths = identicalPaths.map(([path, depth]) =>
+        stringifyPathWithDepth(path, depth)
+      );
     } else {
-      result[stringifyPathWithDepth(representativePath)] = identicalPaths.map(
-        stringifyPathWithDepth
+      result[
+        stringifyPathWithDepth(representativePath[0], representativePath[1])
+      ] = identicalPaths.map(([path, depth]) =>
+        stringifyPathWithDepth(path, depth)
       );
     }
   });

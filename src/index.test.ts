@@ -1417,3 +1417,26 @@ test('#310 fixes backwards compat', () => {
     },
   });
 });
+
+test('Handle Doller at start of string correctly', () => {
+  class Van {
+    constructor(public value: any) {}
+  }
+
+  SuperJSON.registerCustom(
+    {
+      isApplicable: v => v instanceof Van,
+      serialize: inst => inst.value,
+      deserialize: v => new Van(v),
+      recursive: true,
+    },
+    'Van'
+  );
+
+  const input = {
+    $key: 'value',
+    nested: { $nestedKey: new Van({ $van: 'van' }) },
+  };
+
+  expect(SuperJSON.deserialize(SuperJSON.serialize(input))).toEqual(input);
+});

@@ -52,8 +52,10 @@ export const parsePath = (
     segment += char;
   }
 
-  const lastSegment = segment;
-  if (!depthSegment || lastSegment[0] !== '$') result.push(lastSegment);
+  let lastSegment = segment;
+  if (!depthSegment || lastSegment[0] !== '$') {
+    result.push(segment.slice(0, 2) === '\\$' ? segment.slice(1) : segment);
+  }
 
   return result;
 };
