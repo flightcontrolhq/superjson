@@ -79,7 +79,13 @@ export type TypedArrayConstructor =
   | Float32ArrayConstructor
   | Float64ArrayConstructor;
 
-export type TypedArray = InstanceType<TypedArrayConstructor>;
+export type BigIntTypedArrayConstructor =
+  | BigInt64ArrayConstructor
+  | BigUint64ArrayConstructor;
+
+export type TypedArray = InstanceType<
+  TypedArrayConstructor | BigIntTypedArrayConstructor
+>;
 
 export const isTypedArray = (payload: any): payload is TypedArray =>
   ArrayBuffer.isView(payload) && !(payload instanceof DataView);

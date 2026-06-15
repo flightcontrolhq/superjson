@@ -676,6 +676,30 @@ describe('stringify & parse', () => {
       },
     },
 
+    'works with BigInt typed arrays': {
+      input: {
+        a: new BigInt64Array([1n, 2n, -3n, 9007199254740993n]),
+        b: new BigUint64Array([0n, 18446744073709551615n]),
+      },
+      output: {
+        // bigint isn't valid JSON, so values are stored as strings
+        a: ['1', '2', '-3', '9007199254740993'],
+        b: ['0', '18446744073709551615'],
+      },
+      outputAnnotations: {
+        values: {
+          a: [['typed-array', 'BigInt64Array']],
+          b: [['typed-array', 'BigUint64Array']],
+        },
+      },
+      customExpectations: (value: any) => {
+        expect(value.a).toBeInstanceOf(BigInt64Array);
+        expect([...value.a]).toEqual([1n, 2n, -3n, 9007199254740993n]);
+        expect(value.b).toBeInstanceOf(BigUint64Array);
+        expect([...value.b]).toEqual([0n, 18446744073709551615n]);
+      },
+    },
+
     'works for undefined, issue #48': {
       input: undefined,
       output: null,
