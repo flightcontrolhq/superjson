@@ -98,7 +98,10 @@ const simpleRules = [
       return baseError;
     },
     (v, superJson) => {
-      const e = new Error(v.message, { cause: v.cause });
+      const e =
+        'cause' in v
+          ? new Error(v.message, { cause: v.cause })
+          : new Error(v.message);
       e.name = v.name;
       e.stack = v.stack;
 

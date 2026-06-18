@@ -1033,6 +1033,29 @@ describe('allowErrorProps(...) (#91)', () => {
   });
 });
 
+describe('Error without a cause', () => {
+  it('does not synthesize an own cause property on the round-trip', () => {
+    const original = new Error('no cause here');
+    expect(Object.hasOwn(original, 'cause')).toBe(false);
+
+    const roundTripped: any = SuperJSON.parse(SuperJSON.stringify(original));
+
+    expect(roundTripped).toBeInstanceOf(Error);
+    expect(roundTripped.message).toBe('no cause here');
+    expect(Object.hasOwn(roundTripped, 'cause')).toBe(false);
+  });
+
+  it('preserves an explicit cause', () => {
+    const original = new Error('outer', { cause: 'inner reason' });
+    expect(Object.hasOwn(original, 'cause')).toBe(true);
+
+    const roundTripped: any = SuperJSON.parse(SuperJSON.stringify(original));
+
+    expect(Object.hasOwn(roundTripped, 'cause')).toBe(true);
+    expect(roundTripped.cause).toBe('inner reason');
+  });
+});
+
 test('regression #83: negative zero', () => {
   const input = -0;
 
