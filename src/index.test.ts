@@ -757,6 +757,27 @@ describe('stringify & parse', () => {
         },
       },
     },
+    'works for recrusive custom registry': {
+      input: () => {
+        class Custom {
+          constructor(public date: Date) {}
+        }
+        SuperJSON.registerCustom(
+          {
+            isApplicable: v => v instanceof Custom,
+            serialize: (v: Custom) => v.date,
+            deserialize: (v: any) => new Custom(v),
+            recursive: true,
+          },
+          'OurCustom'
+        );
+        return new Custom(new Date(2020, 1, 1));
+      },
+      output: new Date(2020, 1, 1).toISOString(),
+      outputAnnotations: {
+        values: [['custom', 'OurCustom'], ['Date']],
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -832,7 +853,7 @@ describe('stringify & parse', () => {
       }
       if (meta) {
         const { v, ...rest } = meta;
-        expect(v).toBe(1);
+        expect(v).toBe(2);
         expect(rest).toEqual(expectedOutputAnnotations);
       } else {
         expect(meta).toEqual(expectedOutputAnnotations);
@@ -860,7 +881,7 @@ describe('stringify & parse', () => {
           private topSpeed: number,
           private color: 'red' | 'blue' | 'yellow',
           private brand: string,
-          public carriages: Set<Carriage>,
+          public carriages: Set<Carriage>
         ) {}
 
         public brag() {
@@ -871,25 +892,35 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
+        s7: new Train(
+          100,
+          'yellow',
+          'Bombardier',
+          new Set([new Carriage('front'), new Carriage('back')])
+        ) as any,
       });
-      
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
           color: 'yellow',
           brand: 'Bombardier',
-          carriages: [
-            { name: 'front' },
-            { name: 'back' },
-          ],
+          carriages: [{ name: 'front' }, { name: 'back' }],
         },
       });
 
       expect(meta).toEqual({
-        v: 1,
+        v: 2,
         values: {
-          s7: [['class', 'Train'], { carriages: ["set", { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] }] }],
+          s7: [
+            ['class', 'Train'],
+            {
+              carriages: [
+                'set',
+                { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] },
+              ],
+            },
+          ],
         },
       });
 
@@ -954,7 +985,7 @@ describe('stringify & parse', () => {
         a: '1000',
       },
       meta: {
-        v: 1,
+        v: 2,
         values: {
           a: ['bigint'],
         },
@@ -1061,7 +1092,7 @@ test('regression #83: negative zero', () => {
 
   const stringified = SuperJSON.stringify(input);
   expect(stringified).toMatchInlineSnapshot(
-    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"],\\"v\\":1}}"`
+    `"{\\"json\\":\\"-0\\",\\"meta\\":{\\"values\\":[\\"number\\"],\\"v\\":2}}"`
   );
 
   const parsed: number = SuperJSON.parse(stringified);
@@ -1281,7 +1312,7 @@ test('regression #245: superjson referential equalities only use the top-most pa
           "b",
         ],
       },
-      "v": 1,
+      "v": 2,
     }
   `);
 
@@ -1362,7 +1393,9 @@ test('doesnt iterate to keys that dont exist', () => {
 test('deserialize in place', () => {
   const serialized = SuperJSON.serialize({ a: new Date() });
   const deserializedCopy = SuperJSON.deserialize(serialized);
-  const deserializedInPlace = SuperJSON.deserialize(serialized, { inPlace: true });
+  const deserializedInPlace = SuperJSON.deserialize(serialized, {
+    inPlace: true,
+  });
   expect(deserializedInPlace).toBe(serialized.json);
   expect(deserializedCopy).not.toBe(serialized.json);
   expect(deserializedCopy).toEqual(deserializedInPlace);
@@ -1406,4 +1439,27 @@ test('#310 fixes backwards compat', () => {
       b: new Set([1, 2]),
     },
   });
+});
+
+test('Handle Doller at start of string correctly', () => {
+  class Van {
+    constructor(public value: any) {}
+  }
+
+  SuperJSON.registerCustom(
+    {
+      isApplicable: v => v instanceof Van,
+      serialize: inst => inst.value,
+      deserialize: v => new Van(v),
+      recursive: true,
+    },
+    'Van'
+  );
+
+  const input = {
+    $key: 'value',
+    nested: { $nestedKey: new Van({ $van: 'van' }) },
+  };
+
+  expect(SuperJSON.deserialize(SuperJSON.serialize(input))).toEqual(input);
 });

@@ -40,13 +40,15 @@ function simpleTransformation<I, O, A extends SimpleTypeAnnotation>(
   isApplicable: (v: any, superJson: SuperJSON) => v is I,
   annotation: A,
   transform: (v: I, superJson: SuperJSON) => O,
-  untransform: (v: O, superJson: SuperJSON) => I
+  untransform: (v: O, superJson: SuperJSON) => I,
+  isDeep: boolean
 ) {
   return {
     isApplicable,
     annotation,
     transform,
     untransform,
+    isDeep,
   };
 }
 
@@ -55,7 +57,8 @@ const simpleRules = [
     isUndefined,
     'undefined',
     () => null,
-    () => undefined
+    () => undefined,
+    false
   ),
   simpleTransformation(
     isBigint,
@@ -69,13 +72,15 @@ const simpleRules = [
       console.error('Please add a BigInt polyfill.');
 
       return v as any;
-    }
+    },
+    false
   ),
   simpleTransformation(
     isDate,
     'Date',
     v => v.toISOString(),
-    v => new Date(v)
+    v => new Date(v),
+    false
   ),
 
   simpleTransformation(
@@ -110,7 +115,8 @@ const simpleRules = [
       });
 
       return e;
-    }
+    },
+    true
   ),
 
   simpleTransformation(
@@ -121,7 +127,8 @@ const simpleRules = [
       const body = regex.slice(1, regex.lastIndexOf('/'));
       const flags = regex.slice(regex.lastIndexOf('/') + 1);
       return new RegExp(body, flags);
-    }
+    },
+    false
   ),
 
   simpleTransformation(
@@ -130,13 +137,15 @@ const simpleRules = [
     // (sets only exist in es6+)
     // eslint-disable-next-line es5/no-es6-methods
     v => [...v.values()],
-    v => new Set(v)
+    v => new Set(v),
+    true
   ),
   simpleTransformation(
     isMap,
     'map',
     v => [...v.entries()],
-    v => new Map(v)
+    v => new Map(v),
+    true
   ),
 
   simpleTransformation<number, 'NaN' | 'Infinity' | '-Infinity', 'number'>(
@@ -153,7 +162,8 @@ const simpleRules = [
         return '-Infinity';
       }
     },
-    Number
+    Number,
+    false
   ),
 
   simpleTransformation<number, '-0', 'number'>(
@@ -162,14 +172,16 @@ const simpleRules = [
     () => {
       return '-0';
     },
-    Number
+    Number,
+    false
   ),
 
   simpleTransformation(
     isURL,
     'URL',
     v => v.toString(),
-    v => new URL(v)
+    v => new URL(v),
+    false
   ),
 ];
 
@@ -177,13 +189,15 @@ function compositeTransformation<I, O, A extends CompositeTypeAnnotation>(
   isApplicable: (v: any, superJson: SuperJSON) => v is I,
   annotation: (v: I, superJson: SuperJSON) => A,
   transform: (v: I, superJson: SuperJSON) => O,
-  untransform: (v: O, a: A, superJson: SuperJSON) => I
+  untransform: (v: O, a: A, superJson: SuperJSON) => I,
+  isDeep: (v: I, superJson: SuperJSON) => boolean
 ) {
   return {
     isApplicable,
     annotation,
     transform,
     untransform,
+    isDeep,
   };
 }
 
@@ -206,7 +220,8 @@ const symbolRule = compositeTransformation(
       throw new Error('Trying to deserialize unknown symbol');
     }
     return value;
-  }
+  },
+  () => false
 );
 
 const constructorToName = [
@@ -227,15 +242,16 @@ const constructorToName = [
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
-  v => [...v].map(n => {
-    // Handle special float values that JSON.stringify converts to null
-    if (typeof n === 'number') {
-      if (Number.isNaN(n)) return 'NaN';
-      if (n === Infinity) return 'Infinity';
-      if (n === -Infinity) return '-Infinity';
-    }
-    return n;
-  }),
+  v =>
+    [...v].map(n => {
+      // Handle special float values that JSON.stringify converts to null
+      if (typeof n === 'number') {
+        if (Number.isNaN(n)) return 'NaN';
+        if (n === Infinity) return 'Infinity';
+        if (n === -Infinity) return '-Infinity';
+      }
+      return n;
+    }),
   (v, a) => {
     const ctor = constructorToName[a[1]];
 
@@ -252,7 +268,8 @@ const typedArrayRule = compositeTransformation(
     });
 
     return new ctor(values as number[]);
-  }
+  },
+  () => false
 );
 
 export function isInstanceOfRegisteredClass(
@@ -298,7 +315,8 @@ const classRule = compositeTransformation(
     }
 
     return Object.assign(Object.create(clazz.prototype), v);
-  }
+  },
+  () => true
 );
 
 const customRule = compositeTransformation(
@@ -323,6 +341,12 @@ const customRule = compositeTransformation(
       throw new Error('Trying to deserialize unknown custom value');
     }
     return transformer.deserialize(v);
+  },
+  (value, superJson) => {
+    const transformer = superJson.customTransformerRegistry.findApplicable(
+      value
+    )!;
+    return !!transformer.recursive;
   }
 );
 
@@ -331,7 +355,7 @@ const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
 export const transformValue = (
   value: any,
   superJson: SuperJSON
-): { value: any; type: TypeAnnotation } | undefined => {
+): { value: any; type: TypeAnnotation; isDeep: boolean } | undefined => {
   const applicableCompositeRule = findArr(compositeRules, rule =>
     rule.isApplicable(value, superJson)
   );
@@ -339,6 +363,7 @@ export const transformValue = (
     return {
       value: applicableCompositeRule.transform(value as never, superJson),
       type: applicableCompositeRule.annotation(value, superJson),
+      isDeep: applicableCompositeRule.isDeep(value, superJson),
     };
   }
 
@@ -350,10 +375,11 @@ export const transformValue = (
     return {
       value: applicableSimpleRule.transform(value as never, superJson),
       type: applicableSimpleRule.annotation,
+      isDeep: applicableSimpleRule.isDeep,
     };
   }
 
-  return undefined;
+  return;
 };
 
 const simpleRulesByAnnotation: Record<string, typeof simpleRules[0]> = {};

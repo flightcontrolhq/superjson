@@ -1,8 +1,11 @@
 export type StringifiedPath = string;
 type Path = string[];
 
-export const escapeKey = (key: string) =>
-  key.replace(/\\/g, '\\\\').replace(/\./g, '\\.');
+export const escapeKey = (key: string) => {
+  key = key.replace(/\\/g, '\\\\');
+  if (key[0] === '$') key = '\\' + key;
+  return key.replace(/\./g, '\\.');
+};
 
 export const stringifyPath = (path: Path): StringifiedPath =>
   path
@@ -10,7 +13,11 @@ export const stringifyPath = (path: Path): StringifiedPath =>
     .map(escapeKey)
     .join('.');
 
-export const parsePath = (string: StringifiedPath, legacyPaths: boolean) => {
+export const parsePath = (
+  string: StringifiedPath,
+  legacyPaths: boolean,
+  depthSegment: boolean
+) => {
   const result: string[] = [];
 
   let segment = '';
@@ -23,7 +30,7 @@ export const parsePath = (string: StringifiedPath, legacyPaths: boolean) => {
         segment += '\\';
         i++;
         continue;
-      } else if (escaped !== '.') {
+      } else if (escaped !== '.' && escaped !== '$') {
         throw Error('invalid path');
       }
     }
@@ -45,8 +52,10 @@ export const parsePath = (string: StringifiedPath, legacyPaths: boolean) => {
     segment += char;
   }
 
-  const lastSegment = segment;
-  result.push(lastSegment);
+  let lastSegment = segment;
+  if (!depthSegment || lastSegment[0] !== '$') {
+    result.push(segment.slice(0, 2) === '\\$' ? segment.slice(1) : segment);
+  }
 
   return result;
 };

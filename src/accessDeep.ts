@@ -1,8 +1,10 @@
 import { isMap, isArray, isPlainObject, isSet } from './is.js';
 import { includes } from './util.js';
 
+const OUT_OF_BOUNDS_ERROR = 'index out of bounds';
+
 const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
-  if (n > value.size) throw new Error('index out of bounds');
+  if (n > value.size) throw new Error(OUT_OF_BOUNDS_ERROR);
   const keys = value.keys();
   while (n > 0) {
     keys.next();
@@ -70,8 +72,11 @@ export const setDeep = (
 
     if (isArray(parent)) {
       const index = +key;
+      if (index > parent.length - 1) throw new Error(OUT_OF_BOUNDS_ERROR);
       parent = parent[index];
     } else if (isPlainObject(parent)) {
+      // Should use (key in parent) here and throw 'OUT_OF_BOUNDS_ERROR' if not present
+      // but it may affect performance if not really needed
       parent = parent[key];
     } else if (isSet(parent)) {
       const row = +key;
@@ -100,8 +105,12 @@ export const setDeep = (
   const lastKey = path[path.length - 1];
 
   if (isArray(parent)) {
-    parent[+lastKey] = mapper(parent[+lastKey]);
+    const index = +lastKey;
+    if (index > parent.length - 1) throw new Error(OUT_OF_BOUNDS_ERROR);
+    parent[index] = mapper(parent[index]);
   } else if (isPlainObject(parent)) {
+    // Should use (key in parent) here and throw 'OUT_OF_BOUNDS_ERROR' if not present
+    // but it may affect performance if not really needed
     parent[lastKey] = mapper(parent[lastKey]);
   }
 

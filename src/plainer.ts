@@ -1,15 +1,6 @@
-import {
-  isArray,
-  isEmptyObject,
-  isError,
-  isMap,
-  isPlainObject,
-  isPrimitive,
-  isSet,
-} from './is.js';
+import { isArray, isEmptyObject, isPlainObject, isPrimitive } from './is.js';
 import { escapeKey, stringifyPath } from './pathstringifier.js';
 import {
-  isInstanceOfRegisteredClass,
   transformValue,
   TypeAnnotation,
   untransformValue,
@@ -21,114 +12,238 @@ import SuperJSON from './index.js';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
 type Leaf<T> = [T];
-type InnerNode<T> = [T, Record<string, Tree<T>>];
+type InnerNode<T> = [T, MinimisedTree<T>];
 
-export type MinimisedTree<T> = Tree<T> | Record<string, Tree<T>> | undefined;
+export type MinimisedTree<T> =
+  | Tree<T>
+  | { [k: string]: MinimisedTree<T> }
+  | undefined;
 
 const enableLegacyPaths = (version: number) => version < 1;
+const enableDepthSegment = (version: number) => version > 1;
+
+function stringifyPathWithDepth(path: string[], depth: number) {
+  if (!depth) return stringifyPath(path);
+  return stringifyPath(path) + '.$' + depth;
+}
 
 function traverse<T>(
   tree: MinimisedTree<T>,
-  walker: (v: T, path: string[]) => void,
+  walker: (
+    type: any,
+    path: string[],
+    equalityGroup: ReferentialEqualityGroup | undefined
+  ) => void,
+  equalityGroupsByPath: Map<string, ReferentialEqualityGroup>,
   version: number,
-  origin: string[] = []
+  origin: string[] = [],
+  samePathDepth: number = 0
 ): void {
   if (!tree) {
     return;
   }
 
-  const legacyPaths = enableLegacyPaths(version);
+  const equalityGroup = equalityGroupsByPath.get(
+    stringifyPathWithDepth(origin, samePathDepth)
+  );
+
+  if (equalityGroup) {
+    if (equalityGroup.resolved) return;
+    equalityGroup.resolved = true;
+  }
+
   if (!isArray(tree)) {
-    forEach(tree, (subtree, key) =>
-      traverse(subtree, walker, version, [
-        ...origin,
-        ...parsePath(key, legacyPaths),
-      ])
-    );
+    // Map to store each path and resolved state when looping forEach
+    const seenPathsResolvedState = new Map<string, boolean>();
+
+    forEach(tree, (subtree, key) => {
+      const parsedKey = parsePath(
+        key,
+        enableLegacyPaths(version),
+        enableDepthSegment(version)
+      );
+
+      const childPath = [...origin];
+
+      for (let i = 0; i < parsedKey.length - 1; i++) {
+        childPath.push(parsedKey[i]);
+        const path = stringifyPathWithDepth(childPath, 0);
+
+        let resolved;
+
+        if ((resolved = seenPathsResolvedState.get(path)) !== undefined) {
+          if (resolved) return;
+          continue;
+        }
+
+        const equalityGroup = equalityGroupsByPath.get(path);
+        if (equalityGroup) {
+          resolved = equalityGroup.resolved;
+          equalityGroup.resolved = true;
+          seenPathsResolvedState.set(path, resolved);
+          if (resolved) return;
+        }
+      }
+
+      childPath.push(parsedKey[parsedKey.length - 1]);
+
+      traverse(subtree, walker, equalityGroupsByPath, version, childPath, 0);
+    });
+
     return;
   }
 
   const [nodeValue, children] = tree;
   if (children) {
-    forEach(children, (child, key) => {
-      traverse(child, walker, version, [
-        ...origin,
-        ...parsePath(key, legacyPaths),
-      ]);
-    });
+    traverse(
+      children,
+      walker,
+      equalityGroupsByPath,
+      version,
+      origin,
+      samePathDepth + 1
+    );
   }
 
-  walker(nodeValue, origin);
+  walker(nodeValue, origin, equalityGroup);
 }
 
-export function applyValueAnnotations(
-  plain: any,
-  annotations: MinimisedTree<TypeAnnotation>,
-  version: number,
+export type MetaObject = {
+  values?: MinimisedTree<TypeAnnotation>;
+  referentialEqualities?: ReferentialEqualityAnnotations;
+  v?: number;
+};
+
+export function applyMeta(
+  json: any,
+  meta: MetaObject,
   superJson: SuperJSON
-) {
-  traverse(
-    annotations,
-    (type, path) => {
-      plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
-    },
-    version
-  );
+): any {
+  //
+  // Parsing and function declarations
+  //
+  const version = meta.v ?? 0;
 
-  return plain;
+  const {
+    rootEqualities,
+    equalityGroupsByPath,
+    representativePaths,
+  } = parseReferentialEqualities(meta.referentialEqualities, version);
+
+  const setReferentialEquality = (
+    representativePath: string[],
+    identicalPaths: string[][]
+  ) => {
+    const object = getDeep(json, representativePath);
+    for (const p of identicalPaths) json = setDeep(json, p, () => object);
+  };
+
+  const setValueAnnotations = (
+    type: any,
+    path: string[],
+    equalityGroup: ReferentialEqualityGroup | undefined
+  ) => {
+    json = setDeep(json, path, v => untransformValue(v, type, superJson));
+    if (equalityGroup) {
+      setReferentialEquality(path, [...equalityGroup.duplicates]);
+    }
+  };
+
+  //
+  // Applying referential equalities and value annotations
+  //
+
+  for (const path of representativePaths) {
+    const equalityGroup = equalityGroupsByPath.get(path)!;
+    setReferentialEquality(
+      equalityGroup.representative,
+      equalityGroup.duplicates
+    );
+  }
+
+  traverse(meta.values, setValueAnnotations, equalityGroupsByPath, version);
+
+  for (const p of rootEqualities) {
+    json = setDeep(json, p, () => json);
+  }
+
+  return json;
 }
 
-export function applyReferentialEqualityAnnotations(
-  plain: any,
-  annotations: ReferentialEqualityAnnotations,
+type ReferentialEqualityGroup = {
+  representative: string[];
+  duplicates: string[][];
+  resolved: boolean;
+};
+
+function parseReferentialEqualities(
+  referentialEqualities: ReferentialEqualityAnnotations | undefined,
   version: number
 ) {
   const legacyPaths = enableLegacyPaths(version);
-  function apply(identicalPaths: string[], path: string) {
-    const object = getDeep(plain, parsePath(path, legacyPaths));
+  const depthSegment = enableDepthSegment(version);
 
-    identicalPaths
-      .map(path => parsePath(path, legacyPaths))
-      .forEach(identicalObjectPath => {
-        plain = setDeep(plain, identicalObjectPath, () => object);
-      });
-  }
-
-  if (isArray(annotations)) {
-    const [root, other] = annotations;
-    root.forEach(identicalPath => {
-      plain = setDeep(
-        plain,
-        parsePath(identicalPath, legacyPaths),
-        () => plain
-      );
-    });
-
-    if (other) {
-      forEach(other, apply);
-    }
+  let rootEqualityPaths: string[] | undefined;
+  let nonRootGroups: Record<string, string[]> | undefined;
+  if (isArray(referentialEqualities)) {
+    const [root, nonRoot] = referentialEqualities;
+    rootEqualityPaths = root;
+    nonRootGroups = nonRoot;
   } else {
-    forEach(annotations, apply);
+    nonRootGroups = referentialEqualities;
   }
 
-  return plain;
+  const rootEqualities =
+    rootEqualityPaths?.map(path =>
+      parsePath(path, legacyPaths, depthSegment)
+    ) ?? [];
+
+  const equalityGroupsByPath = new Map<string, ReferentialEqualityGroup>();
+  const representativePaths = new Set<string>();
+
+  if (nonRootGroups) {
+    for (const [representativePath, duplicateOriginalPaths] of Object.entries(
+      nonRootGroups
+    )) {
+      const parsedRepresentative = parsePath(
+        representativePath,
+        legacyPaths,
+        depthSegment
+      );
+
+      const group: ReferentialEqualityGroup = {
+        representative: parsedRepresentative,
+        duplicates: [parsedRepresentative],
+        resolved: false,
+      };
+
+      equalityGroupsByPath.set(representativePath, group);
+      representativePaths.add(representativePath);
+
+      for (const duplicateOriginalPath of duplicateOriginalPaths) {
+        group.duplicates.push(
+          parsePath(duplicateOriginalPath, legacyPaths, depthSegment)
+        );
+        equalityGroupsByPath.set(duplicateOriginalPath, group);
+      }
+    }
+  }
+
+  return { rootEqualities, equalityGroupsByPath, representativePaths };
 }
 
-const isDeep = (object: any, superJson: SuperJSON): boolean =>
-  isPlainObject(object) ||
-  isArray(object) ||
-  isMap(object) ||
-  isSet(object) ||
-  isError(object) ||
-  isInstanceOfRegisteredClass(object, superJson);
-
-function addIdentity(object: any, path: any[], identities: Map<any, any[][]>) {
+function addIdentity(
+  object: any,
+  path: any[],
+  samePathDepth: number,
+  identities: Map<any, [any[], number][]>
+) {
   const existingSet = identities.get(object);
 
   if (existingSet) {
-    existingSet.push(path);
+    existingSet.push([path, samePathDepth]);
   } else {
-    identities.set(object, [path]);
+    identities.set(object, [[path, samePathDepth]]);
   }
 }
 
@@ -143,13 +258,13 @@ export type ReferentialEqualityAnnotations =
   | [string[], Record<string, string[]>];
 
 export function generateReferentialEqualityAnnotations(
-  identitites: Map<any, any[][]>,
+  identitities: Map<any, [any[], number][]>,
   dedupe: boolean
 ): ReferentialEqualityAnnotations | undefined {
   const result: Record<string, string[]> = {};
   let rootEqualityPaths: string[] | undefined = undefined;
 
-  identitites.forEach(paths => {
+  identitities.forEach(paths => {
     if (paths.length <= 1) {
       return;
     }
@@ -158,18 +273,20 @@ export function generateReferentialEqualityAnnotations(
     // putting the shortest path first makes it easier to parse for humans
     // if we're deduping though, only the first entry will still exist, so we can't do this optimisation.
     if (!dedupe) {
-      paths = paths
-        .map(path => path.map(String))
-        .sort((a, b) => a.length - b.length);
+      paths = paths.sort((a, b) => a[1] - b[1] || a[0].length - b[0].length);
     }
 
     const [representativePath, ...identicalPaths] = paths;
 
-    if (representativePath.length === 0) {
-      rootEqualityPaths = identicalPaths.map(stringifyPath);
+    if (representativePath[0].length === 0) {
+      rootEqualityPaths = identicalPaths.map(([path, depth]) =>
+        stringifyPathWithDepth(path, depth)
+      );
     } else {
-      result[stringifyPath(representativePath)] = identicalPaths.map(
-        stringifyPath
+      result[
+        stringifyPathWithDepth(representativePath[0], representativePath[1])
+      ] = identicalPaths.map(([path, depth]) =>
+        stringifyPathWithDepth(path, depth)
       );
     }
   });
@@ -185,19 +302,23 @@ export function generateReferentialEqualityAnnotations(
   }
 }
 
+const isPlainObjectOrArray = (object: any) =>
+  isPlainObject(object) || isArray(object);
+
 export const walker = (
   object: any,
-  identities: Map<any, any[][]>,
+  identities: Map<any, [any[], number][]>,
   superJson: SuperJSON,
   dedupe: boolean,
-  path: any[] = [],
+  path: string[] = [],
   objectsInThisPath: any[] = [],
-  seenObjects = new Map<unknown, Result>()
+  seenObjects = new Map<unknown, Result>(),
+  samePathDepth: number = 0
 ): Result => {
   const primitive = isPrimitive(object);
 
   if (!primitive) {
-    addIdentity(object, path, identities);
+    addIdentity(object, path, samePathDepth, identities);
 
     const seen = seenObjects.get(object);
     if (seen) {
@@ -210,23 +331,6 @@ export const walker = (
     }
   }
 
-  if (!isDeep(object, superJson)) {
-    const transformed = transformValue(object, superJson);
-
-    const result: Result = transformed
-      ? {
-          transformedValue: transformed.value,
-          annotations: [transformed.type],
-        }
-      : {
-          transformedValue: object,
-        };
-    if (!primitive) {
-      seenObjects.set(object, result);
-    }
-    return result;
-  }
-
   if (includes(objectsInThisPath, object)) {
     // prevent circular references
     return {
@@ -234,60 +338,108 @@ export const walker = (
     };
   }
 
+  // Try to tansform object (apply composite or simple rule if applicable)
   const transformationResult = transformValue(object, superJson);
-  const transformed = transformationResult?.value ?? object;
 
-  const transformedValue: any = isArray(transformed) ? [] : {};
-  const innerAnnotations: Record<string, Tree<TypeAnnotation>> = {};
+  // Handle value if transformed
+  if (transformationResult) {
+    const { value, type, isDeep } = transformationResult;
 
-  forEach(transformed, (value, index) => {
-    if (
-      index === '__proto__' ||
-      index === 'constructor' ||
-      index === 'prototype'
-    ) {
-      throw new Error(
-        `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
-      );
+    // If transformer mark value as non deep return it
+    if (!isDeep) {
+      const result: Result = {
+        transformedValue: value,
+        annotations: [type],
+      };
+      if (!primitive) seenObjects.set(object, result);
+      return result;
     }
 
+    // recurse if transformer mark value as deep
+    objectsInThisPath.push(object);
     const recursiveResult = walker(
       value,
       identities,
       superJson,
       dedupe,
-      [...path, index],
-      [...objectsInThisPath, object],
-      seenObjects
+      path,
+      objectsInThisPath,
+      seenObjects,
+      samePathDepth + 1
     );
+    objectsInThisPath.pop();
 
-    transformedValue[index] = recursiveResult.transformedValue;
+    const result: Result = recursiveResult.annotations
+      ? {
+          transformedValue: recursiveResult.transformedValue,
+          annotations: [type, recursiveResult.annotations],
+        }
+      : {
+          transformedValue: recursiveResult.transformedValue,
+          annotations: [type],
+        };
 
-    if (isArray(recursiveResult.annotations)) {
-      innerAnnotations[escapeKey(index)] = recursiveResult.annotations;
-    } else if (isPlainObject(recursiveResult.annotations)) {
-      forEach(recursiveResult.annotations, (tree, key) => {
-        innerAnnotations[escapeKey(index) + '.' + key] = tree;
-      });
-    }
-  });
-
-  const result: Result = isEmptyObject(innerAnnotations)
-    ? {
-        transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type]
-          : undefined,
-      }
-    : {
-        transformedValue,
-        annotations: !!transformationResult
-          ? [transformationResult.type, innerAnnotations]
-          : innerAnnotations,
-      };
-  if (!primitive) {
-    seenObjects.set(object, result);
+    if (!primitive) seenObjects.set(object, result);
+    return result;
   }
 
+  // Handle value if plain object or array
+  if (isPlainObjectOrArray(object)) {
+    const transformedValue: any = isArray(object) ? [] : {};
+    const innerAnnotations: Record<string, MinimisedTree<TypeAnnotation>> = {};
+
+    forEach(object, (value, index) => {
+      if (
+        index === '__proto__' ||
+        index === 'constructor' ||
+        index === 'prototype'
+      ) {
+        throw new Error(
+          `Detected property ${index}. This is a prototype pollution risk, please remove it from your object.`
+        );
+      }
+
+      objectsInThisPath.push(object);
+      const recursiveResult = walker(
+        value,
+        identities,
+        superJson,
+        dedupe,
+        [...path, index],
+        objectsInThisPath,
+        seenObjects,
+        0
+      );
+      objectsInThisPath.pop();
+
+      transformedValue[index] = recursiveResult.transformedValue;
+
+      if (isArray(recursiveResult.annotations)) {
+        innerAnnotations[escapeKey(index)] = recursiveResult.annotations;
+      } else if (isPlainObject(recursiveResult.annotations)) {
+        forEach(recursiveResult.annotations, (tree, key) => {
+          innerAnnotations[escapeKey(index) + '.' + key] = tree;
+        });
+      }
+    });
+
+    const result: Result = isEmptyObject(innerAnnotations)
+      ? {
+          transformedValue,
+        }
+      : {
+          transformedValue,
+          annotations: innerAnnotations,
+        };
+
+    if (!primitive) seenObjects.set(object, result);
+    return result;
+  }
+
+  // Return value as is
+  const result = {
+    transformedValue: object,
+  };
+  if (!primitive) seenObjects.set(object, result);
   return result;
 };
