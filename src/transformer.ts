@@ -12,6 +12,7 @@ import {
   isError,
   isTypedArray,
   TypedArrayConstructor,
+  BigIntTypedArrayConstructor,
   isURL,
 } from './is.js';
 import { findArr } from './util.js';
@@ -224,19 +225,41 @@ const constructorToName = [
   return obj;
 }, {});
 
+// BigInt-backed typed arrays hold `bigint` elements, which JSON.stringify
+// cannot represent. They're serialized/deserialized as strings instead.
+const bigIntConstructorToName: Record<string, BigIntTypedArrayConstructor> = {};
+if (typeof BigInt64Array !== 'undefined') {
+  bigIntConstructorToName[BigInt64Array.name] = BigInt64Array;
+}
+if (typeof BigUint64Array !== 'undefined') {
+  bigIntConstructorToName[BigUint64Array.name] = BigUint64Array;
+}
+
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
-  v => [...v].map(n => {
-    // Handle special float values that JSON.stringify converts to null
-    if (typeof n === 'number') {
-      if (Number.isNaN(n)) return 'NaN';
-      if (n === Infinity) return 'Infinity';
-      if (n === -Infinity) return '-Infinity';
-    }
-    return n;
-  }),
+  v =>
+    [...v].map(n => {
+      // bigint values (from BigInt64Array / BigUint64Array) are not valid JSON,
+      // so they're stored as strings.
+      if (typeof n === 'bigint') {
+        return n.toString();
+      }
+      // Handle special float values that JSON.stringify converts to null
+      if (typeof n === 'number') {
+        if (Number.isNaN(n)) return 'NaN';
+        if (n === Infinity) return 'Infinity';
+        if (n === -Infinity) return '-Infinity';
+      }
+      return n;
+    }),
   (v, a) => {
+    const bigIntCtor = bigIntConstructorToName[a[1]];
+    if (bigIntCtor) {
+      const values = v.map((n: string | number | bigint): bigint => BigInt(n));
+      return new bigIntCtor(values);
+    }
+
     const ctor = constructorToName[a[1]];
 
     if (!ctor) {
