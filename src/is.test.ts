@@ -12,6 +12,7 @@ import {
   isPlainObject,
   isTypedArray,
   isURL,
+  isTemporal,
 } from './is.js';
 
 import { test, expect } from 'vitest';
@@ -35,6 +36,9 @@ test('Basic true tests', () => {
   expect(isSymbol(Symbol())).toBe(true);
   expect(isTypedArray(new Uint8Array())).toBe(true);
   expect(isURL(new URL('https://example.com'))).toBe(true);
+  if (typeof Temporal !== 'undefined') {
+    expect(isTemporal(new Temporal.Duration())).toBe(true);
+  }
   expect(isPlainObject({})).toBe(true);
   // eslint-disable-next-line no-new-object
   expect(isPlainObject(new Object())).toBe(true);
@@ -57,6 +61,10 @@ test('Basic false tests', () => {
   expect(isTypedArray([])).toBe(false);
 
   expect(isURL('https://example.com')).toBe(false);
+
+  expect(isTemporal(new Date())).toBe(false);
+  expect(isTemporal({})).toBe(false);
+  expect(isTemporal(NaN)).toBe(false);
 
   expect(isPlainObject(null)).toBe(false);
   expect(isPlainObject([])).toBe(false);
@@ -91,4 +99,19 @@ test('Date exception', () => {
 test('Regression: null-prototype object', () => {
   expect(isPlainObject(Object.create(null))).toBe(true);
   expect(isPrimitive(Object.create(null))).toBe(false);
+});
+
+test.skipIf(typeof Temporal === 'undefined')('Temporal', () => {
+  expect(isTemporal(new Temporal.Duration())).toBe(true);
+  expect(isTemporal(Temporal.Now.instant())).toBe(true);
+  expect(isTemporal(new Temporal.PlainDate(2007, 10, 11))).toBe(true);
+  expect(isTemporal(new Temporal.PlainDateTime(2007, 10, 11))).toBe(true);
+  expect(isTemporal(new Temporal.PlainMonthDay(10, 11))).toBe(true);
+  expect(isTemporal(new Temporal.PlainTime())).toBe(true);
+  expect(isTemporal(new Temporal.PlainYearMonth(2007, 10))).toBe(true);
+  expect(
+    isTemporal(
+      new Temporal.ZonedDateTime(1704103200000000000n, 'America/New_York')
+    )
+  ).toBe(true);
 });

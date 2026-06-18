@@ -20,6 +20,7 @@ import { Decimal } from 'decimal.js';
 import { describe, it, expect, test } from 'vitest';
 
 const isNode10 = process.version.indexOf('v10') === 0;
+const hasTemporal = typeof Temporal !== 'undefined';
 
 describe('stringify & parse', () => {
   const cases: Record<
@@ -29,7 +30,7 @@ describe('stringify & parse', () => {
       output: JSONValue | ((v: JSONValue) => void);
       outputAnnotations?: SuperJSONResult['meta'];
       customExpectations?: (value: any) => void;
-      skipOnNode10?: boolean;
+      skip?: boolean;
       dontExpectEquality?: boolean;
       only?: boolean;
     }
@@ -496,7 +497,7 @@ describe('stringify & parse', () => {
     },
 
     'works for symbols': {
-      skipOnNode10: true,
+      skip: isNode10,
       input: () => {
         const parent = Symbol('Parent');
         const child = Symbol('Child');
@@ -571,7 +572,7 @@ describe('stringify & parse', () => {
     },
 
     'issue #58': {
-      skipOnNode10: true,
+      skip: isNode10,
       input: () => {
         const cool = Symbol('cool');
         SuperJSON.registerSymbol(cool);
@@ -757,6 +758,268 @@ describe('stringify & parse', () => {
         },
       },
     },
+
+    'works with Temporal.Instant': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.Instant.from('2024-01-01T10:00:00Z'),
+      }),
+      output: {
+        a: '2024-01-01T10:00:00Z',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'Instant']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.Instant);
+        expect(
+          value.a.equals(Temporal.Instant.from('2024-01-01T10:00:00Z'))
+        ).toBe(true);
+      },
+    },
+
+    'works with Temporal.Duration': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.Duration.from({ hours: 2, minutes: 30, seconds: 15 }),
+      }),
+      output: {
+        a: 'PT2H30M15S',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'Duration']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.Duration);
+        expect(value.a.hours).toBe(2);
+        expect(value.a.minutes).toBe(30);
+        expect(value.a.seconds).toBe(15);
+      },
+    },
+
+    'works with Temporal.PlainDate': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.PlainDate.from('2024-03-15'),
+      }),
+      output: {
+        a: '2024-03-15',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'PlainDate']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.PlainDate);
+        expect(value.a.equals(Temporal.PlainDate.from('2024-03-15'))).toBe(
+          true
+        );
+      },
+    },
+
+    'works with Temporal.PlainDateTime': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.PlainDateTime.from('2024-03-15T14:30:45.123'),
+      }),
+      output: {
+        a: '2024-03-15T14:30:45.123',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'PlainDateTime']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.PlainDateTime);
+        expect(
+          value.a.equals(Temporal.PlainDateTime.from('2024-03-15T14:30:45.123'))
+        ).toBe(true);
+      },
+    },
+
+    'works with Temporal.PlainTime': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.PlainTime.from('14:30:45'),
+      }),
+      output: {
+        a: '14:30:45',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'PlainTime']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.PlainTime);
+        expect(value.a.equals(Temporal.PlainTime.from('14:30:45'))).toBe(true);
+      },
+    },
+
+    'works with Temporal.PlainYearMonth': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.PlainYearMonth.from('2024-03'),
+      }),
+      output: {
+        a: '2024-03',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'PlainYearMonth']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.PlainYearMonth);
+        expect(value.a.equals(Temporal.PlainYearMonth.from('2024-03'))).toBe(
+          true
+        );
+      },
+    },
+
+    'works with Temporal.PlainMonthDay': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.PlainMonthDay.from('03-15'),
+      }),
+      output: {
+        a: '03-15',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'PlainMonthDay']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.PlainMonthDay);
+        expect(value.a.equals(Temporal.PlainMonthDay.from('03-15'))).toBe(true);
+      },
+    },
+
+    'works with Temporal.ZonedDateTime': {
+      skip: !hasTemporal,
+      input: () => ({
+        a: Temporal.ZonedDateTime.from(
+          '2024-03-15T14:30:45-04:00[America/New_York]'
+        ),
+      }),
+      output: {
+        a: '2024-03-15T14:30:45-04:00[America/New_York]',
+      },
+      outputAnnotations: {
+        values: {
+          a: [['temporal', 'ZonedDateTime']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.a).toBeInstanceOf(Temporal.ZonedDateTime);
+        expect(
+          value.a.equals(
+            Temporal.ZonedDateTime.from(
+              '2024-03-15T14:30:45-04:00[America/New_York]'
+            )
+          )
+        ).toBe(true);
+      },
+    },
+
+    'works with multiple Temporal types in one object': {
+      skip: !hasTemporal,
+      input: () => ({
+        instant: Temporal.Instant.from('2024-01-01T00:00:00Z'),
+        duration: Temporal.Duration.from({ days: 5 }),
+        date: Temporal.PlainDate.from('2024-06-01'),
+        nested: {
+          time: Temporal.PlainTime.from('09:15:00'),
+        },
+      }),
+      output: {
+        instant: '2024-01-01T00:00:00Z',
+        duration: 'P5D',
+        date: '2024-06-01',
+        nested: {
+          time: '09:15:00',
+        },
+      },
+      outputAnnotations: {
+        values: {
+          instant: [['temporal', 'Instant']],
+          duration: [['temporal', 'Duration']],
+          date: [['temporal', 'PlainDate']],
+          'nested.time': [['temporal', 'PlainTime']],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.instant).toBeInstanceOf(Temporal.Instant);
+        expect(value.duration).toBeInstanceOf(Temporal.Duration);
+        expect(value.date).toBeInstanceOf(Temporal.PlainDate);
+        expect(value.nested.time).toBeInstanceOf(Temporal.PlainTime);
+      },
+    },
+
+    'works with top-level Temporal value': {
+      skip: !hasTemporal,
+      input: () => Temporal.PlainDate.from('2024-12-25'),
+      output: '2024-12-25',
+      outputAnnotations: {
+        values: [['temporal', 'PlainDate']],
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value).toBeInstanceOf(Temporal.PlainDate);
+        expect(value.equals(Temporal.PlainDate.from('2024-12-25'))).toBe(true);
+      },
+    },
+
+    'works with Temporal inside arrays, sets, and maps': {
+      skip: !hasTemporal,
+      input: () => ({
+        arr: [
+          Temporal.PlainDate.from('2024-01-01'),
+          Temporal.PlainDate.from('2024-02-01'),
+        ],
+        set: new Set([Temporal.Duration.from({ hours: 1 })]),
+        map: new Map<string, Temporal.Instant>([
+          ['start', Temporal.Instant.from('2024-01-01T00:00:00Z')],
+        ]),
+      }),
+      output: {
+        arr: ['2024-01-01', '2024-02-01'],
+        set: ['PT1H'],
+        map: [['start', '2024-01-01T00:00:00Z']],
+      },
+      outputAnnotations: {
+        values: {
+          'arr.0': [['temporal', 'PlainDate']],
+          'arr.1': [['temporal', 'PlainDate']],
+          set: ['set', { 0: [['temporal', 'Duration']] }],
+          map: ['map', { '0.1': [['temporal', 'Instant']] }],
+        },
+      },
+      dontExpectEquality: true,
+      customExpectations: value => {
+        expect(value.arr[0]).toBeInstanceOf(Temporal.PlainDate);
+        expect(value.arr[1]).toBeInstanceOf(Temporal.PlainDate);
+        const setValues = [...value.set];
+        expect(setValues[0]).toBeInstanceOf(Temporal.Duration);
+        expect(value.map.get('start')).toBeInstanceOf(Temporal.Instant);
+      },
+    },
   };
 
   function deepFreeze(object: any, alreadySeenObjects = new Set()) {
@@ -803,14 +1066,14 @@ describe('stringify & parse', () => {
       output: expectedOutput,
       outputAnnotations: expectedOutputAnnotations,
       customExpectations,
-      skipOnNode10,
+      skip,
       dontExpectEquality,
       only,
     },
   ] of Object.entries(cases)) {
     let testFunc = test;
 
-    if (skipOnNode10 && isNode10) {
+    if (skip) {
       testFunc = test.skip;
     }
 
@@ -860,7 +1123,7 @@ describe('stringify & parse', () => {
           private topSpeed: number,
           private color: 'red' | 'blue' | 'yellow',
           private brand: string,
-          public carriages: Set<Carriage>,
+          public carriages: Set<Carriage>
         ) {}
 
         public brag() {
@@ -871,25 +1134,35 @@ describe('stringify & parse', () => {
       SuperJSON.registerClass(Train);
 
       const { json, meta } = SuperJSON.serialize({
-        s7: new Train(100, 'yellow', 'Bombardier', new Set([new Carriage('front'), new Carriage('back')])) as any,
+        s7: new Train(
+          100,
+          'yellow',
+          'Bombardier',
+          new Set([new Carriage('front'), new Carriage('back')])
+        ) as any,
       });
-      
+
       expect(json).toEqual({
         s7: {
           topSpeed: 100,
           color: 'yellow',
           brand: 'Bombardier',
-          carriages: [
-            { name: 'front' },
-            { name: 'back' },
-          ],
+          carriages: [{ name: 'front' }, { name: 'back' }],
         },
       });
 
       expect(meta).toEqual({
         v: 1,
         values: {
-          s7: [['class', 'Train'], { carriages: ["set", { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] }] }],
+          s7: [
+            ['class', 'Train'],
+            {
+              carriages: [
+                'set',
+                { 0: [['class', 'Carriage']], 1: [['class', 'Carriage']] },
+              ],
+            },
+          ],
         },
       });
 
@@ -1362,7 +1635,9 @@ test('doesnt iterate to keys that dont exist', () => {
 test('deserialize in place', () => {
   const serialized = SuperJSON.serialize({ a: new Date() });
   const deserializedCopy = SuperJSON.deserialize(serialized);
-  const deserializedInPlace = SuperJSON.deserialize(serialized, { inPlace: true });
+  const deserializedInPlace = SuperJSON.deserialize(serialized, {
+    inPlace: true,
+  });
   expect(deserializedInPlace).toBe(serialized.json);
   expect(deserializedCopy).not.toBe(serialized.json);
   expect(deserializedCopy).toEqual(deserializedInPlace);

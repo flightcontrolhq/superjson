@@ -13,6 +13,8 @@ import {
   isTypedArray,
   TypedArrayConstructor,
   isURL,
+  isTemporal,
+  TemporalConstructor,
 } from './is.js';
 import { findArr } from './util.js';
 import SuperJSON from './index.js';
@@ -22,6 +24,7 @@ export type PrimitiveTypeAnnotation = 'number' | 'undefined' | 'bigint';
 type LeafTypeAnnotation = PrimitiveTypeAnnotation | 'regexp' | 'Date' | 'URL';
 
 type TypedArrayAnnotation = ['typed-array', string];
+type TemporalTypeAnnotation = ['temporal', string];
 type ClassTypeAnnotation = ['class', string];
 type SymbolTypeAnnotation = ['symbol', string];
 type CustomTypeAnnotation = ['custom', string];
@@ -30,6 +33,7 @@ type SimpleTypeAnnotation = LeafTypeAnnotation | 'map' | 'set' | 'Error';
 
 type CompositeTypeAnnotation =
   | TypedArrayAnnotation
+  | TemporalTypeAnnotation
   | ClassTypeAnnotation
   | SymbolTypeAnnotation
   | CustomTypeAnnotation;
@@ -227,15 +231,16 @@ const constructorToName = [
 const typedArrayRule = compositeTransformation(
   isTypedArray,
   v => ['typed-array', v.constructor.name],
-  v => [...v].map(n => {
-    // Handle special float values that JSON.stringify converts to null
-    if (typeof n === 'number') {
-      if (Number.isNaN(n)) return 'NaN';
-      if (n === Infinity) return 'Infinity';
-      if (n === -Infinity) return '-Infinity';
-    }
-    return n;
-  }),
+  v =>
+    [...v].map(n => {
+      // Handle special float values that JSON.stringify converts to null
+      if (typeof n === 'number') {
+        if (Number.isNaN(n)) return 'NaN';
+        if (n === Infinity) return 'Infinity';
+        if (n === -Infinity) return '-Infinity';
+      }
+      return n;
+    }),
   (v, a) => {
     const ctor = constructorToName[a[1]];
 
@@ -252,6 +257,46 @@ const typedArrayRule = compositeTransformation(
     });
 
     return new ctor(values as number[]);
+  }
+);
+
+// Can not define temporalConstructorToName within global scope
+// as Temporal may be undefined (don't introduce breaking changes).
+// So lazily initialize array
+let temporalNameToConstructor: Record<string, TemporalConstructor> | undefined;
+const getTemporalConstructors = () => {
+  if (temporalNameToConstructor) return temporalNameToConstructor;
+  if (typeof Temporal === 'undefined') {
+    throw new Error('Temporal is not available in this runtime');
+  }
+  temporalNameToConstructor = [
+    Temporal.Duration,
+    Temporal.PlainDate,
+    Temporal.PlainDateTime,
+    Temporal.PlainMonthDay,
+    Temporal.PlainTime,
+    Temporal.PlainYearMonth,
+    Temporal.ZonedDateTime,
+    Temporal.Instant,
+  ].reduce<Record<string, TemporalConstructor>>((obj, ctor) => {
+    obj[ctor.name] = ctor;
+    return obj;
+  }, {});
+  return temporalNameToConstructor;
+};
+
+const temporalRule = compositeTransformation(
+  isTemporal,
+  t => ['temporal', t.constructor.name],
+  t => t.toString(),
+  (t, a) => {
+    const ctor = getTemporalConstructors()[a[1]];
+
+    if (!ctor) {
+      throw new Error('Trying to deserialize unknown temporal constructor');
+    }
+
+    return ctor.from(t);
   }
 );
 
@@ -326,7 +371,13 @@ const customRule = compositeTransformation(
   }
 );
 
-const compositeRules = [classRule, symbolRule, customRule, typedArrayRule];
+const compositeRules = [
+  classRule,
+  symbolRule,
+  customRule,
+  typedArrayRule,
+  temporalRule,
+];
 
 export const transformValue = (
   value: any,
@@ -376,6 +427,8 @@ export const untransformValue = (
         return customRule.untransform(json, type, superJson);
       case 'typed-array':
         return typedArrayRule.untransform(json, type, superJson);
+      case 'temporal':
+        return temporalRule.untransform(json, type, superJson);
       default:
         throw new Error('Unknown transformation: ' + type);
     }

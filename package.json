@@ -16,6 +16,7 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
+    "test:temporal": "node --harmony-temporal ./node_modules/vitest/vitest.mjs run",
     "prepack": "npm run build"
   },
   "prettier": {
@@ -54,7 +55,7 @@
     "decimal.js": "^10.3.1",
     "mongodb": "^3.6.6",
     "tsdx": "^0.14.1",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.2",
     "vitest": "^0.34.6"
   },
   "dependencies": {
