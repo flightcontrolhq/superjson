@@ -16,7 +16,7 @@ import {
 } from './transformer.js';
 import { includes, forEach } from './util.js';
 import { parsePath } from './pathstringifier.js';
-import { getDeep, setDeep } from './accessDeep.js';
+import { getDeep, setDeep, type AccessDeepContext } from './accessDeep.js';
 import SuperJSON from './index.js';
 
 type Tree<T> = InnerNode<T> | Leaf<T>;
@@ -65,12 +65,19 @@ export function applyValueAnnotations(
   plain: any,
   annotations: MinimisedTree<TypeAnnotation>,
   version: number,
-  superJson: SuperJSON
+  superJson: SuperJSON,
+  context: AccessDeepContext
 ) {
   traverse(
     annotations,
     (type, path) => {
-      plain = setDeep(plain, path, v => untransformValue(v, type, superJson));
+      plain = setDeep(
+        plain,
+        path,
+        (v, mapperContext) =>
+          untransformValue(v, type, superJson, mapperContext),
+        context
+      );
     },
     version
   );
@@ -81,16 +88,17 @@ export function applyValueAnnotations(
 export function applyReferentialEqualityAnnotations(
   plain: any,
   annotations: ReferentialEqualityAnnotations,
-  version: number
+  version: number,
+  context: AccessDeepContext
 ) {
   const legacyPaths = enableLegacyPaths(version);
   function apply(identicalPaths: string[], path: string) {
-    const object = getDeep(plain, parsePath(path, legacyPaths));
+    const object = getDeep(plain, parsePath(path, legacyPaths), context);
 
     identicalPaths
       .map(path => parsePath(path, legacyPaths))
       .forEach(identicalObjectPath => {
-        plain = setDeep(plain, identicalObjectPath, () => object);
+        plain = setDeep(plain, identicalObjectPath, () => object, context);
       });
   }
 
@@ -100,7 +108,8 @@ export function applyReferentialEqualityAnnotations(
       plain = setDeep(
         plain,
         parsePath(identicalPath, legacyPaths),
-        () => plain
+        () => plain,
+        context
       );
     });
 

@@ -11,6 +11,7 @@ import {
   generateReferentialEqualityAnnotations,
   walker,
 } from './plainer.js';
+import { type AccessDeepContext } from './accessDeep.js';
 import { copy } from 'copy-anything';
 
 export default class SuperJSON {
@@ -65,15 +66,18 @@ export default class SuperJSON {
 
     let result: T = options?.inPlace ? json : copy(json) as any;
 
+    const context: AccessDeepContext = new WeakMap();
+
     if (meta?.values) {
-      result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this);
+      result = applyValueAnnotations(result, meta.values, meta.v ?? 0, this, context);
     }
 
     if (meta?.referentialEqualities) {
       result = applyReferentialEqualityAnnotations(
         result,
         meta.referentialEqualities,
-        meta.v ?? 0
+        meta.v ?? 0,
+        context
       );
     }
 

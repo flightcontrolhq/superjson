@@ -1,15 +1,33 @@
 import { isMap, isArray, isPlainObject, isSet } from './is.js';
 import { includes } from './util.js';
 
-const getNthKey = (value: Map<any, any> | Set<any>, n: number): any => {
-  if (n > value.size) throw new Error('index out of bounds');
-  const keys = value.keys();
-  while (n > 0) {
-    keys.next();
-    n--;
+export type AccessDeepContext = WeakMap<object, any[]>;
+
+const getIndexedKeys = (
+  value: Map<any, any> | Set<any>,
+  context: AccessDeepContext
+): any[] => {
+  let indexed = context.get(value);
+  if (!indexed) {
+    indexed = Array.from(value.keys());
+    context.set(value, indexed);
   }
 
-  return keys.next().value;
+  return indexed;
+};
+
+const getNthKey = (
+  value: Map<any, any> | Set<any>,
+  n: number,
+  context: AccessDeepContext
+): any => {
+  const indexed = getIndexedKeys(value, context);
+
+  if (!Number.isInteger(n) || n < 0 || n >= indexed.length) {
+    throw new Error('index out of bounds');
+  }
+
+  return indexed[n];
 };
 
 function validatePath(path: (string | number)[]) {
@@ -24,18 +42,22 @@ function validatePath(path: (string | number)[]) {
   }
 }
 
-export const getDeep = (object: object, path: (string | number)[]): object => {
+export const getDeep = (
+  object: object,
+  path: (string | number)[],
+  context: AccessDeepContext
+): object => {
   validatePath(path);
 
   for (let i = 0; i < path.length; i++) {
     const key = path[i];
     if (isSet(object)) {
-      object = getNthKey(object, +key);
+      object = getNthKey(object, +key, context);
     } else if (isMap(object)) {
       const row = +key;
       const type = +path[++i] === 0 ? 'key' : 'value';
 
-      const keyOfRow = getNthKey(object, row);
+      const keyOfRow = getNthKey(object, row, context);
       switch (type) {
         case 'key':
           object = keyOfRow;
@@ -55,12 +77,13 @@ export const getDeep = (object: object, path: (string | number)[]): object => {
 export const setDeep = (
   object: any,
   path: (string | number)[],
-  mapper: (v: any) => any
+  mapper: (v: any, context: AccessDeepContext) => any,
+  context: AccessDeepContext
 ): any => {
   validatePath(path);
 
   if (path.length === 0) {
-    return mapper(object);
+    return mapper(object, context);
   }
 
   let parent = object;
@@ -75,7 +98,7 @@ export const setDeep = (
       parent = parent[key];
     } else if (isSet(parent)) {
       const row = +key;
-      parent = getNthKey(parent, row);
+      parent = getNthKey(parent, row, context);
     } else if (isMap(parent)) {
       const isEnd = i === path.length - 2;
       if (isEnd) {
@@ -85,7 +108,7 @@ export const setDeep = (
       const row = +key;
       const type = +path[++i] === 0 ? 'key' : 'value';
 
-      const keyOfRow = getNthKey(parent, row);
+      const keyOfRow = getNthKey(parent, row, context);
       switch (type) {
         case 'key':
           parent = keyOfRow;
@@ -100,38 +123,62 @@ export const setDeep = (
   const lastKey = path[path.length - 1];
 
   if (isArray(parent)) {
-    parent[+lastKey] = mapper(parent[+lastKey]);
+    const oldValue = parent[+lastKey];
+    const newValue = mapper(oldValue, context);
+    parent[+lastKey] = newValue;
   } else if (isPlainObject(parent)) {
-    parent[lastKey] = mapper(parent[lastKey]);
+    const oldValue = parent[lastKey];
+    const newValue = mapper(oldValue, context);
+    parent[lastKey] = newValue;
   }
 
   if (isSet(parent)) {
-    const oldValue = getNthKey(parent, +lastKey);
-    const newValue = mapper(oldValue);
+    const row = +lastKey;
+    const indexed = getIndexedKeys(parent, context);
+    if (!Number.isInteger(row) || row < 0 || row >= indexed.length) {
+      throw new Error('index out of bounds');
+    }
+    const oldValue = indexed[row];
+
+    const newValue = mapper(oldValue, context);
+
     if (oldValue !== newValue) {
-      parent.delete(oldValue);
+      if (row < parent.size) {
+        parent.delete(oldValue);
+      }
       parent.add(newValue);
+      indexed[row] = newValue;
     }
   }
 
   if (isMap(parent)) {
     const row = +path[path.length - 2];
-    const keyToRow = getNthKey(parent, row);
+    const indexed = getIndexedKeys(parent, context);
+    if (!Number.isInteger(row) || row < 0 || row >= indexed.length) {
+      throw new Error('index out of bounds');
+    }
 
     const type = +lastKey === 0 ? 'key' : 'value';
+    const keyToRow = indexed[row];
+    const isVirtualRow = row >= parent.size;
+
     switch (type) {
       case 'key': {
-        const newKey = mapper(keyToRow);
+        const newKey = mapper(keyToRow, context);
         parent.set(newKey, parent.get(keyToRow));
 
-        if (newKey !== keyToRow) {
+        if (!isVirtualRow && newKey !== keyToRow) {
           parent.delete(keyToRow);
         }
+
+        indexed[row] = newKey;
         break;
       }
 
       case 'value': {
-        parent.set(keyToRow, mapper(parent.get(keyToRow)));
+        const oldValue = parent.get(keyToRow);
+        const newValue = mapper(oldValue, context);
+        parent.set(keyToRow, newValue);
         break;
       }
     }
